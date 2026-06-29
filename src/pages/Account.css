@@ -1,0 +1,100 @@
+.account-container {
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.text-blue {
+  color: var(--accent-blue);
+}
+
+.account-content {
+  margin-top: 1.5rem;
+}
+
+.account-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: 20px;
+  padding: 2.5rem;
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.form-section {
+  margin-bottom: 2.5rem;
+}
+
+.form-section:last-of-type {
+  margin-bottom: 0;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.avatar-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.avatar-option {
+  width: 70px;
+  height: 70px;
+  border-radius: 16px;
+  background-color: var(--bg-dark);
+  border: 2px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.avatar-option:hover {
+  border-color: var(--theme-color);
+  color: var(--theme-color);
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px var(--theme-glow);
+}
+
+.avatar-option.selected {
+  border-color: var(--theme-color);
+  color: var(--theme-color);
+  background-color: var(--bg-active-menu);
+  box-shadow: 0 0 20px var(--theme-glow);
+}
+
+.avatar-check {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background-color: var(--accent-blue);
+  color: white;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+@media (max-width: 600px) {
+  .avatar-grid {
+    gap: 1rem;
+  }
+  .avatar-option {
+    width: 60px;
+    height: 60px;
+  }
+}
