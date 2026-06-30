@@ -8,6 +8,8 @@ const Calls = () => {
   const [calls, setCalls] = useState([]);
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [editingCell, setEditingCell] = useState(null); // { callId, field, value }
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, type: 'status', callId: null, field: '', oldValue: '', newValue: '' });
@@ -67,6 +69,15 @@ const Calls = () => {
         if (filter === 'month') {
           return callDate.getMonth() === now.getMonth() && callDate.getFullYear() === now.getFullYear();
         }
+
+        if (filter === 'custom' && customStartDate && customEndDate) {
+          const start = new Date(customStartDate);
+          start.setHours(0, 0, 0, 0);
+          const end = new Date(customEndDate);
+          end.setHours(23, 59, 59, 999);
+          return callDate >= start && callDate <= end;
+        }
+
         return true;
       });
     }
@@ -290,7 +301,29 @@ const Calls = () => {
               />
               <span>الشهر</span>
             </label>
+            <label className="filter-radio">
+              <input
+                type="radio"
+                name="timeFilter"
+                value="custom"
+                checked={filter === 'custom'}
+                onChange={(e) => setFilter(e.target.value)}
+              />
+              <span>فترة مخصصة</span>
+            </label>
           </div>
+          {filter === 'custom' && (
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', padding: '1rem', backgroundColor: 'var(--bg-color)', borderRadius: '12px', border: '1px solid var(--border-color)', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <label style={{ color: 'var(--text-secondary)', fontWeight: 'bold' }}>من:</label>
+                <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} className="search-input" style={{ width: 'auto', padding: '0.5rem' }} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <label style={{ color: 'var(--text-secondary)', fontWeight: 'bold' }}>إلى:</label>
+                <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} className="search-input" style={{ width: 'auto', padding: '0.5rem' }} />
+              </div>
+            </div>
+          )}
         </div>
 
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { UploadCloud, Users, Activity } from 'lucide-react';
+import { UploadCloud, Users, Activity, DownloadCloud } from 'lucide-react';
 
 const AdminNavBar = () => {
   const location = useLocation();
@@ -9,7 +9,9 @@ const AdminNavBar = () => {
   const links = [
     { path: '/handleAdminAdd', label: 'رفع التقارير المجمعة', icon: UploadCloud },
     { path: '/handleAdmin', label: 'سجل المندوبين المجمع', icon: Users },
-    { path: '/handleAdminReports', label: 'سجل المراقبة المجمع', icon: Activity }
+    { path: '/handleAdminReports', label: 'سجل المراقبة المجمع', icon: Activity },
+    { path: '/handleAdminPerformance', label: 'سجل مراقبة الأداء', icon: Activity },
+    { path: '/handleAdminExport', label: 'تصدير التقارير', icon: DownloadCloud }
   ];
 
   return (

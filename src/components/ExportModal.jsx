@@ -3,11 +3,21 @@ import ReactDOM from 'react-dom';
 
 const ExportModal = ({ isOpen, onClose, onExport, title }) => {
   const [filterType, setFilterType] = useState('today');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   if (!isOpen) return null;
 
   const handleExport = () => {
-    onExport(filterType);
+    if (filterType === 'custom') {
+      if (!startDate || !endDate) {
+        alert("يرجى اختيار تاريخ البداية والنهاية");
+        return;
+      }
+      onExport(filterType, startDate, endDate);
+    } else {
+      onExport(filterType);
+    }
     onClose();
   };
 
@@ -24,7 +34,7 @@ const ExportModal = ({ isOpen, onClose, onExport, title }) => {
             اختر الفترة الزمنية التي تريد تحميل تقاريرها:
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            {['today', 'yesterday', 'week', 'month', 'all'].map(type => (
+            {['today', 'yesterday', 'week', 'month', 'all', 'custom'].map(type => (
               <button
                 key={type}
                 type="button"
@@ -38,7 +48,7 @@ const ExportModal = ({ isOpen, onClose, onExport, title }) => {
                   fontWeight: '600',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
-                  gridColumn: type === 'all' ? '1 / -1' : 'auto',
+                  gridColumn: type === 'all' || type === 'custom' ? '1 / -1' : 'auto',
                   boxShadow: filterType === type ? '0 0 15px var(--theme-glow)' : 'none'
                 }}
               >
@@ -47,9 +57,49 @@ const ExportModal = ({ isOpen, onClose, onExport, title }) => {
                 {type === 'week' && 'آخر 7 أيام'}
                 {type === 'month' && 'هذا الشهر'}
                 {type === 'all' && 'الكل (جميع السجلات)'}
+                {type === 'custom' && 'فترة مخصصة (من - إلى)'}
               </button>
             ))}
           </div>
+
+          {filterType === 'custom' && (
+            <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem' }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>من:</label>
+                <input 
+                  type="date" 
+                  value={startDate} 
+                  onChange={e => setStartDate(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.8rem',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-color)',
+                    backgroundColor: 'var(--bg-color)',
+                    color: 'var(--text-primary)',
+                    fontFamily: 'inherit'
+                  }}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>إلى:</label>
+                <input 
+                  type="date" 
+                  value={endDate} 
+                  onChange={e => setEndDate(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.8rem',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-color)',
+                    backgroundColor: 'var(--bg-color)',
+                    color: 'var(--text-primary)',
+                    fontFamily: 'inherit'
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="form-actions">

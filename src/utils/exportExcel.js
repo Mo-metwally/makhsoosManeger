@@ -19,10 +19,21 @@ const formatDuration = (ms) => {
   return `${minutes} دقيقة`;
 };
 
-const getFilteredData = (data, filterType, dateField) => {
+const getFilteredData = (data, filterType, dateField, startDate, endDate) => {
   const now = new Date();
 
   if (filterType === 'all') return data;
+
+  if (filterType === 'custom' && startDate && endDate) {
+    return data.filter(item => {
+      const itemDate = new Date(item[dateField]);
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      return itemDate >= start && itemDate <= end;
+    });
+  }
 
   return data.filter(item => {
     const itemDate = new Date(item[dateField]);
@@ -50,9 +61,9 @@ const getFilteredData = (data, filterType, dateField) => {
   });
 };
 
-const getCallsSheet = (filterType) => {
+const getCallsSheet = (filterType, startDate, endDate) => {
   const allCalls = JSON.parse(localStorage.getItem('call_reports') || '[]');
-  const filteredCalls = getFilteredData(allCalls, filterType, 'createdAt');
+  const filteredCalls = getFilteredData(allCalls, filterType, 'createdAt', startDate, endDate);
   const userName = localStorage.getItem('userName') || 'المشرف';
 
   const callsData = filteredCalls.map(call => ({
@@ -110,9 +121,9 @@ const getCallsSheet = (filterType) => {
   return wsCalls;
 };
 
-const getLogsSheet = (filterType, userName) => {
+const getLogsSheet = (filterType, userName, startDate, endDate) => {
   const allLogs = JSON.parse(localStorage.getItem('inactivity_logs') || '[]');
-  const filteredLogs = getFilteredData(allLogs, filterType, 'startTime');
+  const filteredLogs = getFilteredData(allLogs, filterType, 'startTime', startDate, endDate);
 
   const logsData = filteredLogs.map(log => ({
     'ISO_DATE': new Date(log.startTime).toISOString(),
@@ -142,12 +153,48 @@ const getLogsSheet = (filterType, userName) => {
   return wsLogs;
 };
 
-export const exportToExcel = async (filterType = 'today') => {
+const getPerformanceSheet = (filterType, userName, startDate, endDate) => {
+  const allLogs = JSON.parse(localStorage.getItem('performance_logs') || '[]');
+  const filteredLogs = getFilteredData(allLogs, filterType, 'timestamp', startDate, endDate);
+
+  const formatDate = (dateStr) => {
+    try {
+      const d = new Date(dateStr);
+      return new Intl.DateTimeFormat('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(d);
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const performanceData = [];
+  filteredLogs.forEach(log => {
+    const rowData = {
+      'التاريخ': formatDate(log.date),
+      'اسم المشرف': userName,
+      'المهمة': log.tasks || 'لا توجد',
+      'عدد المكالمات': log.manualCallsCount || 0,
+    };
+    
+    if (log.notesList && Array.isArray(log.notesList)) {
+      log.notesList.forEach((note, index) => {
+        rowData[`ملاحظة ${index + 1}`] = note || 'لا توجد ملاحظة';
+      });
+    }
+    performanceData.push(rowData);
+  });
+
+  const wsPerf = XLSX.utils.json_to_sheet(performanceData.length ? performanceData : [{ 'رسالة': 'لا توجد تقارير أداء مسجلة' }]);
+  wsPerf['!dir'] = 'rtl';
+  return wsPerf;
+};
+
+export const exportToExcel = async (filterType = 'today', startDate, endDate) => {
   const todayStr = getLocalDateString();
   const userName = localStorage.getItem('userName') || 'المشرف';
 
-  const wsCalls = getCallsSheet(filterType);
-  const wsLogs = getLogsSheet(filterType, userName);
+  const wsCalls = getCallsSheet(filterType, startDate, endDate);
+  const wsLogs = getLogsSheet(filterType, userName, startDate, endDate);
+  const wsPerf = getPerformanceSheet(filterType, userName, startDate, endDate);
 
   const wbCalls = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wbCalls, wsCalls, "سجل المكالمات");
@@ -155,18 +202,23 @@ export const exportToExcel = async (filterType = 'today') => {
   const wbLogs = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wbLogs, wsLogs, "فترات الخمول والراحة");
 
+  const wbPerf = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wbPerf, wsPerf, "تقرير الأداء");
+
   const callsBuffer = XLSX.write(wbCalls, { bookType: 'xlsx', type: 'array' });
   const logsBuffer = XLSX.write(wbLogs, { bookType: 'xlsx', type: 'array' });
+  const perfBuffer = XLSX.write(wbPerf, { bookType: 'xlsx', type: 'array' });
 
   const blobWriter = new zip.BlobWriter("application/zip");
   const zipWriter = new zip.ZipWriter(blobWriter, { password: "65410" });
 
   await zipWriter.add("سجل_المكالمات.xlsx", new zip.Uint8ArrayReader(new Uint8Array(callsBuffer)));
-  await zipWriter.add("report.xlsx", new zip.Uint8ArrayReader(new Uint8Array(logsBuffer)));
+  await zipWriter.add("فترات_الخمول_والراحة.xlsx", new zip.Uint8ArrayReader(new Uint8Array(logsBuffer)));
+  await zipWriter.add("تقرير_الأداء.xlsx", new zip.Uint8ArrayReader(new Uint8Array(perfBuffer)));
 
   const zipBlob = await zipWriter.close();
 
-  const fileName = `تقرير_${userName}_${filterType}_${todayStr}.zip`;
+  const fileName = `تقرير_شامل_${userName}_${filterType}_${todayStr}.zip`;
   const url = URL.createObjectURL(zipBlob);
   const a = document.createElement('a');
   a.href = url;
@@ -177,10 +229,10 @@ export const exportToExcel = async (filterType = 'today') => {
   URL.revokeObjectURL(url);
 };
 
-export const exportCallsOnly = (filterType = 'today') => {
+export const exportCallsOnly = (filterType = 'today', startDate, endDate) => {
   const todayStr = getLocalDateString();
   const userName = localStorage.getItem('userName') || 'المشرف';
-  const wsCalls = getCallsSheet(filterType);
+  const wsCalls = getCallsSheet(filterType, startDate, endDate);
 
   const wbCalls = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wbCalls, wsCalls, "سجل المكالمات");
@@ -315,7 +367,28 @@ export const getAdminLogsSheet = (filteredData) => {
   return wsLogs;
 };
 
-export const exportAdminData = async (exportType, filteredCalls, filteredLogs) => {
+export const getAdminPerformanceSheet = (filteredData) => {
+  const perfData = filteredData.map(log => {
+    const row = {
+      'اسم المشرف': log.supervisorName || '-',
+      'التاريخ': log.date || '-',
+      'عدد المكالمات': log.manualCallsCount || 0,
+      'المهمة': log.tasks || 'لا توجد'
+    };
+    if (log.notesList && Array.isArray(log.notesList)) {
+      log.notesList.forEach((note, index) => {
+        row[`ملاحظة ${index + 1}`] = note || 'لا توجد ملاحظة';
+      });
+    }
+    return row;
+  });
+
+  const wsPerf = XLSX.utils.json_to_sheet(perfData.length ? perfData : [{ 'رسالة': 'لا توجد تقارير أداء' }]);
+  wsPerf['!dir'] = 'rtl';
+  return wsPerf;
+};
+
+export const exportAdminData = async (exportType, filteredCalls, filteredLogs, filteredPerf) => {
   const todayStr = getLocalDateString();
   const fileNameBase = `تقرير_الإدارة_الشامل_${todayStr}`;
 
@@ -331,9 +404,16 @@ export const exportAdminData = async (exportType, filteredCalls, filteredLogs) =
     XLSX.utils.book_append_sheet(wb, wsLogs, "سجل المراقبة المجمع");
     XLSX.writeFile(wb, `${fileNameBase}_مراقبة.xlsx`);
   }
-  else if (exportType === 'both_zip') {
+  else if (exportType === 'perf_only') {
+    const wsPerf = getAdminPerformanceSheet(filteredPerf);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, wsPerf, "سجل الأداء المجمع");
+    XLSX.writeFile(wb, `${fileNameBase}_الأداء.xlsx`);
+  }
+  else if (exportType === 'all_zip') {
     const wsCalls = getAdminCallsSheet(filteredCalls);
     const wsLogs = getAdminLogsSheet(filteredLogs);
+    const wsPerf = getAdminPerformanceSheet(filteredPerf);
 
     const wbCalls = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wbCalls, wsCalls, "سجل المكالمات المجمع");
@@ -341,15 +421,20 @@ export const exportAdminData = async (exportType, filteredCalls, filteredLogs) =
     const wbLogs = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wbLogs, wsLogs, "سجل المراقبة المجمع");
 
+    const wbPerf = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wbPerf, wsPerf, "سجل الأداء المجمع");
+
     const callsBuffer = XLSX.write(wbCalls, { bookType: 'xlsx', type: 'array' });
     const logsBuffer = XLSX.write(wbLogs, { bookType: 'xlsx', type: 'array' });
+    const perfBuffer = XLSX.write(wbPerf, { bookType: 'xlsx', type: 'array' });
 
     const blobWriter = new zip.BlobWriter("application/zip");
     // Without password for admin
     const zipWriter = new zip.ZipWriter(blobWriter);
 
     await zipWriter.add("سجل_المكالمات_المجمع.xlsx", new zip.Uint8ArrayReader(new Uint8Array(callsBuffer)));
-    await zipWriter.add("سجل_المراقبة_المجمع.xlsx", new zip.Uint8ArrayReader(new Uint8Array(logsBuffer)));
+    await zipWriter.add("سجل_النشاط_والخمول_المجمع.xlsx", new zip.Uint8ArrayReader(new Uint8Array(logsBuffer)));
+    await zipWriter.add("سجل_الأداء_المجمع.xlsx", new zip.Uint8ArrayReader(new Uint8Array(perfBuffer)));
 
     const zipBlob = await zipWriter.close();
 

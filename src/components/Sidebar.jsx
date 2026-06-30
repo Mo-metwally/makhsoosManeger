@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import ExportModal from './ExportModal';
-import { Home, Phone, User, Users, Activity, Shield, Cat, Crown, Star, Smile, Briefcase, Download, Flame, Zap, Heart, Moon } from 'lucide-react';
+import { Home, Phone, User, Users, Activity, Shield, Cat, Crown, Star, Smile, Briefcase, Download, Flame, Zap, Heart, Moon, FileText, History } from 'lucide-react';
 import { exportToExcel } from '../utils/exportExcel';
 import './Sidebar.css';
 
@@ -114,6 +114,18 @@ const Sidebar = () => {
             <NavLink to="/monitoring" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
               <Activity size={20} />
               <span>المتابعة</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/summery" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
+              <FileText size={20} />
+              <span>الملخص</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/performance-log" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
+              <History size={20} />
+              <span>سجل الأداء</span>
             </NavLink>
           </li>
           <li>

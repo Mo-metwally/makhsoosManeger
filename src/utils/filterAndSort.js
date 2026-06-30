@@ -1,4 +1,25 @@
-export const applyFiltersAndSort = (data, { timeFilter, supervisorFilter, searchQuery, sortBy }, isLogs = false) => {
+export const parseArabicDate = (arStr) => {
+  if (!arStr) return new Date().toISOString();
+  const months = { 'يناير':1, 'فبراير':2, 'مارس':3, 'أبريل':4, 'مايو':5, 'يونيو':6, 'يوليو':7, 'أغسطس':8, 'سبتمبر':9, 'أكتوبر':10, 'نوفمبر':11, 'ديسمبر':12 };
+  let day = new Date().getDate();
+  let year = new Date().getFullYear();
+  let month = new Date().getMonth() + 1;
+  
+  const normalizeArabicNumerals = (str) => str.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+  const normStr = normalizeArabicNumerals(String(arStr));
+  
+  const numMatch = normStr.match(/\d+/g);
+  if (numMatch && numMatch.length >= 1) {
+    day = parseInt(numMatch[0]);
+    if (numMatch.length >= 2) year = parseInt(numMatch[numMatch.length - 1]);
+  }
+  for (const [mName, mNum] of Object.entries(months)) {
+    if (normStr.includes(mName)) { month = mNum; break; }
+  }
+  return new Date(year, month - 1, day).toISOString();
+};
+
+export const applyFiltersAndSort = (data, { timeFilter, supervisorFilter, searchQuery, sortBy, customStartDate, customEndDate }, isLogs = false) => {
   let filtered = [...data];
   const now = new Date();
   
@@ -20,6 +41,13 @@ export const applyFiltersAndSort = (data, { timeFilter, supervisorFilter, search
       if (timeFilter === 'month') {
         return itemDate.getMonth() === now.getMonth() && itemDate.getFullYear() === now.getFullYear();
       }
+      if (timeFilter === 'custom' && customStartDate && customEndDate) {
+        const start = new Date(customStartDate);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(customEndDate);
+        end.setHours(23, 59, 59, 999);
+        return itemDate >= start && itemDate <= end;
+      }
       return true;
     });
   }
@@ -33,7 +61,8 @@ export const applyFiltersAndSort = (data, { timeFilter, supervisorFilter, search
     filtered = filtered.filter(item => {
       if (isLogs) {
         return (item.supervisorName && item.supervisorName.toLowerCase().includes(lowerQuery)) ||
-               (item.type && item.type.toLowerCase().includes(lowerQuery));
+               (item.type && item.type.toLowerCase().includes(lowerQuery)) ||
+               (item.tasks && item.tasks.toLowerCase().includes(lowerQuery));
       } else {
         return (item.agentName && item.agentName.toLowerCase().includes(lowerQuery)) ||
                (item.phone && item.phone.includes(lowerQuery)) ||

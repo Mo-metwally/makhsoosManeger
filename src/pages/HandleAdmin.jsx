@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Phone, Search, Download, Trash2, PhoneCall, ChevronRight, ChevronLeft } from 'lucide-react';
-import { exportCallsOnly } from '../utils/exportExcel';
+import { Calendar, Phone, Search, Trash2, PhoneCall, ChevronRight, ChevronLeft } from 'lucide-react';
 import AdminGuard from '../components/AdminGuard';
 import CustomSelect from '../components/CustomSelect';
-import AdminExportModal from '../components/AdminExportModal';
 import { applyFiltersAndSort } from '../utils/filterAndSort';
 import './Calls.css'; // Reuse Calls styles
 
@@ -11,10 +9,11 @@ const HandleAdmin = () => {
   const [calls, setCalls] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [timeFilter, setTimeFilter] = useState('all');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
   const [supervisorFilter, setSupervisorFilter] = useState('all');
   const [sortBy, setSortBy] = useState('date_desc');
   const [currentPage, setCurrentPage] = useState(1);
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const ITEMS_PER_PAGE = 6;
 
   useEffect(() => {
@@ -28,7 +27,7 @@ const HandleAdmin = () => {
   // Reset page when search or filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, timeFilter, supervisorFilter, sortBy]);
+  }, [searchQuery, timeFilter, supervisorFilter, sortBy, customStartDate, customEndDate]);
 
   const handleClearData = () => {
     if (window.confirm('هل أنت متأكد من رغبتك في مسح كافة البيانات المجمعة؟ هذا الإجراء لا يمكن التراجع عنه.')) {
@@ -39,7 +38,7 @@ const HandleAdmin = () => {
 
   const uniqueSupervisors = Array.from(new Set(calls.map(c => c.supervisorName).filter(Boolean)));
 
-  const filteredCalls = applyFiltersAndSort(calls, { timeFilter, supervisorFilter, searchQuery, sortBy }, false);
+  const filteredCalls = applyFiltersAndSort(calls, { timeFilter, supervisorFilter, searchQuery, sortBy, customStartDate, customEndDate }, false);
   const totalPages = Math.ceil(filteredCalls.length / ITEMS_PER_PAGE);
   const currentCalls = filteredCalls.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
@@ -82,7 +81,7 @@ const HandleAdmin = () => {
           
           {/* Time Filters */}
           <div className="admin-filter-group">
-            {['all', 'today', 'yesterday', 'week', 'month'].map(val => (
+            {['all', 'today', 'yesterday', 'week', 'month', 'custom'].map(val => (
               <div className="admin-filter-radio" key={val}>
                 <label>
                   <input 
@@ -92,12 +91,25 @@ const HandleAdmin = () => {
                     checked={timeFilter === val} 
                     onChange={(e) => setTimeFilter(e.target.value)} 
                   /> 
-                  <span>{val === 'all' ? 'الكل' : val === 'today' ? 'اليوم' : val === 'yesterday' ? 'أمس' : val === 'week' ? 'الأسبوع' : 'الشهر'}</span>
+                  <span>{val === 'all' ? 'الكل' : val === 'today' ? 'اليوم' : val === 'yesterday' ? 'أمس' : val === 'week' ? 'الأسبوع' : val === 'month' ? 'الشهر' : 'فترة مخصصة'}</span>
                   {timeFilter === val && <div className="radio-bg"></div>}
                 </label>
               </div>
             ))}
           </div>
+
+          {timeFilter === 'custom' && (
+            <div style={{ display: 'flex', gap: '1rem', padding: '1rem', backgroundColor: 'var(--bg-color)', borderRadius: '12px', border: '1px solid var(--border-color)', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <label style={{ color: 'var(--text-secondary)', fontWeight: 'bold' }}>من:</label>
+                <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} className="search-input" style={{ width: 'auto', padding: '0.5rem' }} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <label style={{ color: 'var(--text-secondary)', fontWeight: 'bold' }}>إلى:</label>
+                <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} className="search-input" style={{ width: 'auto', padding: '0.5rem' }} />
+              </div>
+            </div>
+          )}
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
             <div className="search-bar" style={{ flex: 1, minWidth: '250px', maxWidth: '400px', margin: 0 }}>
@@ -134,22 +146,6 @@ const HandleAdmin = () => {
             />
             
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button
-                className="btn-save"
-                onClick={() => setIsExportModalOpen(true)}
-                title="تحميل تقرير شامل"
-                style={{ 
-                  display: 'flex', alignItems: 'center', gap: '8px', 
-                  padding: '0.8rem 1.5rem', border: 'none', borderRadius: '12px', 
-                  cursor: 'pointer', fontWeight: 'bold',
-                  backgroundColor: 'rgba(34, 197, 94, 0.1)', color: '#22c55e',
-                  margin: 0
-                }}
-              >
-                <Download size={18} />
-                <span>تحميل التقرير</span>
-              </button>
-
               <button
                 className="btn-save"
                 onClick={handleClearData}
@@ -264,12 +260,6 @@ const HandleAdmin = () => {
           )}
         </div>
       </div>
-
-      <AdminExportModal 
-        isOpen={isExportModalOpen} 
-        onClose={() => setIsExportModalOpen(false)} 
-        filters={{ timeFilter, supervisorFilter, searchQuery, sortBy }}
-      />
     </AdminGuard>
   );
 };
