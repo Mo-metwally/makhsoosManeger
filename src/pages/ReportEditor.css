@@ -1,0 +1,144 @@
+/* 
+===============================================
+  REPORT EDITOR - THEME COMPATIBLE STYLE
+=============================================== 
+*/
+
+.report-editor-container {
+  padding: 3rem 4rem;
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-radius: 1rem;
+  background: radial-gradient(circle at top right, var(--theme-glow), transparent 40%);
+  animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page-header {
+  margin-bottom: 3rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  text-align: right;
+}
+
+.page-header h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--theme-color) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 40px var(--theme-glow);
+  display: inline-block;
+}
+
+.page-header p {
+  color: var(--text-secondary);
+  font-size: 1.15rem;
+  margin-top: 0.5rem;
+}
+
+.reports-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.report-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.report-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--theme-color), transparent);
+  opacity: 0.3;
+}
+
+.report-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 20px var(--theme-glow);
+  border-color: var(--theme-color);
+  background: var(--glass-bg-hover);
+}
+
+.report-icon {
+  margin-bottom: 1.5rem;
+  padding: 1.2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+.report-card:hover .report-icon {
+  transform: scale(1.1) translateY(-5px);
+}
+
+.report-card h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  transition: color 0.3s ease;
+}
+
+.report-card:hover h2 {
+  color: var(--theme-color);
+}
+
+/* Specific Card Colors - Adapted to Theme when hovered */
+.report-card.red .report-icon { 
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.2) 100%);
+  color: #ef4444; 
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+}
+.report-card.red:hover { border-color: #ef4444; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5), 0 0 20px rgba(239, 68, 68, 0.2); }
+.report-card.red:hover h2 { color: #ef4444; }
+
+.report-card.green .report-icon { 
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.2) 100%);
+  color: #22c55e; 
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.2);
+}
+.report-card.green:hover { border-color: #22c55e; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5), 0 0 20px rgba(34, 197, 94, 0.2); }
+.report-card.green:hover h2 { color: #22c55e; }
+
+.report-card.blue .report-icon { 
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(37, 99, 235, 0.2) 100%);
+  color: #3b82f6; 
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+}
+.report-card.blue:hover { border-color: #3b82f6; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5), 0 0 20px rgba(59, 130, 246, 0.2); }
+.report-card.blue:hover h2 { color: #3b82f6; }
+
+.report-card.gray .report-icon { 
+  background: linear-gradient(135deg, rgba(148, 163, 184, 0.1) 0%, rgba(100, 116, 139, 0.2) 100%);
+  color: #94a3b8; 
+  box-shadow: 0 0 15px rgba(148, 163, 184, 0.1);
+}
+.report-card.gray:hover { border-color: #94a3b8; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5), 0 0 20px rgba(148, 163, 184, 0.1); }
+.report-card.gray:hover h2 { color: #94a3b8; }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import ExportModal from './ExportModal';
-import { Home, Phone, User, Users, Activity, Shield, Cat, Crown, Star, Smile, Briefcase, Download, Flame, Zap, Heart, Moon, FileText, History } from 'lucide-react';
+import { Home, Phone, User, Users, Activity, Shield, Cat, Crown, Star, Smile, Briefcase, Download, Flame, Zap, Heart, Moon, FileText, History, Summary, Menu } from 'lucide-react';
 import { exportToExcel } from '../utils/exportExcel';
 import './Sidebar.css';
 
@@ -67,6 +67,7 @@ const Sidebar = () => {
   });
 
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   const loadProfile = () => {
     setProfile({
@@ -85,15 +86,24 @@ const Sidebar = () => {
   const AvatarIcon = avatarMap[profile.avatar] || User;
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? '' : 'closed'}`}>
       <div className="sidebar-header">
-        <div className="logo-icon">
-          <Users size={24} />
+        <div className="flex items-center gap-3">
+          <div className="logo-icon">
+            <Users size={24} />
+          </div>
+          <div className="logo-text">
+            <h2>Makhsoos</h2>
+            <span>لوحة المشرف</span>
+          </div>
         </div>
-        <div className="logo-text">
-          <h2>Makhsoos</h2>
-          <span>لوحة المشرف</span>
-        </div>
+        <button 
+          className="sidebar-toggle-btn" 
+          onClick={() => setIsOpen(!isOpen)}
+          title="تبديل القائمة الجانبية"
+        >
+          <Menu size={22} />
+        </button>
       </div>
 
       <nav className="sidebar-nav">
@@ -126,6 +136,12 @@ const Sidebar = () => {
             <NavLink to="/performance-log" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
               <History size={20} />
               <span>سجل الأداء</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/report-editor" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
+              <Summary size={20} />
+              <span>محرر التقارير</span>
             </NavLink>
           </li>
           <li>

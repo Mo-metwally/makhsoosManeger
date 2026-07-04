@@ -8,14 +8,69 @@
   display: flex;
   flex-direction: column;
   padding: 1.5rem 1rem;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.sidebar.closed {
+  width: 80px;
+  padding: 1.5rem 0.5rem;
 }
 
 .sidebar-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 1rem;
   margin-bottom: 2.5rem;
-  padding-right: 0.5rem;
+  padding: 0 0.2rem;
+}
+
+.sidebar-toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.sidebar-toggle-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--text-primary);
+}
+
+.sidebar.closed .logo-text,
+.sidebar.closed .nav-item span,
+.sidebar.closed .nav-item .badge,
+.sidebar.closed .export-excel-btn span,
+.sidebar.closed .user-info,
+.sidebar.closed .user-status {
+  display: none;
+}
+
+.sidebar.closed .nav-item {
+  justify-content: center;
+  padding: 0.8rem 0;
+}
+
+.sidebar.closed .sidebar-footer {
+  justify-content: center;
+  align-items: center;
+}
+
+.sidebar.closed .export-excel-btn {
+  justify-content: center;
+  padding: 0.8rem;
+}
+
+.sidebar.closed .user-profile {
+  justify-content: center;
+  padding: 0.5rem;
 }
 
 .logo-icon {
@@ -42,6 +97,20 @@
 
 .sidebar-nav {
   flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.2rem;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
 }
 
 .sidebar-nav ul {

@@ -13,6 +13,9 @@ import HandleAdminPerformance from './pages/HandleAdminPerformance';
 import HandleAdminExport from './pages/HandleAdminExport';
 import Summary from './pages/Summary';
 import PerformanceLog from './pages/PerformanceLog';
+import ReportEditor from './pages/ReportEditor';
+import QualityReport from './pages/QualityReport';
+import DiscountsReport from './pages/DiscountsReport';
 import NotFound from './pages/NotFound';
 import './App.css';
 
@@ -129,6 +132,9 @@ function App() {
           <Route path="/handleAdminExport" element={<HandleAdminExport />} />
           <Route path="/summery" element={<Summary />} />
           <Route path="/performance-log" element={<PerformanceLog />} />
+          <Route path="/report-editor" element={<ReportEditor />} />
+          <Route path="/report-editor/quality" element={<QualityReport />} />
+          <Route path="/report-editor/discounts" element={<DiscountsReport />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         
