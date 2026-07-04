@@ -259,6 +259,7 @@ ul {
 /* Title Gradient Effect */
 .gradient-title {
   background: linear-gradient(90deg, #ffffff, var(--theme-color));
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: 0 0 30px var(--theme-glow);
