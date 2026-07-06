@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, PhoneCall, ListTodo, StickyNote, Save, Edit2, Check, Sparkles, Activity, Download, AlertCircle, X } from 'lucide-react';
 import * as XLSX from 'xlsx-js-style';
+import api from '../services/api';
 import './Calls.css';
 
 const Summary = () => {
@@ -45,16 +46,23 @@ const Summary = () => {
     }
   }, []);
 
-  const calculateTodayCalls = (now) => {
-    const savedCalls = JSON.parse(localStorage.getItem('call_reports') || '[]');
-    const todayCalls = savedCalls.filter(call => {
-      const callDate = new Date(call.createdAt);
-      return callDate.toDateString() === now.toDateString();
-    });
-    setTodayCallsCount(todayCalls.length);
+  const calculateTodayCalls = async (now) => {
+    try {
+      const response = await api.get('/data/calls');
+      const savedCalls = response.data || [];
+      const todayCalls = savedCalls.filter(call => {
+        const callDate = new Date(call.createdAt);
+        return callDate.toDateString() === now.toDateString();
+      });
+      setTodayCallsCount(todayCalls.length);
+    } catch (error) {
+      console.error('Failed to fetch calls for summary', error);
+      // Fallback
+      setTodayCallsCount(0);
+    }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!tasks.trim()) {
       showToast('عذراً، يجب تدوين مهام المتابعة أولاً.', 'error');
       return;
@@ -75,24 +83,21 @@ const Summary = () => {
       manualCallsCount: todayCallsCount
     };
     
-    // Save to history
-    const history = JSON.parse(localStorage.getItem('performance_logs') || '[]');
-    const existingIndex = history.findIndex(log => log.date === todayStr);
-    if (existingIndex >= 0) {
-      history[existingIndex] = summaryData;
-    } else {
-      history.push(summaryData);
+    try {
+      await api.post('/data/performance-logs', summaryData);
+      
+      // Clear fields
+      setTasks('');
+      setNotesList(['']);
+      calculateTodayCalls(new Date());
+      localStorage.removeItem('daily_summary'); // clear draft
+      setIsEditingCalls(false);
+      
+      showToast('تم حفظ الملخص بنجاح!', 'success');
+    } catch (error) {
+      console.error(error);
+      showToast('حدث خطأ أثناء حفظ الملخص.', 'error');
     }
-    localStorage.setItem('performance_logs', JSON.stringify(history));
-
-    // Clear fields
-    setTasks('');
-    setNotesList(['']);
-    calculateTodayCalls(new Date());
-    localStorage.removeItem('daily_summary'); // clear draft
-    setIsEditingCalls(false);
-    
-    showToast('تم حفظ الملخص بنجاح وتفريغ الحقول!', 'success');
   };
 
   const handleExportExcel = () => {

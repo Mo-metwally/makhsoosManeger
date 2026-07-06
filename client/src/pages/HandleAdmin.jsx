@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Phone, Search, Trash2, PhoneCall, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Calendar, Phone, Search, Trash2, PhoneCall, ChevronRight, ChevronLeft, RefreshCw } from 'lucide-react';
 import AdminGuard from '../components/AdminGuard';
 import CustomSelect from '../components/CustomSelect';
 import { applyFiltersAndSort } from '../utils/filterAndSort';
+import api from '../services/api';
 import './Calls.css'; // Reuse Calls styles
 
 const HandleAdmin = () => {
   const [calls, setCalls] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [timeFilter, setTimeFilter] = useState('all');
   const [customStartDate, setCustomStartDate] = useState('');
@@ -16,12 +18,23 @@ const HandleAdmin = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 6;
 
+  const fetchCalls = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/admin/calls');
+      const savedCalls = response.data;
+      savedCalls.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setCalls(savedCalls);
+    } catch (error) {
+      console.error("Failed to fetch admin calls", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     document.title = "سجل المندوبين المجمع | مخصوص";
-    const savedCalls = JSON.parse(localStorage.getItem('admin_aggregated_calls') || '[]');
-    // Sort calls by newest first
-    savedCalls.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    setCalls(savedCalls);
+    fetchCalls();
   }, []);
 
   // Reset page when search or filters change
@@ -72,8 +85,12 @@ const HandleAdmin = () => {
             <PhoneCall size={28} className="header-icon" />
             <h1 className="page-title gradient-title">سجل المندوبين المجمع (إدارة)</h1>
           </div>
-          <div style={{ color: 'var(--text-secondary)' }}>
-            إجمالي المكالمات المجمعة: <strong>{calls.length}</strong>
+          <div style={{ color: 'var(--text-secondary)', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <span>إجمالي المكالمات المجمعة: <strong>{calls.length}</strong></span>
+            <button className="pr-refresh-btn" onClick={fetchCalls} style={{ padding: '0.4rem 0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--theme-color)', border: '1px solid var(--theme-color)', borderRadius: '8px', cursor: 'pointer' }}>
+              <RefreshCw size={16} className={loading ? 'spinning' : ''} />
+              تحديث
+            </button>
           </div>
         </header>
 
@@ -187,7 +204,7 @@ const HandleAdmin = () => {
                     <td className="date-cell">
                       <div className="date-content">
                         <Calendar size={14} className="cell-icon" />
-                        <span dir="ltr">{call.originalDateString || '-'}</span>
+                        <span dir="ltr">{call.createdAt ? new Date(call.createdAt).toLocaleDateString('en-CA') : (call.originalDateString || '-')}</span>
                       </div>
                     </td>
                     <td><strong style={{ color: 'var(--theme-color)' }}>{call.supervisorName || '-'}</strong></td>

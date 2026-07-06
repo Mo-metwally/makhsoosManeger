@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, Shield, Cat, Crown, Star, Smile, Briefcase, Check, Save, Flame, Zap, Heart, Moon, TriangleAlert } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import './Account.css';
 
 const GithubIcon = ({ size = 24, className = '' }) => (
@@ -70,28 +71,32 @@ const avatarOptions = [
 ];
 
 const Account = () => {
-  const [name, setName] = useState('المشرف');
-  const [role, setRole] = useState('Supervisor');
+  const { user, updateProfile, logout } = useAuth();
+  
+  // State variables for all user fields
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState(''); // Only for updating
   const [selectedAvatar, setSelectedAvatar] = useState('User');
+  
   const [toast, setToast] = useState({ show: false, message: '' });
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
   useEffect(() => {
     document.title = "إعدادات الحساب | مخصوص";
-    const savedName = localStorage.getItem('userName') || 'المشرف';
-    const savedRole = localStorage.getItem('userRole') || 'Supervisor';
-    const savedAvatar = localStorage.getItem('userAvatar') || 'User';
+    if (user) {
+      setFullName(user.fullName || user.name || 'المشرف');
+      setEmail(user.email || '');
+      setPhone(user.phone || '');
+      setSelectedAvatar(user.avatar || 'User');
+    }
 
-    setName(savedName);
-    setRole(savedRole);
-    setSelectedAvatar(savedAvatar);
-
-    // Revert theme to saved state if user leaves without saving
     return () => {
-      const finalAvatar = localStorage.getItem('userAvatar') || 'User';
+      const finalAvatar = user?.avatar || 'User';
       document.documentElement.setAttribute('data-theme', finalAvatar);
     };
-  }, []);
+  }, [user]);
 
   const handleAvatarClick = (id) => {
     setSelectedAvatar(id);
@@ -99,17 +104,20 @@ const Account = () => {
     document.documentElement.setAttribute('data-theme', id);
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    localStorage.setItem('userName', name);
-    localStorage.setItem('userRole', role);
-    localStorage.setItem('userAvatar', selectedAvatar);
-
-    // Dispatch event to update Sidebar
-    window.dispatchEvent(new Event('profileUpdated'));
-
-    setToast({ show: true, message: 'تم حفظ البيانات بنجاح!' });
-    setTimeout(() => setToast({ show: false, message: '' }), 3000);
+    try {
+      const payload = { fullName, email, phone, avatar: selectedAvatar };
+      if (password.trim() !== '') {
+        payload.password = password;
+      }
+      await updateProfile(payload);
+      setToast({ show: true, message: 'تم حفظ البيانات بنجاح!' });
+      setTimeout(() => setToast({ show: false, message: '' }), 3000);
+    } catch (err) {
+      setToast({ show: true, message: 'حدث خطأ أثناء حفظ البيانات' });
+      setTimeout(() => setToast({ show: false, message: '' }), 3000);
+    }
   };
 
   const handleResetClick = () => {
@@ -117,17 +125,8 @@ const Account = () => {
   };
 
   const confirmReset = () => {
-    const savedName = localStorage.getItem('userName');
-    const savedRole = localStorage.getItem('userRole');
-    const savedAvatar = localStorage.getItem('userAvatar');
-    
-    localStorage.clear();
-    
-    if (savedName) localStorage.setItem('userName', savedName);
-    if (savedRole) localStorage.setItem('userRole', savedRole);
-    if (savedAvatar) localStorage.setItem('userAvatar', savedAvatar);
-    
-    window.location.reload();
+    setIsResetModalOpen(false);
+    logout(); // Log them out instead of just clearing local storage
   };
 
   return (
@@ -147,23 +146,54 @@ const Account = () => {
 
               <div className="form-row two-cols">
                 <div className="form-group">
-                  <label>اسم المشرف</label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    placeholder="أدخل اسمك"
-                  />
+                  <label>اسم المستخدم (للتسجيل)</label>
+                  <input type="text" value={user?.username || ''} disabled style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }} />
                 </div>
                 <div className="form-group">
                   <label>المسمى الوظيفي</label>
+                  <input type="text" value={user?.role || ''} disabled style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }} />
+                </div>
+              </div>
+
+              <div className="form-row two-cols">
+                <div className="form-group">
+                  <label>الاسم الكامل</label>
                   <input
                     type="text"
-                    value={role}
-                    onChange={(e) => setRole(e.target.value)}
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
                     required
-                    placeholder="مثال: مدير العمليات"
+                    placeholder="أدخل اسمك الكامل"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>البريد الإلكتروني</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="example@makhsoos.com"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row two-cols">
+                <div className="form-group">
+                  <label>رقم الهاتف</label>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="05X XXX XXXX"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>كلمة المرور الجديدة (اختياري)</label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="اتركه فارغاً إذا لم ترغب بتغييره"
                   />
                 </div>
               </div>

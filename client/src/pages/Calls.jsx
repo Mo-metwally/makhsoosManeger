@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Phone, Search, ChevronDown, Edit2, Check, X, Download, PhoneCall, ChevronRight, ChevronLeft } from 'lucide-react';
 import { exportCallsOnly } from '../utils/exportExcel';
 import ExportModal from '../components/ExportModal';
+import api from '../services/api';
 import './Calls.css';
 
 const Calls = () => {
@@ -25,11 +26,19 @@ const Calls = () => {
 
   useEffect(() => {
     document.title = "سجل المكالمات | مخصوص";
-    const savedCalls = JSON.parse(localStorage.getItem('call_reports') || '[]');
-    // Sort calls by newest first
-    savedCalls.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    setCalls(savedCalls);
+    fetchCalls();
   }, []);
+
+  const fetchCalls = async () => {
+    try {
+      const res = await api.get('/data/calls');
+      // Sort calls by newest first (assuming the backend returns createdAt)
+      const fetchedCalls = res.data.sort((a, b) => new Date(b.createdAt || Date.now()) - new Date(a.createdAt || Date.now()));
+      setCalls(fetchedCalls);
+    } catch (error) {
+      showToast('خطأ في جلب بيانات المكالمات', 'error');
+    }
+  };
 
   // Handle outside click for dropdowns
   useEffect(() => {
@@ -105,21 +114,29 @@ const Calls = () => {
     }, 3000);
   };
 
-  const handleStatusChange = (id, newStatus) => {
+  const handleStatusChange = async (id, newStatus) => {
     const updatedCalls = calls.map(call =>
       call.id === id ? { ...call, callStatus: newStatus } : call
     );
     setCalls(updatedCalls);
-    localStorage.setItem('call_reports', JSON.stringify(updatedCalls));
+    try {
+      await api.post('/data/calls', updatedCalls);
+    } catch (error) {
+      showToast('خطأ في حفظ حالة المكالمة', 'error');
+    }
   };
 
-  const handleFieldEdit = (id, field, newValue) => {
+  const handleFieldEdit = async (id, field, newValue) => {
     const updatedCalls = calls.map(call =>
       call.id === id ? { ...call, [field]: newValue } : call
     );
     setCalls(updatedCalls);
-    localStorage.setItem('call_reports', JSON.stringify(updatedCalls));
     setEditingCell(null);
+    try {
+      await api.post('/data/calls', updatedCalls);
+    } catch (error) {
+      showToast('خطأ في حفظ التعديلات', 'error');
+    }
   };
 
   const fieldLabels = {

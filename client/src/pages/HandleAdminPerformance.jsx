@@ -3,10 +3,13 @@ import { Activity, Search, Trash2, PhoneCall, ListTodo, StickyNote, ChevronDown,
 import AdminGuard from '../components/AdminGuard';
 import CustomSelect from '../components/CustomSelect';
 import { applyFiltersAndSort, parseArabicDate } from '../utils/filterAndSort';
+import api from '../services/api';
+import { RefreshCw } from 'lucide-react';
 import './Monitoring.css';
 
 const HandleAdminPerformance = () => {
   const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [timeFilter, setTimeFilter] = useState('all');
   const [supervisorFilter, setSupervisorFilter] = useState('all');
@@ -15,10 +18,23 @@ const HandleAdminPerformance = () => {
   const [customEndDate, setCustomEndDate] = useState('');
   const [expandedIndex, setExpandedIndex] = useState(null);
 
+  const fetchLogs = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/data/admin/all');
+      const savedLogs = response.data.performance || [];
+      savedLogs.sort((a, b) => new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date));
+      setLogs(savedLogs);
+    } catch (error) {
+      console.error("Failed to fetch admin performance logs", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     document.title = "سجل المراقبة الأداء | مخصوص";
-    const savedLogs = JSON.parse(localStorage.getItem('admin_aggregated_performance') || '[]');
-    setLogs(savedLogs);
+    fetchLogs();
   }, []);
 
   const handleClearData = () => {
@@ -43,8 +59,12 @@ const HandleAdminPerformance = () => {
             <Activity size={28} className="title-icon text-blue" />
             <h1 className="page-title gradient-title">سجل مراقبة الأداء (إدارة)</h1>
           </div>
-          <div style={{ color: 'var(--text-secondary)' }}>
-            إجمالي التقارير: <strong>{filteredLogs.length}</strong>
+          <div style={{ color: 'var(--text-secondary)', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <span>إجمالي التقارير: <strong>{filteredLogs.length}</strong></span>
+            <button className="pr-refresh-btn" onClick={fetchLogs} style={{ padding: '0.4rem 0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--theme-color)', border: '1px solid var(--theme-color)', borderRadius: '8px', cursor: 'pointer' }}>
+              <RefreshCw size={16} className={loading ? 'spinning' : ''} />
+              تحديث
+            </button>
           </div>
         </header>
 

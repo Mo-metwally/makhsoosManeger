@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import ExportModal from './ExportModal';
-import { Home, Phone, User, Users, Activity, Shield, Cat, Crown, Star, Smile, Briefcase, Download, Flame, Zap, Heart, Moon, FileText, History, Summary, Menu } from 'lucide-react';
+import { Home, Phone, User, Users, Activity, Shield, Cat, Crown, Star, Smile, Briefcase, Download, Flame, Zap, Heart, Moon, FileText, History, Summary, Menu, Database, ChevronDown, ChevronUp, Folder } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { exportToExcel } from '../utils/exportExcel';
 import './Sidebar.css';
 
@@ -60,28 +61,20 @@ const avatarMap = {
 };
 
 const Sidebar = () => {
-  const [profile, setProfile] = useState({
-    name: 'المشرف',
-    role: 'Supervisor',
-    avatar: 'User'
-  });
+  const { user } = useAuth();
+  
+  // Use user data from AuthContext, fallback to defaults
+  const profile = {
+    name: user?.fullName || user?.name || 'المشرف',
+    role: user?.role || 'Supervisor',
+    avatar: user?.avatar || 'User'
+  };
 
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(true);
-
-  const loadProfile = () => {
-    setProfile({
-      name: localStorage.getItem('userName') || 'المشرف',
-      role: localStorage.getItem('userRole') || 'Supervisor',
-      avatar: localStorage.getItem('userAvatar') || 'User'
-    });
-  };
-
-  useEffect(() => {
-    loadProfile();
-    window.addEventListener('profileUpdated', loadProfile);
-    return () => window.removeEventListener('profileUpdated', loadProfile);
-  }, []);
+  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
+  const [isWorkMenuOpen, setIsWorkMenuOpen] = useState(false);
+  const [isPerfMenuOpen, setIsPerfMenuOpen] = useState(false);
 
   const AvatarIcon = avatarMap[profile.avatar] || User;
 
@@ -114,36 +107,108 @@ const Sidebar = () => {
               <span>الرئيسية</span>
             </NavLink>
           </li>
-          <li>
-            <NavLink to="/calls" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
-              <Phone size={20} />
-              <span>المكالمات</span>
-            </NavLink>
+          {/* Work Logs Group */}
+          <li className="nav-group">
+            <div 
+              className={`nav-item ${isWorkMenuOpen ? 'active-group' : ''}`} 
+              onClick={() => {
+                setIsWorkMenuOpen(!isWorkMenuOpen);
+                if (!isOpen) setIsOpen(true);
+              }}
+              style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <Briefcase size={20} />
+                <span>سجلات العمل</span>
+              </div>
+              {isWorkMenuOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </div>
+            
+            <div className={`sub-menu ${isWorkMenuOpen ? 'open' : ''}`}>
+              <NavLink to="/calls" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                <Phone size={16} />
+                <span>المكالمات</span>
+              </NavLink>
+              <NavLink to="/monitoring" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                <Activity size={16} />
+                <span>المتابعة</span>
+              </NavLink>
+            </div>
           </li>
-          <li>
-            <NavLink to="/monitoring" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
-              <Activity size={20} />
-              <span>المتابعة</span>
-            </NavLink>
+
+          {/* Performance & Reports Group */}
+          <li className="nav-group">
+            <div 
+              className={`nav-item ${isPerfMenuOpen ? 'active-group' : ''}`} 
+              onClick={() => {
+                setIsPerfMenuOpen(!isPerfMenuOpen);
+                if (!isOpen) setIsOpen(true);
+              }}
+              style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <FileText size={20} />
+                <span>الأداء والتقارير</span>
+              </div>
+              {isPerfMenuOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </div>
+            
+            <div className={`sub-menu ${isPerfMenuOpen ? 'open' : ''}`}>
+              <NavLink to="/summery" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                <Summary size={16} />
+                <span>الملخص</span>
+              </NavLink>
+              <NavLink to="/performance-log" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                <History size={16} />
+                <span>سجل الأداء</span>
+              </NavLink>
+              <NavLink to="/report-editor" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                <FileText size={16} />
+                <span>محرر التقارير</span>
+              </NavLink>
+            </div>
           </li>
-          <li>
-            <NavLink to="/summery" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
-              <FileText size={20} />
-              <span>الملخص</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/performance-log" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
-              <History size={20} />
-              <span>سجل الأداء</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink to="/report-editor" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
-              <Summary size={20} />
-              <span>محرر التقارير</span>
-            </NavLink>
-          </li>
+          {profile.role === 'SuperAdmin' || profile.role === 'Admin' ? (
+            <li className="nav-group">
+              <div 
+                className={`nav-item ${isAdminMenuOpen ? 'active-group' : ''}`} 
+                onClick={() => {
+                  setIsAdminMenuOpen(!isAdminMenuOpen);
+                  if (!isOpen) setIsOpen(true);
+                }}
+                style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <Shield size={20} />
+                  <span>الإدارة العامة</span>
+                </div>
+                {isAdminMenuOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </div>
+              
+              <div className={`sub-menu ${isAdminMenuOpen ? 'open' : ''}`}>
+                <NavLink to="/handleAdmin" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                  <Database size={16} />
+                  <span>سجل المندوبين المجمع</span>
+                </NavLink>
+                <NavLink to="/handleAdminReports" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                  <Folder size={16} />
+                  <span>سجل المراقبة المجمع</span>
+                </NavLink>
+                <NavLink to="/handleAdminPerformance" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                  <Activity size={16} />
+                  <span>سجل مراقبة الأداء</span>
+                </NavLink>
+                <NavLink to="/permissions" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                  <Users size={16} />
+                  <span>إدارة الحسابات</span>
+                </NavLink>
+                <NavLink to="/handleAdminExport" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                  <Download size={16} />
+                  <span>تصدير التقارير</span>
+                </NavLink>
+              </div>
+            </li>
+          ) : null}
           <li>
             <NavLink to="/account" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
               <User size={20} />

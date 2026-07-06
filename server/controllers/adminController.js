@@ -1,0 +1,104 @@
+const { User, CallReport } = require('../models');
+const { sendActivationEmail } = require('../utils/emailService');
+
+// Middleware to check admin role
+const isAdmin = (req, res, next) => {
+  if (req.user.role !== 'Admin' && req.user.role !== 'SuperAdmin') {
+    return res.status(403).json({ error: 'عفواً، لا تملك صلاحيات لدخول هذه الصفحة.' });
+  }
+  next();
+};
+
+const getPendingUsers = async (req, res) => {
+  try {
+    const users = await User.findAll({ where: { status: 'Pending Approval' } });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: 'خطأ في جلب المستخدمين المعلقين' });
+  }
+};
+
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.findAll();
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: 'خطأ في جلب المستخدمين' });
+  }
+};
+
+const approveUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findByPk(id);
+    if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
+
+    user.status = 'Active';
+    await user.save();
+    
+    // Send email asynchronously if they have an email
+    if (user.email) {
+      // Typically you'd use a frontend URL from an env var, using localhost:5173 for now
+      const loginUrl = process.env.FRONTEND_URL || 'http://localhost:5173/login';
+      sendActivationEmail(user.email, user.fullName, loginUrl);
+    }
+
+    res.json({ message: 'تم الموافقة على الحساب بنجاح', user });
+  } catch (error) {
+    res.status(500).json({ error: 'خطأ أثناء الموافقة' });
+  }
+};
+
+const suspendUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findByPk(id);
+    if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
+
+    user.status = 'Suspended';
+    // Optionally clear deviceId when suspending so they can't login anywhere
+    user.deviceId = null;
+    await user.save();
+    res.json({ message: 'تم إيقاف الحساب', user });
+  } catch (error) {
+    res.status(500).json({ error: 'خطأ أثناء الإيقاف' });
+  }
+};
+
+const changeRole = async (req, res) => {
+  try {
+    const { role } = req.body;
+    const user = await User.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
+    
+    // Security check: Only SuperAdmin can create/modify SuperAdmins
+    if ((role === 'SuperAdmin' || user.role === 'SuperAdmin') && req.user.role !== 'SuperAdmin') {
+      return res.status(403).json({ error: 'صلاحيات المدير العام مطلوبة' });
+    }
+
+    user.role = role;
+    await user.save();
+    res.json({ message: 'تم تحديث الصلاحية بنجاح' });
+  } catch (error) {
+    res.status(500).json({ error: 'خطأ أثناء تحديث الصلاحية' });
+  }
+};
+
+const getAllCalls = async (req, res) => {
+  try {
+    const calls = await CallReport.findAll();
+    res.json(calls);
+  } catch (error) {
+    res.status(500).json({ error: 'خطأ في جلب المكالمات' });
+  }
+};
+
+module.exports = {
+  isAdmin,
+  getPendingUsers,
+  getAllUsers,
+  approveUser,
+  suspendUser,
+  changeRole,
+  getAllCalls
+};

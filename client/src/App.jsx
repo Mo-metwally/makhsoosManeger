@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { TriangleAlert, PlayCircle, Info } from 'lucide-react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import api from './services/api';
+
 import Sidebar from './components/Sidebar';
 import Home from './pages/Home';
 import Calls from './pages/Calls';
@@ -16,10 +19,14 @@ import PerformanceLog from './pages/PerformanceLog';
 import ReportEditor from './pages/ReportEditor';
 import QualityReport from './pages/QualityReport';
 import DiscountsReport from './pages/DiscountsReport';
+import PermissionsReport from './pages/PermissionsReport';
 import NotFound from './pages/NotFound';
+import Login from './pages/Login';
 import './App.css';
 
-function App() {
+function AppContent() {
+  const { user, loading } = useAuth();
+  
   const [isIdle, setIsIdle] = useState(false);
   const [idleStartTime, setIdleStartTime] = useState(null);
   
@@ -29,7 +36,7 @@ function App() {
   const LOG_THRESHOLD = 10 * 60 * 1000;
 
   const resetIdleTimer = useCallback(() => {
-    if (isIdle) return; // Don't reset if already idle, user must click the button
+    if (isIdle || !user) return; // Don't reset if already idle or not logged in
     
     // Clear existing timer
     if (window.idleTimer) clearTimeout(window.idleTimer);
@@ -38,83 +45,85 @@ function App() {
     window.idleTimer = setTimeout(() => {
       const activeBreak = localStorage.getItem('activeBreak');
       if (activeBreak) {
-        // If the user is on a sub-status (break, meeting, etc.), do not trigger idle warning.
         return;
       }
       
       setIsIdle(true);
-      // The actual idle period started 5 minutes ago
       setIdleStartTime(new Date(Date.now() - IDLE_TIMEOUT));
     }, IDLE_TIMEOUT);
-  }, [isIdle, IDLE_TIMEOUT]);
+  }, [isIdle, user, IDLE_TIMEOUT]);
 
   useEffect(() => {
-    // Initial timer setup
+    if (!user) return;
+    
     resetIdleTimer();
-
-    // Events to track activity
     const events = ['mousemove', 'keydown', 'scroll', 'click', 'touchstart'];
     
     const handleUserActivity = () => {
       resetIdleTimer();
     };
 
-    events.forEach(event => {
-      window.addEventListener(event, handleUserActivity);
-    });
+    events.forEach(event => window.addEventListener(event, handleUserActivity));
 
     return () => {
       if (window.idleTimer) clearTimeout(window.idleTimer);
-      events.forEach(event => {
-        window.removeEventListener(event, handleUserActivity);
-      });
+      events.forEach(event => window.removeEventListener(event, handleUserActivity));
     };
-  }, [resetIdleTimer]);
+  }, [resetIdleTimer, user]);
 
   useEffect(() => {
     const applyTheme = () => {
-      const avatar = localStorage.getItem('userAvatar') || 'User';
+      const avatar = user?.avatar || localStorage.getItem('userAvatar') || 'User';
       document.documentElement.setAttribute('data-theme', avatar);
     };
 
-    applyTheme(); // Apply on mount
+    applyTheme(); 
     window.addEventListener('profileUpdated', applyTheme);
 
     return () => {
       window.removeEventListener('profileUpdated', applyTheme);
     };
-  }, []);
+  }, [user]);
 
-  const handleReactivate = () => {
-    // Check if we need to log the inactivity
+  const handleReactivate = async () => {
     if (idleStartTime) {
       const endTime = new Date();
       const durationMs = endTime.getTime() - idleStartTime.getTime();
       
-      // Only log if total inactivity exceeds 10 minutes
       if (durationMs > LOG_THRESHOLD) {
-        const logs = JSON.parse(localStorage.getItem('inactivity_logs') || '[]');
         const newLog = {
-          id: Date.now(),
+          id: Date.now().toString(),
           startTime: idleStartTime.toISOString(),
           endTime: endTime.toISOString(),
           durationMs: durationMs,
-          type: 'idle'
+          type: 'idle',
+          supervisorName: user.name
         };
-        localStorage.setItem('inactivity_logs', JSON.stringify([...logs, newLog]));
+        try {
+          await api.post('/data/inactivity', [newLog]);
+        } catch (error) {
+          console.error("Failed to save idle log to server", error);
+        }
       }
     }
 
     setIsIdle(false);
     setIdleStartTime(null);
 
-    // Reset timer immediately after reactivating
     if (window.idleTimer) clearTimeout(window.idleTimer);
     window.idleTimer = setTimeout(() => {
       setIsIdle(true);
       setIdleStartTime(new Date(Date.now() - IDLE_TIMEOUT));
     }, IDLE_TIMEOUT);
   };
+
+  if (loading) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'white' }}>جاري التحميل...</div>;
+  }
+
+  if (!user) {
+    return <Login />;
+  }
 
   return (
     <div className="app-container">
@@ -135,10 +144,10 @@ function App() {
           <Route path="/report-editor" element={<ReportEditor />} />
           <Route path="/report-editor/quality" element={<QualityReport />} />
           <Route path="/report-editor/discounts" element={<DiscountsReport />} />
+          <Route path="/permissions" element={<PermissionsReport />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         
-        {/* Global Footer */}
         <footer className="global-footer">
           <p>جميع الحقوق محفوظة &copy; {new Date().getFullYear()}</p>
           <a href="https://mohammed-metwally-classic.web.app/" target="_blank" rel="noopener noreferrer" className="footer-link">
@@ -147,7 +156,6 @@ function App() {
         </footer>
       </main>
 
-      {/* Idle Warning Modal */}
       {isIdle && (
         <div className="idle-overlay">
           <div className="idle-modal">
@@ -175,6 +183,14 @@ function App() {
         </div>
       )}
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

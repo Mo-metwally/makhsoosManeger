@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, Check, Phone, CheckCircle, TrendingUp, Info, ChevronRight, Plus, UserPlus, Coffee, Moon, BookOpen, Play, LayoutDashboard, User, MapPin, PhoneCall as PhoneIcon, MessageSquare, FileText, Activity, MessageCircle, Send } from 'lucide-react';
+import api from '../services/api';
 import './Home.css';
 
 const TARGET_CALLS = 30;
@@ -84,9 +85,17 @@ const Home = () => {
     showToast('تم العودة للعمل بنجاح وتم تسجيل الفاصل', 'success');
   };
 
+  const fetchCalls = async () => {
+    try {
+      const res = await api.get('/data/calls');
+      setCalls(res.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
-    const savedCalls = JSON.parse(localStorage.getItem('call_reports') || '[]');
-    setCalls(savedCalls);
+    fetchCalls();
   }, []);
 
   const showToast = (message, type = 'error') => {
@@ -113,7 +122,7 @@ const Home = () => {
     setIsDateWarningOpen(false);
   };
 
-  const handleSaveReport = (e) => {
+  const handleSaveReport = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const agentName = formData.get('agentName');
@@ -175,7 +184,6 @@ const Home = () => {
     selectedDateObj.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
 
     const newCall = {
-      id: Date.now(),
       agentName,
       phone,
       city,
@@ -186,11 +194,15 @@ const Home = () => {
       createdAt: selectedDateObj.toISOString()
     };
 
-    const updatedCalls = [...calls, newCall];
-    setCalls(updatedCalls);
-    localStorage.setItem('call_reports', JSON.stringify(updatedCalls));
-    setIsModalOpen(false);
-    showToast('تم حفظ تقرير المكالمة بنجاح!', 'success');
+    try {
+      await api.post('/data/calls', [newCall]);
+      await fetchCalls(); // Refresh to get proper ID and any other DB fields
+      setIsModalOpen(false);
+      showToast('تم حفظ تقرير المكالمة بنجاح!', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('حدث خطأ أثناء حفظ المكالمة', 'error');
+    }
   };
 
   // Filter calls by selected date (using local date to match date picker)

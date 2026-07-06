@@ -1,18 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, PhoneCall, ListTodo, StickyNote, Activity, Download, ChevronDown, ChevronUp } from 'lucide-react';
+import { History, Calendar, PhoneCall, ListTodo, StickyNote, Activity, Download, ChevronDown, ChevronUp, Search, Trash2, RefreshCw } from 'lucide-react';
 import * as XLSX from 'xlsx-js-style';
+import api from '../services/api';
 import './Calls.css';
 
 const PerformanceLog = () => {
   const [logs, setLogs] = useState([]);
   const [expandedIndex, setExpandedIndex] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const fetchLogs = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/data/performance-logs');
+      const data = response.data || [];
+      data.sort((a, b) => new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date));
+      setLogs(data);
+    } catch (err) {
+      console.error("Error fetching logs:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     document.title = "سجل الأداء اليومي | مخصوص";
-    const history = JSON.parse(localStorage.getItem('performance_logs') || '[]');
-    // Sort descending by timestamp
-    history.sort((a, b) => new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date));
-    setLogs(history);
+    fetchLogs();
   }, []);
 
   const formatDate = (dateStr) => {
@@ -80,10 +93,16 @@ const PerformanceLog = () => {
     <div className="calls-page-container" style={{ width: '100%', maxWidth: '100%' }}>
       <header className="page-header" style={{ marginBottom: '2rem' }}>
         <div className="title-section">
-          <Activity size={32} className="header-icon" />
-          <h1 className="page-title gradient-title" style={{ fontSize: '2.5rem' }}>سجل الأداء اليومي</h1>
+          <History size={32} className="header-icon" />
+          <h1 className="page-title gradient-title" style={{ fontSize: '2.5rem' }}>سجل الأداء</h1>
         </div>
-        <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', fontSize: '1.1rem' }}>سجل تاريخي يضم ملخصات الأداء التي قمت بحفظها يومياً.</p>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', fontSize: '1.1rem' }}>سجل بجميع ملخصات الأداء التي قمت بحفظها</p>
+          <button className="pr-refresh-btn" onClick={fetchLogs} style={{ padding: '0.4rem 0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--theme-color)', border: '1px solid var(--theme-color)', borderRadius: '8px', cursor: 'pointer' }}>
+            <RefreshCw size={16} className={loading ? 'spinning' : ''} />
+            تحديث
+          </button>
+        </div>
       </header>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', paddingBottom: '4rem' }}>
