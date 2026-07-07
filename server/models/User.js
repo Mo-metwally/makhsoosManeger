@@ -25,6 +25,10 @@ const User = sequelize.define('User', {
     allowNull: true,
     unique: true
   },
+  jobTitle: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   phone: {
     type: DataTypes.STRING,
     allowNull: true
@@ -49,8 +53,20 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: true // For deviceLock
   },
+  jwtVersion: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
   tasks: {
     type: DataTypes.TEXT,
+    allowNull: true
+  },
+  resetOtp: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  resetOtpExpiry: {
+    type: DataTypes.DATE,
     allowNull: true
   },
   notes: {

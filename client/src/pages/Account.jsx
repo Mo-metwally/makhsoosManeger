@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Shield, Cat, Crown, Star, Smile, Briefcase, Check, Save, Flame, Zap, Heart, Moon, TriangleAlert } from 'lucide-react';
+import { User, Shield, Cat, Crown, Star, Smile, Briefcase, Check, Save, Flame, Zap, Heart, Moon, TriangleAlert, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './Account.css';
 
@@ -73,22 +73,36 @@ const avatarOptions = [
 const Account = () => {
   const { user, updateProfile, logout } = useAuth();
   
-  // State variables for all user fields
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState(''); // Only for updating
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    jobTitle: '',
+    password: ''
+  });
   const [selectedAvatar, setSelectedAvatar] = useState('User');
   
   const [toast, setToast] = useState({ show: false, message: '' });
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [isPwdModalOpen, setIsPwdModalOpen] = useState(false);
+  const [pwdForm, setPwdForm] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
+  const [pwdStatus, setPwdStatus] = useState('');
+  const [pwdError, setPwdError] = useState('');
+  
+  const [showOldPwd, setShowOldPwd] = useState(false);
+  const [showNewPwd, setShowNewPwd] = useState(false);
+  const [showConfirmPwd, setShowConfirmPwd] = useState(false);
 
   useEffect(() => {
     document.title = "إعدادات الحساب | مخصوص";
     if (user) {
-      setFullName(user.fullName || user.name || 'المشرف');
-      setEmail(user.email || '');
-      setPhone(user.phone || '');
+      setFormData({
+        fullName: user.fullName || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        jobTitle: user.jobTitle || '',
+        password: ''
+      });
       setSelectedAvatar(user.avatar || 'User');
     }
 
@@ -98,18 +112,21 @@ const Account = () => {
     };
   }, [user]);
 
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
   const handleAvatarClick = (id) => {
     setSelectedAvatar(id);
-    // Live preview: apply theme immediately
     document.documentElement.setAttribute('data-theme', id);
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
     try {
-      const payload = { fullName, email, phone, avatar: selectedAvatar };
-      if (password.trim() !== '') {
-        payload.password = password;
+      const payload = { ...formData, avatar: selectedAvatar };
+      if (!payload.password || payload.password.trim() === '') {
+        delete payload.password;
       }
       await updateProfile(payload);
       setToast({ show: true, message: 'تم حفظ البيانات بنجاح!' });
@@ -126,7 +143,38 @@ const Account = () => {
 
   const confirmReset = () => {
     setIsResetModalOpen(false);
-    logout(); // Log them out instead of just clearing local storage
+    logout();
+  };
+
+  const handlePwdChange = (e) => {
+    setPwdForm({ ...pwdForm, [e.target.name]: e.target.value });
+  };
+
+  const submitChangePassword = async (e) => {
+    e.preventDefault();
+    setPwdError('');
+    setPwdStatus('');
+
+    if (pwdForm.newPassword !== pwdForm.confirmPassword) {
+      setPwdError('كلمة المرور الجديدة غير متطابقة.');
+      return;
+    }
+
+    try {
+      const api = (await import('../services/api')).default;
+      const res = await api.put('/auth/change-password', {
+        oldPassword: pwdForm.oldPassword,
+        newPassword: pwdForm.newPassword
+      });
+      setPwdStatus(res.data.message);
+      setPwdForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+      setTimeout(() => {
+        setIsPwdModalOpen(false);
+        setPwdStatus('');
+      }, 3000);
+    } catch (err) {
+      setPwdError(err.response?.data?.error || 'حدث خطأ أثناء التغيير.');
+    }
   };
 
   return (
@@ -150,51 +198,84 @@ const Account = () => {
                   <input type="text" value={user?.username || ''} disabled style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }} />
                 </div>
                 <div className="form-group">
-                  <label>المسمى الوظيفي</label>
-                  <input type="text" value={user?.role || ''} disabled style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }} />
-                </div>
-              </div>
-
-              <div className="form-row two-cols">
-                <div className="form-group">
                   <label>الاسم الكامل</label>
                   <input
                     type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
+                    name="fullName"
+                    value={formData.fullName}
+                    onChange={handleChange}
                     required
                     placeholder="أدخل اسمك الكامل"
                   />
                 </div>
+              </div>
+
+              <div className="form-row two-cols">
                 <div className="form-group">
                   <label>البريد الإلكتروني</label>
                   <input
                     type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
                     placeholder="example@makhsoos.com"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>رقم الهاتف</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="05X XXX XXXX"
                   />
                 </div>
               </div>
 
               <div className="form-row two-cols">
                 <div className="form-group">
-                  <label>رقم الهاتف</label>
+                  <label>المسمى الوظيفي</label>
                   <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="05X XXX XXXX"
+                    type="text"
+                    name="jobTitle"
+                    value={formData.jobTitle}
+                    onChange={handleChange}
+                    placeholder="المسمى الوظيفي (مثل: مشرف مبيعات)"
                   />
                 </div>
                 <div className="form-group">
-                  <label>كلمة المرور الجديدة (اختياري)</label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="اتركه فارغاً إذا لم ترغب بتغييره"
-                  />
+                  <label>تأمين الحساب</label>
+                  <button 
+                    type="button" 
+                    onClick={() => setIsPwdModalOpen(true)}
+                    style={{
+                      background: 'rgba(59, 130, 246, 0.1)',
+                      color: 'var(--accent-blue)',
+                      border: '1px solid rgba(59, 130, 246, 0.3)',
+                      padding: '0.85rem',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      width: '100%',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.background = 'var(--accent-blue)';
+                      e.currentTarget.style.color = '#fff';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)';
+                      e.currentTarget.style.color = 'var(--accent-blue)';
+                    }}
+                  >
+                    <KeyRound size={18} />
+                    <span>تغيير كلمة المرور</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -299,9 +380,66 @@ const Account = () => {
         </div>
       )}
 
+      {isPwdModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsPwdModalOpen(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <KeyRound size={24} className="text-blue" />
+                تغيير كلمة المرور
+              </h2>
+              <button className="close-btn" onClick={() => setIsPwdModalOpen(false)}>&times;</button>
+            </div>
+            <div className="modal-body">
+              {pwdError && <div className="error-message" style={{ color: '#ef4444', marginBottom: '1rem', background: 'rgba(239, 68, 68, 0.1)', padding: '0.5rem', borderRadius: '4px' }}>{pwdError}</div>}
+              {pwdStatus && <div className="success-message" style={{ color: '#22c55e', marginBottom: '1rem', background: 'rgba(34, 197, 94, 0.1)', padding: '0.5rem', borderRadius: '4px' }}>{pwdStatus}</div>}
+              <form onSubmit={submitChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="form-group">
+                  <label>كلمة المرور القديمة</label>
+                  <div style={{ position: 'relative' }}>
+                    <input type={showOldPwd ? "text" : "password"} name="oldPassword" value={pwdForm.oldPassword} onChange={handlePwdChange} required style={{ paddingLeft: '40px', width: '100%' }} />
+                    <button type="button" onClick={() => setShowOldPwd(!showOldPwd)} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                      {showOldPwd ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>كلمة المرور الجديدة</label>
+                  <div style={{ position: 'relative' }}>
+                    <input type={showNewPwd ? "text" : "password"} name="newPassword" value={pwdForm.newPassword} onChange={handlePwdChange} required style={{ paddingLeft: '40px', width: '100%', borderColor: (pwdForm.newPassword && pwdForm.newPassword.length < 6) ? '#ef4444' : '' }} />
+                    <button type="button" onClick={() => setShowNewPwd(!showNewPwd)} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                      {showNewPwd ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                  {pwdForm.newPassword && pwdForm.newPassword.length < 6 && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '0.3rem', display: 'block' }}>كلمة المرور يجب أن لا تقل عن 6 أحرف</span>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label>تأكيد كلمة المرور الجديدة</label>
+                  <div style={{ position: 'relative' }}>
+                    <input type={showConfirmPwd ? "text" : "password"} name="confirmPassword" value={pwdForm.confirmPassword} onChange={handlePwdChange} required style={{ paddingLeft: '40px', width: '100%', borderColor: (pwdForm.confirmPassword && pwdForm.confirmPassword !== pwdForm.newPassword) ? '#ef4444' : '' }} />
+                    <button type="button" onClick={() => setShowConfirmPwd(!showConfirmPwd)} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                      {showConfirmPwd ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                  {pwdForm.confirmPassword && pwdForm.confirmPassword !== pwdForm.newPassword && (
+                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '0.3rem', display: 'block' }}>كلمتا المرور غير متطابقتين</span>
+                  )}
+                </div>
+                <div className="modal-actions" style={{ marginTop: '1rem' }}>
+                  <button type="submit" className="btn-save" style={{ width: '100%' }} disabled={pwdForm.newPassword.length < 6 || pwdForm.newPassword !== pwdForm.confirmPassword}>حفظ كلمة المرور</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
       {toast.show && (
         <div className="toast-notification toast-success">
-          {toast.message}
+          <Check size={20} />
+          <span>{toast.message}</span>
         </div>
       )}
     </div>

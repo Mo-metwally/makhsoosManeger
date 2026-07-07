@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api', // Pointing to the new Node.js server
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api', // Pointing to the Node.js server via env var
   withCredentials: true, // Very important for cookies (token, deviceId)
 });
 

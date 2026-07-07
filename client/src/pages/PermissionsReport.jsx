@@ -1,8 +1,154 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, CheckCircle, XCircle, Users, RefreshCw } from 'lucide-react';
+import { ShieldAlert, CheckCircle, XCircle, Users, RefreshCw, ChevronDown, ChevronUp, Save, X, Edit2, Smartphone, KeyRound } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import './PermissionsReport.css';
+
+const UserRow = ({ user, currentUser, onRefresh, handleRoleChange, handleAction }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: user.fullName || '',
+    username: user.username || '',
+    email: user.email || '',
+    phone: user.phone || '',
+    jobTitle: user.jobTitle || ''
+  });
+
+  const toggleExpand = () => setExpanded(!expanded);
+
+  const handleEditChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSave = async () => {
+    try {
+      await api.put(`/admin/users/${user.id}`, formData);
+      setIsEditing(false);
+      onRefresh();
+    } catch (error) {
+      alert('حدث خطأ أثناء الحفظ');
+    }
+  };
+
+  const handleUnlockDevice = async () => {
+    if (window.confirm('هل أنت متأكد من فك ارتباط الجهاز؟ سيسمح هذا للمستخدم بالدخول من جهاز جديد.')) {
+      try {
+        await api.put(`/admin/users/${user.id}/unlock-device`);
+        onRefresh();
+      } catch (error) {
+        alert('حدث خطأ أثناء فك الارتباط');
+      }
+    }
+  };
+
+  return (
+    <>
+      <tr className={`pr-user-row ${user.status === 'Suspended' ? 'suspended-row' : ''}`} onClick={toggleExpand}>
+        <td>
+          <div className="flex items-center gap-2">
+            {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            {user.username}
+          </div>
+        </td>
+        <td>{user.fullName}</td>
+        <td onClick={(e) => e.stopPropagation()}>
+          {(currentUser?.role === 'SuperAdmin' || currentUser?.role === 'Admin') && user.role !== 'SuperAdmin' ? (
+            <select 
+              className="pr-filter" 
+              style={{ minWidth: '120px', padding: '0.3rem 0.5rem', fontSize: '0.9rem', height: 'auto' }}
+              value={user.role}
+              onChange={(e) => handleRoleChange(user.id, e.target.value)}
+            >
+              <option value="Admin">مدير (Admin)</option>
+              <option value="Supervisor">مشرف (Supervisor)</option>
+            </select>
+          ) : (
+            user.role
+          )}
+        </td>
+        <td>
+          <span className={`pr-badge ${user.status === 'Active' ? 'active-badge' : 'suspended-badge'}`}>
+            {user.status === 'Active' ? 'نشط' : 'موقوف'}
+          </span>
+        </td>
+        <td className="pr-actions" onClick={(e) => e.stopPropagation()}>
+          {user.role !== 'SuperAdmin' && user.status === 'Active' && (
+            <button className="pr-btn-suspend" onClick={() => handleAction(user.id, 'suspend')} title="إيقاف">
+              <XCircle size={20} />
+            </button>
+          )}
+          {user.role !== 'SuperAdmin' && user.status === 'Suspended' && (
+            <button className="pr-btn-approve" onClick={() => handleAction(user.id, 'approve')} title="تفعيل">
+              <CheckCircle size={20} />
+            </button>
+          )}
+        </td>
+      </tr>
+      {expanded && (
+        <tr className="expanded-row">
+          <td colSpan="5">
+            <div className="expanded-panel">
+              <div className="expanded-header">
+                <h3>تفاصيل الحساب</h3>
+                {!isEditing ? (
+                  <button className="btn-edit-small" onClick={() => setIsEditing(true)}>
+                    <Edit2 size={16} /> تعديل البيانات
+                  </button>
+                ) : (
+                  <div className="edit-actions">
+                    <button className="btn-save-small" onClick={handleSave}>
+                      <Save size={16} /> حفظ
+                    </button>
+                    <button className="btn-cancel-small" onClick={() => setIsEditing(false)}>
+                      <X size={16} /> إلغاء
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="expanded-body">
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label>الاسم الكامل</label>
+                    {isEditing ? <input type="text" name="fullName" value={formData.fullName} onChange={handleEditChange} /> : <p>{user.fullName}</p>}
+                  </div>
+                  <div className="form-group">
+                    <label>اسم المستخدم</label>
+                    {isEditing ? <input type="text" name="username" value={formData.username} onChange={handleEditChange} /> : <p>{user.username}</p>}
+                  </div>
+                  <div className="form-group">
+                    <label>البريد الإلكتروني</label>
+                    {isEditing ? <input type="email" name="email" value={formData.email} onChange={handleEditChange} /> : <p>{user.email || 'غير مسجل'}</p>}
+                  </div>
+                  <div className="form-group">
+                    <label>رقم الهاتف</label>
+                    {isEditing ? <input type="tel" name="phone" value={formData.phone} onChange={handleEditChange} /> : <p>{user.phone || 'غير مسجل'}</p>}
+                  </div>
+                  <div className="form-group">
+                    <label>المسمى الوظيفي</label>
+                    {isEditing ? <input type="text" name="jobTitle" value={formData.jobTitle} onChange={handleEditChange} /> : <p>{user.jobTitle || 'غير مسجل'}</p>}
+                  </div>
+                </div>
+                
+                <div className="device-lock-section">
+                  <div className="device-info">
+                    <Smartphone size={20} className="text-blue" />
+                    <span>الأجهزة المرتبطة: <strong>{user.deviceId ? '1 جهاز (مقفل)' : '0 أجهزة (غير مرتبط)'}</strong></span>
+                  </div>
+                  {user.deviceId && (
+                    <button className="btn-unlock" onClick={handleUnlockDevice}>
+                      <KeyRound size={16} /> فك ارتباط الجهاز
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
+  );
+};
 
 const PermissionsReport = () => {
   const { user: currentUser } = useAuth();
@@ -157,42 +303,14 @@ const PermissionsReport = () => {
                 </thead>
                 <tbody>
                   {filteredUsers.map(u => (
-                    <tr key={u.id} className={u.status === 'Suspended' ? 'suspended-row' : ''}>
-                      <td>{u.username}</td>
-                      <td>{u.fullName}</td>
-                      <td>
-                        {(currentUser?.role === 'SuperAdmin' || currentUser?.role === 'Admin') && u.role !== 'SuperAdmin' ? (
-                          <select 
-                            className="pr-filter" 
-                            style={{ minWidth: '120px', padding: '0.3rem 0.5rem', fontSize: '0.9rem', height: 'auto' }}
-                            value={u.role}
-                            onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                          >
-                            <option value="Admin">مدير (Admin)</option>
-                            <option value="Supervisor">مشرف (Supervisor)</option>
-                          </select>
-                        ) : (
-                          u.role
-                        )}
-                      </td>
-                      <td>
-                        <span className={`pr-badge ${u.status === 'Active' ? 'active-badge' : 'suspended-badge'}`}>
-                          {u.status === 'Active' ? 'نشط' : 'موقوف'}
-                        </span>
-                      </td>
-                      <td className="pr-actions">
-                        {u.role !== 'SuperAdmin' && u.status === 'Active' && (
-                          <button className="pr-btn-suspend" onClick={() => handleAction(u.id, 'suspend')} title="إيقاف">
-                            <XCircle size={20} />
-                          </button>
-                        )}
-                        {u.role !== 'SuperAdmin' && u.status === 'Suspended' && (
-                          <button className="pr-btn-approve" onClick={() => handleAction(u.id, 'approve')} title="تفعيل">
-                            <CheckCircle size={20} />
-                          </button>
-                        )}
-                      </td>
-                    </tr>
+                    <UserRow 
+                      key={u.id} 
+                      user={u} 
+                      currentUser={currentUser} 
+                      onRefresh={fetchUsers} 
+                      handleRoleChange={handleRoleChange} 
+                      handleAction={handleAction} 
+                    />
                   ))}
                 </tbody>
               </table>

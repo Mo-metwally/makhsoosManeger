@@ -7,11 +7,22 @@ const { sequelize, User } = require('./models');
 const authRoutes = require('./routes/authRoutes');
 const dataRoutes = require('./routes/dataRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const shiftRoutes = require('./routes/shiftRoutes');
+const attendanceRoutes = require('./routes/attendanceRoutes');
 
 const app = express();
 
+const allowedOrigins = process.env.ALLOWLIST ? process.env.ALLOWLIST.split(',') : ['http://localhost:5173'];
+
 app.use(cors({
-  origin: 'http://localhost:5173', // Vite default
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 
@@ -22,6 +33,9 @@ app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/shifts', shiftRoutes);
+app.use('/api/attendance', attendanceRoutes);
 
 const PORT = process.env.PORT || 5000;
 
@@ -65,3 +79,6 @@ const startServer = async () => {
 };
 
 startServer();
+
+
+

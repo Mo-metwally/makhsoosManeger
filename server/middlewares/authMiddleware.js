@@ -15,6 +15,11 @@ const authMiddleware = async (req, res, next) => {
       return res.status(401).json({ error: 'المستخدم غير موجود' });
     }
 
+    if (decoded.version !== user.jwtVersion) {
+      res.clearCookie('token');
+      return res.status(401).json({ error: 'الجلسة منتهية بسبب فك الارتباط أو تغيير الإعدادات. يرجى تسجيل الدخول مجدداً' });
+    }
+
     req.user = user;
     next();
   } catch (error) {

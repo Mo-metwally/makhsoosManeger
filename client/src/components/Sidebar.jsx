@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import ExportModal from './ExportModal';
-import { Home, Phone, User, Users, Activity, Shield, Cat, Crown, Star, Smile, Briefcase, Download, Flame, Zap, Heart, Moon, FileText, History, Summary, Menu, Database, ChevronDown, ChevronUp, Folder } from 'lucide-react';
+import { Home, Phone, User, Users, Activity, Shield, Cat, Crown, Star, Smile, Briefcase, Download, Flame, Zap, Heart, Moon, FileText, History, Summary, Menu, Database, ChevronDown, ChevronUp, Folder, Bell, Clock, Calendar, Settings, Wallet } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { exportToExcel } from '../utils/exportExcel';
+import api from '../services/api';
 import './Sidebar.css';
 
 const GithubIcon = ({ size = 24, color = "currentColor", className = '' }) => (
@@ -75,6 +76,40 @@ const Sidebar = () => {
   const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
   const [isWorkMenuOpen, setIsWorkMenuOpen] = useState(false);
   const [isPerfMenuOpen, setIsPerfMenuOpen] = useState(false);
+  const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user?.role === 'Admin' || user?.role === 'SuperAdmin') {
+      const fetchNotifs = async () => {
+        try {
+          const res = await api.get('/notifications');
+          setNotifications(res.data);
+        } catch (e) {
+          console.error(e);
+        }
+      };
+      fetchNotifs();
+      // Optional: Poll every 60 seconds
+      const interval = setInterval(fetchNotifs, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
+
+  const handleNotifClick = async (id) => {
+    try {
+      await api.put(`/notifications/${id}/read`);
+      setIsNotifOpen(false);
+      navigate('/permissions');
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const AvatarIcon = avatarMap[profile.avatar] || User;
 
@@ -90,6 +125,43 @@ const Sidebar = () => {
             <span>لوحة المشرف</span>
           </div>
         </div>
+        
+        {/* Notification Bell */}
+        {(user?.role === 'Admin' || user?.role === 'SuperAdmin') && isOpen && (
+          <div className="notif-container">
+            <button className="notif-btn" onClick={() => setIsNotifOpen(!isNotifOpen)}>
+              <Bell size={20} />
+              {unreadCount > 0 && (
+                <span className="notif-badge">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+            {isNotifOpen && (
+              <div className="notif-dropdown glass-panel">
+                <div className="notif-header">
+                  <h4>الإشعارات</h4>
+                  {unreadCount > 0 && <span className="unread-text">{unreadCount} جديد</span>}
+                </div>
+                <div className="notif-list">
+                  {notifications.length === 0 ? (
+                    <p className="no-notifs">لا توجد إشعارات حالياً</p>
+                  ) : (
+                    notifications.map(n => (
+                      <div key={n.id} onClick={() => handleNotifClick(n.id)} className={`notif-item ${!n.isRead ? 'unread' : ''}`}>
+                        <p className="notif-message">{n.message}</p>
+                        <span className="notif-time">
+                          {new Date(n.createdAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         <button 
           className="sidebar-toggle-btn" 
           onClick={() => setIsOpen(!isOpen)}
@@ -135,6 +207,45 @@ const Sidebar = () => {
               </NavLink>
             </div>
           </li>
+
+          {/* Settings Group (Admin & SuperAdmin only) */}
+          {(profile.role === 'Admin' || profile.role === 'SuperAdmin') && (
+            <li className="nav-group">
+              <div 
+                className={`nav-item ${isSettingsMenuOpen ? 'active-group' : ''}`} 
+                onClick={() => {
+                  setIsSettingsMenuOpen(!isSettingsMenuOpen);
+                  if (!isOpen) setIsOpen(true);
+                }}
+                style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <Settings size={20} />
+                  <span>الإعدادات</span>
+                </div>
+                {isSettingsMenuOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </div>
+              
+              <div className={`sub-menu ${isSettingsMenuOpen ? 'open' : ''}`}>
+                <NavLink to="/shift-management" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                  <Clock size={16} />
+                  <span>تنظيم الورديات</span>
+                </NavLink>
+                <NavLink to="/dayoff-management" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                  <Calendar size={16} />
+                  <span>إدارة الإجازات</span>
+                </NavLink>
+                <NavLink to="/expenses" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                  <Wallet size={16} />
+                  <span>إدارة المصروفات</span>
+                </NavLink>
+                <NavLink to="/general-settings" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                  <Settings size={16} />
+                  <span>إعدادات عامة</span>
+                </NavLink>
+              </div>
+            </li>
+          )}
 
           {/* Performance & Reports Group */}
           <li className="nav-group">
@@ -209,11 +320,36 @@ const Sidebar = () => {
               </div>
             </li>
           ) : null}
-          <li>
-            <NavLink to="/account" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
-              <User size={20} />
-              <span>حسابي</span>
-            </NavLink>
+          <li className="nav-group">
+            <div 
+              className={`nav-item ${isAccountMenuOpen ? 'active-group' : ''}`} 
+              onClick={() => {
+                setIsAccountMenuOpen(!isAccountMenuOpen);
+                if (!isOpen) setIsOpen(true);
+              }}
+              style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <User size={20} />
+                <span>حسابي</span>
+              </div>
+              {isAccountMenuOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </div>
+            
+            <div className={`sub-menu ${isAccountMenuOpen ? 'open' : ''}`}>
+              <NavLink to="/attendance" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                <Clock size={16} />
+                <span>الحضور</span>
+              </NavLink>
+              <NavLink to="/dayoff" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                <Calendar size={16} />
+                <span>الإجازات</span>
+              </NavLink>
+              <NavLink to="/account" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                <User size={16} />
+                <span>الملف الشخصي</span>
+              </NavLink>
+            </div>
           </li>
         </ul>
       </nav>

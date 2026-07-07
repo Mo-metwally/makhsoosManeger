@@ -20,8 +20,13 @@ import ReportEditor from './pages/ReportEditor';
 import QualityReport from './pages/QualityReport';
 import DiscountsReport from './pages/DiscountsReport';
 import PermissionsReport from './pages/PermissionsReport';
+import ShiftManagement from './pages/ShiftManagement';
+import Attendance from './pages/Attendance';
 import NotFound from './pages/NotFound';
 import Login from './pages/Login';
+import PendingApproval from './pages/PendingApproval';
+import CheckInPage from './pages/CheckInPage';
+import CheckoutModal from './components/CheckoutModal';
 import './App.css';
 
 function AppContent() {
@@ -29,6 +34,30 @@ function AppContent() {
   
   const [isIdle, setIsIdle] = useState(false);
   const [idleStartTime, setIdleStartTime] = useState(null);
+  
+  // Attendance State
+  const [attendanceChecked, setAttendanceChecked] = useState(false);
+  const [needsCheckIn, setNeedsCheckIn] = useState(false);
+  const [todayShift, setTodayShift] = useState(null);
+
+  useEffect(() => {
+    if (user && user.status === 'Active') {
+      api.get('/attendance/status').then(res => {
+         if (res.data.hasShiftToday && !res.data.hasCheckedIn) {
+            setTodayShift(res.data.shift);
+            setNeedsCheckIn(true);
+         } else {
+            setNeedsCheckIn(false);
+         }
+         setAttendanceChecked(true);
+      }).catch(err => {
+         console.error('Error checking attendance status:', err);
+         setAttendanceChecked(true); // Proceed on error to avoid blocking
+      });
+    } else {
+      setAttendanceChecked(true);
+    }
+  }, [user]);
   
   // 5 minutes in milliseconds for the warning popup
   const IDLE_TIMEOUT = 5 * 60 * 1000;
@@ -117,12 +146,21 @@ function AppContent() {
     }, IDLE_TIMEOUT);
   };
 
-  if (loading) {
+  if (loading || (user && user.status === 'Active' && !attendanceChecked)) {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'white' }}>جاري التحميل...</div>;
   }
 
   if (!user) {
     return <Login />;
+  }
+
+  // Handle pending approval users
+  if (user.status === 'Pending Approval') {
+    return <PendingApproval />;
+  }
+
+  if (needsCheckIn) {
+    return <CheckInPage onCheckedIn={() => setNeedsCheckIn(false)} shift={todayShift} userName={user.fullName} />;
   }
 
   return (
@@ -145,6 +183,8 @@ function AppContent() {
           <Route path="/report-editor/quality" element={<QualityReport />} />
           <Route path="/report-editor/discounts" element={<DiscountsReport />} />
           <Route path="/permissions" element={<PermissionsReport />} />
+          <Route path="/shift-management" element={<ShiftManagement />} />
+          <Route path="/attendance" element={<Attendance />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         
@@ -155,6 +195,8 @@ function AppContent() {
           </a>
         </footer>
       </main>
+
+      <CheckoutModal />
 
       {isIdle && (
         <div className="idle-overlay">

@@ -14,6 +14,11 @@
   padding: 3rem 2rem;
   display: flex;
   flex-direction: column;
+  transition: max-width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.login-card.signup-mode {
+  max-width: 800px;
 }
 
 .error-message {
@@ -131,4 +136,30 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+}
+
+/* Signup Form Grid Layout */
+.signup-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.signup-form .input-group {
+  margin-bottom: 0;
+}
+
+.signup-form .login-btn {
+  grid-column: span 2;
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 600px) {
+  .signup-form {
+    grid-template-columns: 1fr;
+  }
+  
+  .signup-form .login-btn {
+    grid-column: span 1;
+  }
 }

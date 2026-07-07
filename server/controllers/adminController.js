@@ -93,6 +93,39 @@ const getAllCalls = async (req, res) => {
   }
 };
 
+const updateUser = async (req, res) => {
+  try {
+    const { fullName, username, email, phone, jobTitle } = req.body;
+    const user = await User.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
+
+    user.fullName = fullName;
+    user.username = username;
+    user.email = email;
+    user.phone = phone;
+    if (jobTitle !== undefined) user.jobTitle = jobTitle;
+
+    await user.save();
+    res.json({ message: 'تم تحديث بيانات المستخدم بنجاح', user });
+  } catch (error) {
+    res.status(500).json({ error: 'خطأ أثناء تحديث بيانات المستخدم' });
+  }
+};
+
+const unlockDevice = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
+
+    user.deviceId = null;
+    user.jwtVersion = (user.jwtVersion || 0) + 1;
+    await user.save();
+    res.json({ message: 'تم مسح ارتباط الجهاز بنجاح', user });
+  } catch (error) {
+    res.status(500).json({ error: 'خطأ أثناء فك الارتباط بالجهاز' });
+  }
+};
+
 module.exports = {
   isAdmin,
   getPendingUsers,
@@ -100,5 +133,7 @@ module.exports = {
   approveUser,
   suspendUser,
   changeRole,
-  getAllCalls
+  getAllCalls,
+  updateUser,
+  unlockDevice
 };
