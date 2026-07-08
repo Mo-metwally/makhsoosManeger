@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getPendingUsers, getAllUsers, approveUser, suspendUser, changeRole, getAllCalls, updateUser, unlockDevice } = require('../controllers/adminController');
+const { getPendingUsers, getAllUsers, approveUser, suspendUser, changeRole, getAllCalls, updateUser, unlockDevice, deleteUser } = require('../controllers/adminController');
 const authMiddleware = require('../middlewares/authMiddleware');
 
 // Middleware to ensure the user is an admin
@@ -22,6 +22,7 @@ router.put('/users/:id/suspend', suspendUser);
 router.put('/users/:id/role', changeRole);
 router.put('/users/:id/unlock-device', unlockDevice);
 router.put('/users/:id', updateUser);
+router.delete('/users/:id', deleteUser);
 
 router.get('/calls', getAllCalls);
 

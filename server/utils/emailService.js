@@ -186,7 +186,118 @@ const sendActivationEmail = async (userEmail, fullName, loginUrl) => {
   }
 };
 
+const sendDayOffRequestEmail = async (adminEmails, employeeName, requestDate, dayName) => {
+  try {
+    const transporter = await createTransporter();
+    
+    // adminEmails can be an array or string
+    const to = Array.isArray(adminEmails) ? adminEmails.join(',') : adminEmails;
+    if (!to) return;
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="ar" dir="rtl">
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; direction: rtl; }
+          .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; border-top: 5px solid #f59e0b; }
+          .header { background-color: #f59e0b; color: #ffffff; text-align: center; padding: 30px 20px; }
+          .header h1 { margin: 0; font-size: 24px; }
+          .content { padding: 40px 30px; color: #333333; line-height: 1.6; }
+          .content p { font-size: 16px; margin-bottom: 20px; }
+          .footer { background-color: #f8fafc; padding: 20px; text-align: center; color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>طلب إجازة جديد 📅</h1>
+          </div>
+          <div class="content">
+            <p>مرحباً،</p>
+            <p>لقد قام الموظف <strong>${employeeName}</strong> بتقديم طلب إجازة ليوم <strong>${dayName}</strong> الموافق <strong>${requestDate}</strong>.</p>
+            <p>يرجى مراجعة لوحة تحكم الإجازات لاتخاذ الإجراء المناسب (موافقة / رفض).</p>
+          </div>
+          <div class="footer">
+            <p>نظام إدارة مخصوص</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const info = await transporter.sendMail({
+      from: `Makhsoos Admin <${process.env.FROM_EMAIL || 'noreply@makhsoos.com'}>`,
+      to,
+      subject: `طلب إجازة جديد من ${employeeName}`,
+      html: htmlContent,
+    });
+
+    console.log('[INFO] DayOff Request email sent: %s', info.messageId);
+  } catch (error) {
+    console.error('[ERROR] Failed to send DayOff Request email:', error);
+  }
+};
+
+const sendDayOffStatusEmail = async (employeeEmail, employeeName, requestDate, dayName, status) => {
+  try {
+    if (!employeeEmail) return;
+    const transporter = await createTransporter();
+    
+    const isApproved = status === 'Approved';
+    const color = isApproved ? '#22c55e' : '#ef4444';
+    const statusText = isApproved ? 'تمت الموافقة على' : 'تم رفض';
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="ar" dir="rtl">
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; direction: rtl; }
+          .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; border-top: 5px solid ${color}; }
+          .header { background-color: ${color}; color: #ffffff; text-align: center; padding: 30px 20px; }
+          .header h1 { margin: 0; font-size: 24px; }
+          .content { padding: 40px 30px; color: #333333; line-height: 1.6; }
+          .content p { font-size: 16px; margin-bottom: 20px; }
+          .footer { background-color: #f8fafc; padding: 20px; text-align: center; color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>تحديث حالة طلب الإجازة</h1>
+          </div>
+          <div class="content">
+            <p>أهلاً <strong>${employeeName}</strong>،</p>
+            <p>نود إعلامك بأنه <strong>${statusText}</strong> طلب الإجازة الخاص بك ليوم <strong>${dayName}</strong> الموافق <strong>${requestDate}</strong>.</p>
+            <p>شكراً لتعاونكم.</p>
+          </div>
+          <div class="footer">
+            <p>نظام إدارة مخصوص</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const info = await transporter.sendMail({
+      from: `Makhsoos Admin <${process.env.FROM_EMAIL || 'noreply@makhsoos.com'}>`,
+      to: employeeEmail,
+      subject: `تحديث حالة طلب الإجازة - ${requestDate}`,
+      html: htmlContent,
+    });
+
+    console.log('[INFO] DayOff Status email sent: %s', info.messageId);
+  } catch (error) {
+    console.error('[ERROR] Failed to send DayOff Status email:', error);
+  }
+};
+
 module.exports = {
   sendWelcomeEmail,
-  sendActivationEmail
+  sendActivationEmail,
+  sendDayOffRequestEmail,
+  sendDayOffStatusEmail
 };

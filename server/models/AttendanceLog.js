@@ -26,6 +26,15 @@ const AttendanceLog = sequelize.define('AttendanceLog', {
   checkOutTime: {
     type: DataTypes.DATE,
     allowNull: true
+  },
+  status: {
+    type: DataTypes.ENUM('Present', 'Absent', 'Late'),
+    defaultValue: 'Present',
+    allowNull: false
+  },
+  notes: {
+    type: DataTypes.TEXT,
+    allowNull: true
   }
 });
 

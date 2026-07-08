@@ -126,6 +126,29 @@ const unlockDevice = async (req, res) => {
   }
 };
 
+const deleteUser = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
+
+    // Ensure SuperAdmins can only be deleted by SuperAdmins
+    if (user.role === 'SuperAdmin' && req.user.role !== 'SuperAdmin') {
+      return res.status(403).json({ error: 'صلاحيات المدير العام مطلوبة لحذف هذا الحساب' });
+    }
+    
+    // Prevent deleting oneself here to be safe
+    if (user.id === req.user.id) {
+       return res.status(400).json({ error: 'لا يمكنك حذف حسابك الخاص' });
+    }
+
+    await user.destroy();
+    res.json({ message: 'تم حذف الحساب بنجاح' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ error: 'خطأ أثناء حذف الحساب' });
+  }
+};
+
 module.exports = {
   isAdmin,
   getPendingUsers,
@@ -135,5 +158,6 @@ module.exports = {
   changeRole,
   getAllCalls,
   updateUser,
-  unlockDevice
+  unlockDevice,
+  deleteUser
 };

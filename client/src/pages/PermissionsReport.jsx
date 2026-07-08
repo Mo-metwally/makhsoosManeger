@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, CheckCircle, XCircle, Users, RefreshCw, ChevronDown, ChevronUp, Save, X, Edit2, Smartphone, KeyRound } from 'lucide-react';
+import { ShieldAlert, CheckCircle, XCircle, Users, RefreshCw, ChevronDown, ChevronUp, Save, X, Edit2, Smartphone, KeyRound, Trash2 } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import './PermissionsReport.css';
@@ -38,6 +38,17 @@ const UserRow = ({ user, currentUser, onRefresh, handleRoleChange, handleAction 
         onRefresh();
       } catch (error) {
         alert('حدث خطأ أثناء فك الارتباط');
+      }
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (window.confirm(`هل أنت متأكد من رغبتك في حذف حساب "${user.fullName}" نهائياً؟ لا يمكن التراجع عن هذا الإجراء.`)) {
+      try {
+        await api.delete(`/admin/users/${user.id}`);
+        onRefresh();
+      } catch (error) {
+        alert(error.response?.data?.error || 'حدث خطأ أثناء الحذف');
       }
     }
   };
@@ -140,6 +151,17 @@ const UserRow = ({ user, currentUser, onRefresh, handleRoleChange, handleAction 
                       <KeyRound size={16} /> فك ارتباط الجهاز
                     </button>
                   )}
+                </div>
+
+                <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', display: 'flex', justifyContent: 'flex-start' }}>
+                  <button 
+                    onClick={handleDeleteUser} 
+                    style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '0.8rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', transition: '0.3s', cursor: 'pointer' }}
+                    onMouseOver={(e) => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = 'white'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#ef4444'; }}
+                  >
+                    <Trash2 size={18} /> حذف الحساب نهائياً
+                  </button>
                 </div>
               </div>
             </div>

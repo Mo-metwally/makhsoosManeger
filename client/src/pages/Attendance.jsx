@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Calendar, Briefcase, LogIn, LogOut, CheckCircle, Info } from 'lucide-react';
+import { Clock, Calendar, Briefcase, LogIn, LogOut, CheckCircle, Info, Users } from 'lucide-react';
 import api from '../services/api';
 import './Account.css'; // Reuse container styles
 
@@ -84,21 +84,47 @@ const Attendance = () => {
               بيانات الوردية الحالية
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
-              {myShifts.map(shift => (
-                <div key={shift.id} className="account-card" style={{ padding: '1.5rem 2rem', background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <h3 style={{ fontSize: '1.4rem', color: '#60a5fa', margin: 0 }}>{shift.name}</h3>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', color: 'var(--text-secondary)', fontSize: '1rem' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Calendar size={18} className="text-blue" /> 
-                      {shift.workingDays.map(dId => DAYS_OF_WEEK.find(d => d.id === dId)?.label).join('، ')}
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', direction: 'ltr' }}>
-                      <Clock size={18} className="text-blue" /> 
-                      {shift.startTime} - {shift.endTime}
-                    </span>
+              {myShifts.map(shift => {
+                const shiftUsers = shift.Users || [];
+                return (
+                  <div key={shift.id} className="account-card" style={{ padding: '1.5rem 2rem', background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                    <h3 style={{ fontSize: '1.4rem', color: 'var(--text-primary)', margin: 0 }}>{shift.name}</h3>
+                    
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', direction: 'ltr' }}>
+                        <Clock size={16} className="text-blue" /> 
+                        {shift.startTime} - {shift.endTime}
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <Calendar size={16} className="text-blue" /> 
+                        {(shift.workingDays || []).map(dId => DAYS_OF_WEEK.find(d => d.id === dId)?.label).join('، ')}
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <Users size={16} className="text-blue" /> 
+                        {shiftUsers.length} موظف
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem 0.8rem', borderRadius: '6px' }}>
+                        <strong>نظام الإجازات:</strong> 
+                        {shift.dayOffType === 'Fixed' ? 'ثابت' : 'متغير'}
+                      </span>
+                      {shift.dayOffType === 'Fixed' ? (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem 0.8rem', borderRadius: '6px' }}>
+                          <strong>الأيام:</strong> 
+                          {(shift.fixedDaysOff || []).map(dId => DAYS_OF_WEEK.find(d => d.id === dId)?.label).join('، ') || 'لا يوجد'}
+                        </span>
+                      ) : (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem 0.8rem', borderRadius: '6px' }}>
+                          <strong>الأيام المسموحة شهرياً:</strong> 
+                          {shift.variableDaysOffCount || 0} أيام
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}

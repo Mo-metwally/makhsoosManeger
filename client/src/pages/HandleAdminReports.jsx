@@ -133,9 +133,9 @@ const HandleAdminReports = () => {
           <div className="page-title-wrapper">
             <Users size={28} className="title-icon text-blue" />
             <h1 className="page-title gradient-title">سجل المراقبة المجمع (إدارة)</h1>
-          </div>
-          <div style={{ color: 'var(--text-secondary)' }}>
-            إجمالي السجلات: <strong>{attendanceLogs.length}</strong>
+            <div style={{ color: 'var(--text-secondary)' }}>
+              إجمالي السجلات: <strong>{attendanceLogs.length}</strong>
+            </div>
           </div>
         </header>
 
@@ -210,6 +210,7 @@ const HandleAdminReports = () => {
                   <th>الوردية</th>
                   <th>وقت الحضور</th>
                   <th>وقت الانصراف</th>
+                  <th>الاستراحات</th>
                   <th>التأخير</th>
                   <th>الحالة</th>
                 </tr>
@@ -226,6 +227,29 @@ const HandleAdminReports = () => {
                     <td style={{ color: '#10b981' }}><LogIn size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> {formatTime(log.checkInTime)}</td>
                     <td style={{ color: log.checkOutTime ? '#ef4444' : 'var(--text-secondary)' }}>
                       {log.checkOutTime ? <><LogOut size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> {formatTime(log.checkOutTime)}</> : 'لم ينصرف بعد'}
+                    </td>
+                    <td>
+                      <div style={{ fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                        {log.breakDetails && log.breakDetails['بريك صلاة'] > 0 && (
+                          <div style={{ color: 'var(--text-secondary)' }}><span style={{marginRight: '4px'}}>🕋</span>صلاة: {(() => {
+                            const totalMins = Math.floor(log.breakDetails['بريك صلاة'] / 60000);
+                            const hours = Math.floor(totalMins / 60);
+                            const mins = totalMins % 60;
+                            return hours > 0 ? `${hours} س ${mins} د` : `${mins} دقيقة`;
+                          })()}</div>
+                        )}
+                        {log.breakDetails && log.breakDetails['بريك غداء'] > 0 && (
+                          <div style={{ color: 'var(--text-secondary)' }}><span style={{marginRight: '4px'}}>🍔</span>غداء: {(() => {
+                            const totalMins = Math.floor(log.breakDetails['بريك غداء'] / 60000);
+                            const hours = Math.floor(totalMins / 60);
+                            const mins = totalMins % 60;
+                            return hours > 0 ? `${hours} س ${mins} د` : `${mins} دقيقة`;
+                          })()}</div>
+                        )}
+                        {(!log.breakDetails || (log.breakDetails['بريك صلاة'] === 0 && log.breakDetails['بريك غداء'] === 0)) && (
+                          <span style={{ color: 'var(--text-secondary)' }}>لا يوجد</span>
+                        )}
+                      </div>
                     </td>
                     <td style={{ color: '#f59e0b', fontWeight: 'bold' }}>
                       {calculateDelay(log.checkInTime, log.Shift?.startTime)}

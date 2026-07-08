@@ -6,6 +6,7 @@ const PerformanceLog = require('./PerformanceLog');
 const Notification = require('./Notification');
 const Shift = require('./Shift');
 const AttendanceLog = require('./AttendanceLog');
+const DayOffRequest = require('./DayOffRequest');
 
 // Relationships
 User.hasMany(Notification, { foreignKey: 'userId', onDelete: 'CASCADE' });
@@ -28,6 +29,9 @@ AttendanceLog.belongsTo(User, { foreignKey: 'userId' });
 Shift.hasMany(AttendanceLog, { foreignKey: 'shiftId', onDelete: 'CASCADE' });
 AttendanceLog.belongsTo(Shift, { foreignKey: 'shiftId' });
 
+User.hasMany(DayOffRequest, { foreignKey: 'userId', onDelete: 'CASCADE' });
+DayOffRequest.belongsTo(User, { foreignKey: 'userId' });
+
 module.exports = {
   sequelize,
   User,
@@ -36,5 +40,6 @@ module.exports = {
   PerformanceLog,
   Notification,
   Shift,
-  AttendanceLog
+  AttendanceLog,
+  DayOffRequest
 };

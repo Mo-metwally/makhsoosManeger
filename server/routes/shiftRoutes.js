@@ -20,6 +20,7 @@ router.use(requireAdmin);
 
 router.post('/', shiftController.createShift);
 router.get('/', shiftController.getShifts);
+router.get('/:id/staff-stats', shiftController.getShiftStaffStats);
 router.put('/:id', shiftController.updateShift);
 router.put('/:id/assign', shiftController.assignUsersToShift);
 router.delete('/:id', shiftController.deleteShift);

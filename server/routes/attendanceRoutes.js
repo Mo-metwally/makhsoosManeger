@@ -20,5 +20,11 @@ router.get('/logs', attendanceController.getLogs);
 
 // Admin only route to get all logs
 router.get('/all-logs', requireAdmin, attendanceController.getAllLogs);
+// Admin route to register absence
+router.post('/admin/absence', requireAdmin, attendanceController.registerAbsence);
+// Admin route to get today status
+router.get('/today-status', requireAdmin, attendanceController.getTodayStatus);
+// Admin route to force update status
+router.post('/admin/update-status', requireAdmin, attendanceController.adminUpdateStatus);
 
 module.exports = router;

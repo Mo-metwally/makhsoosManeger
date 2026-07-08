@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
 import './CustomSelect.css';
 
-const CustomSelect = ({ options, value, onChange, placeholder = 'اختر...' }) => {
+const CustomSelect = ({ options, value, onChange, placeholder = 'اختر...', icon }) => {
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef(null);
 
@@ -27,9 +27,10 @@ const CustomSelect = ({ options, value, onChange, placeholder = 'اختر...' })
         className={`custom-select-trigger ${isOpen ? 'open' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className="custom-select-value">
-          {selectedOption ? selectedOption.label : placeholder}
-        </span>
+        <div className="custom-select-value" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+          {icon && <span className="custom-select-left-icon" style={{ color: 'var(--theme-color)', display: 'flex' }}>{icon}</span>}
+          <span>{selectedOption ? selectedOption.label : placeholder}</span>
+        </div>
         <ChevronDown 
           size={18} 
           className="custom-select-icon" 

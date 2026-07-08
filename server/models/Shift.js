@@ -23,6 +23,21 @@ const Shift = sequelize.define('Shift', {
     type: DataTypes.JSON, // Array of days, e.g., ["Monday", "Tuesday"]
     allowNull: false,
     defaultValue: []
+  },
+  dayOffType: {
+    type: DataTypes.STRING, // 'Fixed' or 'Variable'
+    allowNull: false,
+    defaultValue: 'Fixed'
+  },
+  fixedDaysOff: {
+    type: DataTypes.JSON, // Array of days, e.g., ["Friday", "Saturday"]
+    allowNull: true,
+    defaultValue: []
+  },
+  variableDaysOffCount: {
+    type: DataTypes.INTEGER, // Number of days allowed per month
+    allowNull: true,
+    defaultValue: 0
   }
 });
 

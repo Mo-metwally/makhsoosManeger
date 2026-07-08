@@ -53,35 +53,59 @@ const Home = () => {
     return () => clearInterval(interval);
   }, [activeBreak, breakStartTime]);
 
-  const handleStartBreak = (breakType) => {
+  const handleStartBreak = async (breakType) => {
     const startTime = new Date().toISOString();
+    const breakLogId = Date.now().toString();
+    
     setActiveBreak(breakType);
     setBreakStartTime(startTime);
     localStorage.setItem('activeBreak', breakType);
     localStorage.setItem('breakStartTime', startTime);
+    localStorage.setItem('breakLogId', breakLogId);
+
+    try {
+      await api.post('/data/inactivity', [{
+        id: breakLogId,
+        type: breakType,
+        startTime,
+        endTime: null,
+        durationMs: 0
+      }]);
+    } catch (err) {
+      console.error('Failed to save break start:', err);
+    }
   };
 
-  const handleEndBreak = () => {
+  const handleEndBreak = async () => {
     if (activeBreak && breakStartTime) {
       const endTime = new Date();
       const startTime = new Date(breakStartTime);
       const durationMs = endTime.getTime() - startTime.getTime();
+      const breakLogId = localStorage.getItem('breakLogId') || Date.now().toString();
 
-      const logs = JSON.parse(localStorage.getItem('inactivity_logs') || '[]');
       const newLog = {
-        id: Date.now(),
+        id: breakLogId,
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
         durationMs,
         type: activeBreak
       };
-      localStorage.setItem('inactivity_logs', JSON.stringify([...logs, newLog]));
+      
+      try {
+        await api.post('/data/inactivity', [newLog]);
+      } catch (err) {
+        console.error('Failed to save inactivity log to server:', err);
+        // Fallback to local storage if API fails
+        const logs = JSON.parse(localStorage.getItem('inactivity_logs') || '[]');
+        localStorage.setItem('inactivity_logs', JSON.stringify([...logs, newLog]));
+      }
     }
 
     setActiveBreak(null);
     setBreakStartTime(null);
     localStorage.removeItem('activeBreak');
     localStorage.removeItem('breakStartTime');
+    localStorage.removeItem('breakLogId');
     showToast('تم العودة للعمل بنجاح وتم تسجيل الفاصل', 'success');
   };
 
@@ -230,8 +254,7 @@ const Home = () => {
         <div className="page-title-wrapper">
           <LayoutDashboard size={28} className="title-icon text-blue" />
           <h1 className="page-title gradient-title">لوحة التحكم</h1>
-        </div>
-        <div className="header-datetime">
+           <div className="header-datetime">
           <input
             type="date"
             className="date-picker-input"
@@ -239,6 +262,8 @@ const Home = () => {
             onChange={handleDateChange}
           />
         </div>
+        </div>
+       
       </header>
 
       {/* Main Status */}

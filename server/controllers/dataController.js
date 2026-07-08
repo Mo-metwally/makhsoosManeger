@@ -1,4 +1,4 @@
-const { CallReport, InactivityLog, PerformanceLog } = require('../models');
+const { CallReport, InactivityLog, PerformanceLog, User } = require('../models');
 
 // CALL REPORTS
 const getCallReports = async (req, res) => {
@@ -106,7 +106,10 @@ const getAllData = async (req, res) => {
     // Only allow if user is admin, but for now just return all
     // In real app, add check: if (req.user.role !== 'Admin') ...
     const calls = await CallReport.findAll();
-    const inactivity = await InactivityLog.findAll();
+    const inactivity = await InactivityLog.findAll({
+      include: [{ model: User, attributes: ['id', 'fullName', 'username', 'jobTitle', 'avatar'] }],
+      order: [['createdAt', 'DESC']]
+    });
     const performance = await PerformanceLog.findAll();
 
     res.json({ calls, inactivity, performance });

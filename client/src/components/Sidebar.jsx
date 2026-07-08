@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import ExportModal from './ExportModal';
 import { Home, Phone, User, Users, Activity, Shield, Cat, Crown, Star, Smile, Briefcase, Download, Flame, Zap, Heart, Moon, FileText, History, Summary, Menu, Database, ChevronDown, ChevronUp, Folder, Bell, Clock, Calendar, Settings, Wallet } from 'lucide-react';
@@ -73,14 +73,31 @@ const Sidebar = () => {
 
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(true);
-  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
-  const [isWorkMenuOpen, setIsWorkMenuOpen] = useState(false);
+  const [isHRMenuOpen, setIsHRMenuOpen] = useState(false);
+  const [isOpsMenuOpen, setIsOpsMenuOpen] = useState(false);
   const [isPerfMenuOpen, setIsPerfMenuOpen] = useState(false);
   const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
-  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const [isWorkMenuOpen, setIsWorkMenuOpen] = useState(false);
+  const [isPersonalMenuOpen, setIsPersonalMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const notifRef = useRef(null);
   const navigate = useNavigate();
+
+  // Click outside to close notifications
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setIsNotifOpen(false);
+      }
+    };
+    if (isNotifOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isNotifOpen]);
 
   useEffect(() => {
     if (user?.role === 'Admin' || user?.role === 'SuperAdmin') {
@@ -99,17 +116,41 @@ const Sidebar = () => {
     }
   }, [user]);
 
-  const handleNotifClick = async (id) => {
+  const handleNotifClick = async (n, e) => {
+    if (e) e.stopPropagation();
     try {
-      await api.put(`/notifications/${id}/read`);
-      setIsNotifOpen(false);
-      navigate('/permissions');
-    } catch (e) {
-      console.error(e);
+      // Remove from UI immediately for better UX
+      setNotifications(prev => prev.filter(notif => notif.id !== n.id));
+      
+      // Update in backend
+      await api.put(`/notifications/${n.id}/read`);
+      
+      // If no notifications left, optionally close the dropdown
+      if (notifications.length <= 1) {
+        setIsNotifOpen(false);
+      }
+      
+      // Navigate based on content
+      if (n.message.includes('إجازة')) {
+        navigate('/dayoff-management');
+      } else if (n.message.includes('تفعيل') || n.message.includes('تسجيل') || n.message.includes('حساب')) {
+        navigate('/permissions');
+      } else {
+        // Default or generic
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const getNotifIcon = (message) => {
+    if (message.includes('إجازة')) return <Calendar size={20} color="#f97316" strokeWidth={2.5} />;
+    if (message.includes('تفعيل') || message.includes('تسجيل') || message.includes('حساب')) return <Users size={20} color="#3b82f6" strokeWidth={2.5} />;
+    return <Bell size={20} color="#94a3b8" strokeWidth={2.5} />;
+  };
+
+  const unreadNotifications = notifications.filter(n => !n.isRead);
+  const unreadCount = unreadNotifications.length;
 
   const AvatarIcon = avatarMap[profile.avatar] || User;
 
@@ -128,7 +169,7 @@ const Sidebar = () => {
         
         {/* Notification Bell */}
         {(user?.role === 'Admin' || user?.role === 'SuperAdmin') && isOpen && (
-          <div className="notif-container">
+          <div className="notif-container" ref={notifRef}>
             <button className="notif-btn" onClick={() => setIsNotifOpen(!isNotifOpen)}>
               <Bell size={20} />
               {unreadCount > 0 && (
@@ -144,15 +185,22 @@ const Sidebar = () => {
                   {unreadCount > 0 && <span className="unread-text">{unreadCount} جديد</span>}
                 </div>
                 <div className="notif-list">
-                  {notifications.length === 0 ? (
+                  {unreadNotifications.length === 0 ? (
                     <p className="no-notifs">لا توجد إشعارات حالياً</p>
                   ) : (
-                    notifications.map(n => (
-                      <div key={n.id} onClick={() => handleNotifClick(n.id)} className={`notif-item ${!n.isRead ? 'unread' : ''}`}>
-                        <p className="notif-message">{n.message}</p>
-                        <span className="notif-time">
-                          {new Date(n.createdAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                    unreadNotifications.map(n => (
+                      <div key={n.id} onClick={(e) => handleNotifClick(n, e)} className={`notif-item ${!n.isRead ? 'unread' : ''}`}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.8rem' }}>
+                          <div className="notif-icon-box" style={{ background: 'rgba(255,255,255,0.05)', padding: '8px', borderRadius: '50%' }}>
+                            {getNotifIcon(n.message)}
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', flex: 1 }}>
+                            <p className="notif-message">{n.message}</p>
+                            <span className="notif-time">
+                              {new Date(n.createdAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     ))
                   )}
@@ -179,174 +227,214 @@ const Sidebar = () => {
               <span>الرئيسية</span>
             </NavLink>
           </li>
-          {/* Work Logs Group */}
-          <li className="nav-group">
-            <div 
-              className={`nav-item ${isWorkMenuOpen ? 'active-group' : ''}`} 
-              onClick={() => {
-                setIsWorkMenuOpen(!isWorkMenuOpen);
-                if (!isOpen) setIsOpen(true);
-              }}
-              style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <Briefcase size={20} />
-                <span>سجلات العمل</span>
-              </div>
-              {isWorkMenuOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </div>
-            
-            <div className={`sub-menu ${isWorkMenuOpen ? 'open' : ''}`}>
-              <NavLink to="/calls" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                <Phone size={16} />
-                <span>المكالمات</span>
-              </NavLink>
-              <NavLink to="/monitoring" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                <Activity size={16} />
-                <span>المتابعة</span>
-              </NavLink>
-            </div>
-          </li>
 
-          {/* Settings Group (Admin & SuperAdmin only) */}
           {(profile.role === 'Admin' || profile.role === 'SuperAdmin') && (
-            <li className="nav-group">
-              <div 
-                className={`nav-item ${isSettingsMenuOpen ? 'active-group' : ''}`} 
-                onClick={() => {
-                  setIsSettingsMenuOpen(!isSettingsMenuOpen);
-                  if (!isOpen) setIsOpen(true);
-                }}
-                style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <Settings size={20} />
-                  <span>الإعدادات</span>
+            <>
+              <li className="nav-group">
+                <div 
+                  className="nav-section-header"
+                  onClick={() => { setIsHRMenuOpen(!isHRMenuOpen); if (!isOpen) setIsOpen(true); }}
+                  title="إدارة الموارد البشرية"
+                >
+                  <div className="section-title">
+                    <Users size={18} className="section-icon" />
+                    <span>إدارة الموارد البشرية</span>
+                  </div>
+                  {isHRMenuOpen ? <ChevronUp size={14} className="section-chevron" /> : <ChevronDown size={14} className="section-chevron" />}
                 </div>
-                {isSettingsMenuOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-              </div>
-              
-              <div className={`sub-menu ${isSettingsMenuOpen ? 'open' : ''}`}>
-                <NavLink to="/shift-management" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                  <Clock size={16} />
-                  <span>تنظيم الورديات</span>
-                </NavLink>
-                <NavLink to="/dayoff-management" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                  <Calendar size={16} />
-                  <span>إدارة الإجازات</span>
-                </NavLink>
-                <NavLink to="/expenses" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                  <Wallet size={16} />
-                  <span>إدارة المصروفات</span>
-                </NavLink>
-                <NavLink to="/general-settings" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                  <Settings size={16} />
-                  <span>إعدادات عامة</span>
-                </NavLink>
-              </div>
-            </li>
+                <div className={`sub-menu ${isHRMenuOpen ? 'open' : ''}`}>
+                  <NavLink to="/permissions" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Users size={18} />
+                    <span>إدارة الحسابات</span>
+                  </NavLink>
+                  <NavLink to="/shift-management" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Clock size={18} />
+                    <span>تنظيم الورديات</span>
+                  </NavLink>
+                  <NavLink to="/dayoff-management" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Calendar size={18} />
+                    <span>طلبات الإجازات</span>
+                  </NavLink>
+                  <NavLink to="/staff-management" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Users size={18} />
+                    <span>إدارة الموظفين</span>
+                  </NavLink>
+                </div>
+              </li>
+
+              <li className="nav-group">
+                <div 
+                  className="nav-section-header"
+                  onClick={() => { setIsOpsMenuOpen(!isOpsMenuOpen); if (!isOpen) setIsOpen(true); }}
+                  title="العمليات والمتابعة"
+                >
+                  <div className="section-title">
+                    <Briefcase size={18} className="section-icon" />
+                    <span>العمليات والمتابعة</span>
+                  </div>
+                  {isOpsMenuOpen ? <ChevronUp size={14} className="section-chevron" /> : <ChevronDown size={14} className="section-chevron" />}
+                </div>
+                <div className={`sub-menu ${isOpsMenuOpen ? 'open' : ''}`}>
+                  <NavLink to="/today-followup" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Activity size={18} />
+                    <span>متابعة اليوم</span>
+                  </NavLink>
+                  <NavLink to="/monitoring" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Activity size={18} />
+                    <span>المتابعة الحية</span>
+                  </NavLink>
+                  <NavLink to="/calls" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Phone size={18} />
+                    <span>المكالمات</span>
+                  </NavLink>
+                  <NavLink to="/handleAdminReports" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Folder size={18} />
+                    <span>سجل المراقبة المجمع</span>
+                  </NavLink>
+                  <NavLink to="/handleAdmin" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Database size={18} />
+                    <span>سجل المندوبين المجمع</span>
+                  </NavLink>
+                </div>
+              </li>
+
+              <li className="nav-group">
+                <div 
+                  className="nav-section-header"
+                  onClick={() => { setIsPerfMenuOpen(!isPerfMenuOpen); if (!isOpen) setIsOpen(true); }}
+                  title="الأداء والتقارير"
+                >
+                  <div className="section-title">
+                    <Activity size={18} className="section-icon" />
+                    <span>الأداء والتقارير</span>
+                  </div>
+                  {isPerfMenuOpen ? <ChevronUp size={14} className="section-chevron" /> : <ChevronDown size={14} className="section-chevron" />}
+                </div>
+                <div className={`sub-menu ${isPerfMenuOpen ? 'open' : ''}`}>
+                  <NavLink to="/summery" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Summary size={18} />
+                    <span>الملخص</span>
+                  </NavLink>
+                  <NavLink to="/handleAdminPerformance" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <History size={18} />
+                    <span>سجل الأداء الشامل</span>
+                  </NavLink>
+                  <NavLink to="/report-editor" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <FileText size={18} />
+                    <span>محرر التقارير</span>
+                  </NavLink>
+                  <NavLink to="/handleAdminExport" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Download size={18} />
+                    <span>تصدير التقارير</span>
+                  </NavLink>
+                </div>
+              </li>
+
+              <li className="nav-group">
+                <div 
+                  className="nav-section-header"
+                  onClick={() => { setIsSettingsMenuOpen(!isSettingsMenuOpen); if (!isOpen) setIsOpen(true); }}
+                  title="الإعدادات والماليات"
+                >
+                  <div className="section-title">
+                    <Settings size={18} className="section-icon" />
+                    <span>الإعدادات والماليات</span>
+                  </div>
+                  {isSettingsMenuOpen ? <ChevronUp size={14} className="section-chevron" /> : <ChevronDown size={14} className="section-chevron" />}
+                </div>
+                <div className={`sub-menu ${isSettingsMenuOpen ? 'open' : ''}`}>
+                  <NavLink to="/expenses" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Wallet size={18} />
+                    <span>إدارة المصروفات</span>
+                  </NavLink>
+                  <NavLink to="/general-settings" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Settings size={18} />
+                    <span>إعدادات عامة</span>
+                  </NavLink>
+                </div>
+              </li>
+            </>
           )}
 
-          {/* Performance & Reports Group */}
-          <li className="nav-group">
-            <div 
-              className={`nav-item ${isPerfMenuOpen ? 'active-group' : ''}`} 
-              onClick={() => {
-                setIsPerfMenuOpen(!isPerfMenuOpen);
-                if (!isOpen) setIsOpen(true);
-              }}
-              style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <FileText size={20} />
-                <span>الأداء والتقارير</span>
-              </div>
-              {isPerfMenuOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </div>
-            
-            <div className={`sub-menu ${isPerfMenuOpen ? 'open' : ''}`}>
-              <NavLink to="/summery" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                <Summary size={16} />
-                <span>الملخص</span>
-              </NavLink>
-              <NavLink to="/performance-log" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                <History size={16} />
-                <span>سجل الأداء</span>
-              </NavLink>
-              <NavLink to="/report-editor" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                <FileText size={16} />
-                <span>محرر التقارير</span>
-              </NavLink>
-            </div>
-          </li>
-          {profile.role === 'SuperAdmin' || profile.role === 'Admin' ? (
-            <li className="nav-group">
-              <div 
-                className={`nav-item ${isAdminMenuOpen ? 'active-group' : ''}`} 
-                onClick={() => {
-                  setIsAdminMenuOpen(!isAdminMenuOpen);
-                  if (!isOpen) setIsOpen(true);
-                }}
-                style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <Shield size={20} />
-                  <span>الإدارة العامة</span>
+          {profile.role === 'Supervisor' && (
+            <>
+              <li className="nav-group">
+                <div 
+                  className="nav-section-header"
+                  onClick={() => { setIsWorkMenuOpen(!isWorkMenuOpen); if (!isOpen) setIsOpen(true); }}
+                  title="سجلات العمل"
+                >
+                  <div className="section-title">
+                    <Folder size={18} className="section-icon" />
+                    <span>سجلات العمل</span>
+                  </div>
+                  {isWorkMenuOpen ? <ChevronUp size={14} className="section-chevron" /> : <ChevronDown size={14} className="section-chevron" />}
                 </div>
-                {isAdminMenuOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-              </div>
-              
-              <div className={`sub-menu ${isAdminMenuOpen ? 'open' : ''}`}>
-                <NavLink to="/handleAdmin" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                  <Database size={16} />
-                  <span>سجل المندوبين المجمع</span>
-                </NavLink>
-                <NavLink to="/handleAdminReports" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                  <Folder size={16} />
-                  <span>سجل المراقبة المجمع</span>
-                </NavLink>
-                <NavLink to="/handleAdminPerformance" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                  <Activity size={16} />
-                  <span>سجل مراقبة الأداء</span>
-                </NavLink>
-                <NavLink to="/permissions" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                  <Users size={16} />
-                  <span>إدارة الحسابات</span>
-                </NavLink>
-                <NavLink to="/handleAdminExport" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                  <Download size={16} />
-                  <span>تصدير التقارير</span>
-                </NavLink>
-              </div>
-            </li>
-          ) : null}
+                <div className={`sub-menu ${isWorkMenuOpen ? 'open' : ''}`}>
+                  <NavLink to="/calls" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Phone size={18} />
+                    <span>المكالمات</span>
+                  </NavLink>
+                  <NavLink to="/monitoring" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Activity size={18} />
+                    <span>المتابعة</span>
+                  </NavLink>
+                </div>
+              </li>
+
+              <li className="nav-group">
+                <div 
+                  className="nav-section-header"
+                  onClick={() => { setIsPerfMenuOpen(!isPerfMenuOpen); if (!isOpen) setIsOpen(true); }}
+                  title="الأداء والتقارير"
+                >
+                  <div className="section-title">
+                    <Activity size={18} className="section-icon" />
+                    <span>الأداء والتقارير</span>
+                  </div>
+                  {isPerfMenuOpen ? <ChevronUp size={14} className="section-chevron" /> : <ChevronDown size={14} className="section-chevron" />}
+                </div>
+                <div className={`sub-menu ${isPerfMenuOpen ? 'open' : ''}`}>
+                  <NavLink to="/summery" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Summary size={18} />
+                    <span>الملخص</span>
+                  </NavLink>
+                  <NavLink to="/performance-log" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <History size={18} />
+                    <span>سجل الأداء</span>
+                  </NavLink>
+                  <NavLink to="/report-editor" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <FileText size={18} />
+                    <span>محرر التقارير</span>
+                  </NavLink>
+                </div>
+              </li>
+            </>
+          )}
+
           <li className="nav-group">
             <div 
-              className={`nav-item ${isAccountMenuOpen ? 'active-group' : ''}`} 
-              onClick={() => {
-                setIsAccountMenuOpen(!isAccountMenuOpen);
-                if (!isOpen) setIsOpen(true);
-              }}
-              style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              className="nav-section-header"
+              onClick={() => { setIsPersonalMenuOpen(!isPersonalMenuOpen); if (!isOpen) setIsOpen(true); }}
+              title="مساحتي الشخصية"
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <User size={20} />
-                <span>حسابي</span>
+              <div className="section-title">
+                <User size={18} className="section-icon" />
+                <span>مساحتي الشخصية</span>
               </div>
-              {isAccountMenuOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              {isPersonalMenuOpen ? <ChevronUp size={14} className="section-chevron" /> : <ChevronDown size={14} className="section-chevron" />}
             </div>
-            
-            <div className={`sub-menu ${isAccountMenuOpen ? 'open' : ''}`}>
+            <div className={`sub-menu ${isPersonalMenuOpen ? 'open' : ''}`}>
               <NavLink to="/attendance" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                <Clock size={16} />
-                <span>الحضور</span>
+                <Clock size={18} />
+                <span>تسجيل الحضور</span>
               </NavLink>
               <NavLink to="/dayoff" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                <Calendar size={16} />
-                <span>الإجازات</span>
+                <Calendar size={18} />
+                <span>أجازاتي</span>
               </NavLink>
               <NavLink to="/account" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                <User size={16} />
+                <User size={18} />
                 <span>الملف الشخصي</span>
               </NavLink>
             </div>

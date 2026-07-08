@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Plus, Users, Trash2, Calendar, Check, Save, TriangleAlert, Search, User as UserIcon, Edit, ShieldCheck, Crown } from 'lucide-react';
+import { Clock, Plus, Users, Trash2, Calendar, Check, Save, TriangleAlert, Search, User as UserIcon, Edit, ShieldCheck, Crown, Shield, Cat, Star, Smile, Briefcase, Flame, Zap, Heart, Moon } from 'lucide-react';
 import api from '../services/api';
 import './Account.css'; // Reuse form styles
 
@@ -13,6 +13,10 @@ const DAYS_OF_WEEK = [
   { id: 'Friday', label: 'الجمعة' }
 ];
 
+const avatarMap = {
+  User: UserIcon, Shield, Cat, Crown, Star, Smile, Briefcase, Flame, Zap, Heart, Moon
+};
+
 const ShiftManagement = () => {
   const [shifts, setShifts] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
@@ -22,7 +26,10 @@ const ShiftManagement = () => {
     name: '',
     startTime: '09:00',
     endTime: '17:00',
-    workingDays: []
+    workingDays: [],
+    dayOffType: 'Fixed',
+    fixedDaysOff: [],
+    variableDaysOffCount: 0
   });
   const [editingShiftId, setEditingShiftId] = useState(null);
 
@@ -80,6 +87,17 @@ const ShiftManagement = () => {
     });
   };
 
+  const handleFixedDayOffToggle = (dayId) => {
+    setShiftForm(prev => {
+      const isSelected = prev.fixedDaysOff.includes(dayId);
+      if (isSelected) {
+        return { ...prev, fixedDaysOff: prev.fixedDaysOff.filter(d => d !== dayId) };
+      } else {
+        return { ...prev, fixedDaysOff: [...prev.fixedDaysOff, dayId] };
+      }
+    });
+  };
+
   const handleSubmitShift = async (e) => {
     e.preventDefault();
     if (shiftForm.workingDays.length === 0) {
@@ -103,7 +121,15 @@ const ShiftManagement = () => {
   };
 
   const resetForm = () => {
-    setShiftForm({ name: '', startTime: '09:00', endTime: '17:00', workingDays: [] });
+    setShiftForm({ 
+      name: '', 
+      startTime: '09:00', 
+      endTime: '17:00', 
+      workingDays: [],
+      dayOffType: 'Fixed',
+      fixedDaysOff: [],
+      variableDaysOffCount: 0 
+    });
     setEditingShiftId(null);
     setIsFormModalOpen(false);
   };
@@ -113,7 +139,10 @@ const ShiftManagement = () => {
       name: shift.name,
       startTime: shift.startTime,
       endTime: shift.endTime,
-      workingDays: shift.workingDays
+      workingDays: shift.workingDays,
+      dayOffType: shift.dayOffType || 'Fixed',
+      fixedDaysOff: shift.fixedDaysOff || [],
+      variableDaysOffCount: shift.variableDaysOffCount || 0
     });
     setEditingShiftId(shift.id);
     setIsFormModalOpen(true);
@@ -243,6 +272,23 @@ const ShiftManagement = () => {
                             {shiftUsers.length} موظف
                           </span>
                         </div>
+                        <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px' }}>
+                            <strong>نظام الإجازات:</strong> 
+                            {shift.dayOffType === 'Fixed' ? 'ثابت' : 'متغير'}
+                          </span>
+                          {shift.dayOffType === 'Fixed' ? (
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px' }}>
+                              <strong>أيام الإجازة:</strong> 
+                              {(shift.fixedDaysOff || []).map(dId => DAYS_OF_WEEK.find(d => d.id === dId)?.label).join('، ') || 'لا يوجد'}
+                            </span>
+                          ) : (
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px' }}>
+                              <strong>الأيام المسموحة شهرياً:</strong> 
+                              {shift.variableDaysOffCount || 0} أيام
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div style={{ display: 'flex', gap: '0.8rem' }}>
                         <button 
@@ -316,7 +362,7 @@ const ShiftManagement = () => {
                           {searchTerm ? 'لا توجد نتائج مطابقة للبحث.' : 'لا يوجد موظفين معينين لهذه الوردية حتى الآن.'}
                         </div>
                       ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
                           {filteredShiftUsers.map(user => {
                             const isAdmin = user.role === 'Admin' || user.role === 'SuperAdmin';
                             const isSuperAdmin = user.role === 'SuperAdmin';
@@ -332,7 +378,7 @@ const ShiftManagement = () => {
                                 borderRadius: '8px',
                                 transition: 'transform 0.2s',
                                 cursor: 'default',
-                                gridColumn: isAdmin ? 'span 2' : 'auto',
+                                gridColumn: isAdmin ? '1 / -1' : 'auto',
                               }}
                               onMouseOver={e => e.currentTarget.style.borderColor = isAdmin ? 'rgba(59, 130, 246, 0.5)' : 'rgba(255,255,255,0.1)'}
                               onMouseOut={e => e.currentTarget.style.borderColor = isAdmin ? 'rgba(59, 130, 246, 0.3)' : 'rgba(255,255,255,0.05)'}
@@ -341,14 +387,15 @@ const ShiftManagement = () => {
                                   width: '45px', 
                                   height: '45px', 
                                   borderRadius: '50%', 
-                                  background: isSuperAdmin ? 'linear-gradient(135deg, #f59e0b, #d97706)' : isAdmin ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'var(--accent-blue)', 
+                                  background: isSuperAdmin ? 'linear-gradient(135deg, #f59e0b, #d97706)' : isAdmin ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'rgba(249, 115, 22, 0.1)', 
                                   display: 'flex', 
                                   alignItems: 'center', 
                                   justifyContent: 'center', 
-                                  color: '#fff',
-                                  boxShadow: isAdmin ? '0 4px 10px rgba(0,0,0,0.2)' : 'none'
+                                  color: isAdmin ? '#fff' : 'var(--primary-color)',
+                                  boxShadow: isAdmin ? '0 4px 10px rgba(0,0,0,0.2)' : 'none',
+                                  border: isAdmin ? 'none' : '2px solid rgba(249, 115, 22, 0.3)'
                                 }}>
-                                  {isSuperAdmin ? <Crown size={22} /> : isAdmin ? <ShieldCheck size={22} /> : <UserIcon size={20} />}
+                                  {React.createElement(avatarMap[user.avatar] || UserIcon, { size: 22 })}
                                 </div>
                                 <div style={{ flex: 1 }}>
                                   <div style={{ fontWeight: 'bold', color: isAdmin ? '#60a5fa' : 'var(--text-primary)', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -385,8 +432,8 @@ const ShiftManagement = () => {
             </div>
             <div className="modal-body">
               <form onSubmit={handleSubmitShift}>
-                <div className="form-row two-cols" style={{ gap: '1.5rem' }}>
-                  <div className="form-group" style={{ flexBasis: '100%' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem' }}>
+                  <div className="form-group" style={{ flex: '1 1 100%' }}>
                     <label style={{ color: 'var(--text-secondary)' }}>اسم الوردية</label>
                     <input
                       type="text"
@@ -399,8 +446,8 @@ const ShiftManagement = () => {
                   </div>
                 </div>
 
-                <div className="form-row two-cols" style={{ gap: '1.5rem', marginTop: '1rem' }}>
-                  <div className="form-group">
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', marginTop: '1rem' }}>
+                  <div className="form-group" style={{ flex: '1 1 200px' }}>
                     <label style={{ color: 'var(--text-secondary)' }}>وقت البدء (من)</label>
                     <div style={{ position: 'relative' }}>
                       <Clock size={18} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', pointerEvents: 'none' }} />
@@ -413,7 +460,7 @@ const ShiftManagement = () => {
                       />
                     </div>
                   </div>
-                  <div className="form-group">
+                  <div className="form-group" style={{ flex: '1 1 200px' }}>
                     <label style={{ color: 'var(--text-secondary)' }}>وقت الانتهاء (إلى)</label>
                     <div style={{ position: 'relative' }}>
                       <Clock size={18} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', pointerEvents: 'none' }} />
@@ -457,6 +504,131 @@ const ShiftManagement = () => {
                       )
                     })}
                   </div>
+                </div>
+
+                <div className="form-group" style={{ marginTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1.5rem' }}>
+                  <label style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>نظام الإجازات الخاص بالوردية</label>
+                  <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={() => setShiftForm({...shiftForm, dayOffType: 'Fixed'})}
+                      style={{
+                        flex: 1,
+                        padding: '1rem',
+                        background: shiftForm.dayOffType === 'Fixed' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+                        border: `1px solid ${shiftForm.dayOffType === 'Fixed' ? '#3b82f6' : 'rgba(255,255,255,0.1)'}`,
+                        borderRadius: '12px',
+                        color: shiftForm.dayOffType === 'Fixed' ? '#60a5fa' : 'var(--text-secondary)',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.8rem',
+                        fontWeight: 'bold',
+                        fontSize: '1.05rem'
+                      }}
+                    >
+                      <div style={{ 
+                        width: '20px', 
+                        height: '20px', 
+                        borderRadius: '50%', 
+                        border: `2px solid ${shiftForm.dayOffType === 'Fixed' ? '#3b82f6' : 'rgba(255,255,255,0.3)'}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        {shiftForm.dayOffType === 'Fixed' && <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#3b82f6' }}></div>}
+                      </div>
+                      أيام ثابتة
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShiftForm({...shiftForm, dayOffType: 'Variable'})}
+                      style={{
+                        flex: 1,
+                        padding: '1rem',
+                        background: shiftForm.dayOffType === 'Variable' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+                        border: `1px solid ${shiftForm.dayOffType === 'Variable' ? '#3b82f6' : 'rgba(255,255,255,0.1)'}`,
+                        borderRadius: '12px',
+                        color: shiftForm.dayOffType === 'Variable' ? '#60a5fa' : 'var(--text-secondary)',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.8rem',
+                        fontWeight: 'bold',
+                        fontSize: '1.05rem'
+                      }}
+                    >
+                      <div style={{ 
+                        width: '20px', 
+                        height: '20px', 
+                        borderRadius: '50%', 
+                        border: `2px solid ${shiftForm.dayOffType === 'Variable' ? '#3b82f6' : 'rgba(255,255,255,0.3)'}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        {shiftForm.dayOffType === 'Variable' && <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#3b82f6' }}></div>}
+                      </div>
+                      متغيرة (أيام شهرياً)
+                    </button>
+                  </div>
+
+                  {shiftForm.dayOffType === 'Fixed' && (
+                    <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <label style={{ color: 'var(--text-secondary)', marginBottom: '0.8rem', display: 'block' }}>اختر أيام الإجازة الثابتة</label>
+                      <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
+                        {DAYS_OF_WEEK.map(day => {
+                          const isSelected = shiftForm.fixedDaysOff.includes(day.id);
+                          return (
+                            <button
+                              key={`fixed-${day.id}`}
+                              type="button"
+                              onClick={() => handleFixedDayOffToggle(day.id)}
+                              style={{
+                                background: isSelected ? 'rgba(239, 68, 68, 0.15)' : 'transparent',
+                                color: isSelected ? '#ef4444' : 'var(--text-secondary)',
+                                border: `1px solid ${isSelected ? '#ef4444' : 'rgba(255,255,255,0.1)'}`,
+                                padding: '0.6rem 1rem',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                minWidth: '70px'
+                              }}
+                            >
+                              {day.label}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {shiftForm.dayOffType === 'Variable' && (
+                    <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                      <label style={{ color: 'var(--text-secondary)', marginBottom: '0.8rem', display: 'block' }}>عدد الأيام المسموح بها في الشهر</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="31"
+                        value={shiftForm.variableDaysOffCount}
+                        onChange={(e) => setShiftForm({...shiftForm, variableDaysOffCount: parseInt(e.target.value) || 0})}
+                        style={{ 
+                          width: '100px', 
+                          background: 'rgba(255,255,255,0.03)', 
+                          border: '1px solid rgba(255,255,255,0.1)', 
+                          padding: '0.8rem', 
+                          borderRadius: '8px',
+                          color: '#fff',
+                          fontSize: '1.1rem',
+                          textAlign: 'center'
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="form-actions" style={{ justifyContent: 'flex-end', marginTop: '2.5rem', gap: '1rem', display: 'flex' }}>
@@ -530,7 +702,7 @@ const ShiftManagement = () => {
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
-                          <UserIcon size={18} />
+                          {React.createElement(avatarMap[user.avatar] || UserIcon, { size: 18 })}
                         </div>
                         <div>
                           <div style={{ fontWeight: 'bold', color: isAssigned ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{user.fullName}</div>
@@ -560,11 +732,11 @@ const ShiftManagement = () => {
                 )}
               </div>
 
-              <div className="modal-actions" style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
-                <button type="button" onClick={() => setIsModalOpen(false)} style={{ flex: 1, padding: '0.8rem', borderRadius: '8px', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+              <div className="modal-actions" style={{ marginTop: '2rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                <button type="button" onClick={() => setIsModalOpen(false)} style={{ flex: '1 1 120px', padding: '0.8rem', borderRadius: '8px', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'var(--text-secondary)', cursor: 'pointer' }}>
                   إلغاء
                 </button>
-                <button type="button" className="btn-save" style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} onClick={handleAssignSubmit}>
+                <button type="button" className="btn-save" style={{ flex: '2 1 200px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} onClick={handleAssignSubmit}>
                   <Save size={18} />
                   حفظ التعيينات ({selectedUserIds.length})
                 </button>

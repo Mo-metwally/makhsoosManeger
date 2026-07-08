@@ -1,54 +1,126 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Clock, Calendar, AlertTriangle, Coffee, Moon, BookOpen, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Activity, Clock, Calendar, AlertTriangle, Coffee, Moon, BookOpen, ChevronRight, ChevronLeft, User, RefreshCw, Loader, Shield, Cat, Crown, Star, Smile, Briefcase, Flame, Zap, Heart, Search, Users, ArrowUpDown, ChevronDown } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
+import CustomSelect from '../components/CustomSelect';
 import './Monitoring.css';
 
+const avatarMap = {
+  User, Shield, Cat, Crown, Star, Smile, Briefcase, Flame, Zap, Heart, Moon
+};
+
 const Monitoring = () => {
+  const { user } = useAuth();
   const [logs, setLogs] = useState([]);
   const [filter, setFilter] = useState('today'); // 'today', 'week', 'month', 'all'
+  const [searchQuery, setSearchQuery] = useState('');
+  const [myStatsOnly, setMyStatsOnly] = useState(false);
+  const [selectedSupervisor, setSelectedSupervisor] = useState('all');
+  const [sortBy, setSortBy] = useState('newest');
+  
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 6;
 
-  // Reset page when filter changes
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filter]);
+  }, [filter, searchQuery, myStatsOnly, selectedSupervisor, sortBy]);
+
+  const fetchLogs = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await api.get('/data/admin/all');
+      if (res.data && res.data.inactivity) {
+        const sortedLogs = res.data.inactivity.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+        setLogs(sortedLogs);
+      }
+    } catch (err) {
+      console.error('Error fetching monitoring logs:', err);
+      setError('حدث خطأ أثناء جلب بيانات المراقبة');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    document.title = "مراقبة الأداء | مخصوص";
-    const savedLogs = JSON.parse(localStorage.getItem('inactivity_logs') || '[]');
-    // Sort by newest first
-    savedLogs.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
-    setLogs(savedLogs);
+    document.title = "المتابعة الحية | مخصوص";
+    fetchLogs();
+    
+    // Auto refresh every 2 minutes
+    const interval = setInterval(() => {
+      fetchLogs();
+    }, 2 * 60 * 1000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const getFilteredLogs = () => {
-    if (filter === 'all') return logs;
-    
-    const now = new Date();
-    
-    return logs.filter(log => {
-      const logDate = new Date(log.startTime);
-      
-      if (filter === 'today') {
-        return logDate.toDateString() === now.toDateString();
-      }
-      
-      if (filter === 'week') {
-        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        return logDate >= oneWeekAgo;
-      }
-      
-      if (filter === 'month') {
-        return logDate.getMonth() === now.getMonth() && logDate.getFullYear() === now.getFullYear();
-      }
-      
-      return true;
-    });
+    let filtered = logs;
+
+    if (myStatsOnly && user) {
+      filtered = filtered.filter(log => log.userId === user.id);
+    }
+
+    if (searchQuery) {
+      filtered = filtered.filter(log => {
+        const name = log.User?.fullName || log.supervisorName || '';
+        return name.toLowerCase().includes(searchQuery.toLowerCase());
+      });
+    }
+
+    if (selectedSupervisor !== 'all') {
+      filtered = filtered.filter(log => {
+        const name = log.User?.fullName || log.supervisorName || '';
+        return name === selectedSupervisor;
+      });
+    }
+
+    if (filter !== 'all') {
+      const now = new Date();
+      filtered = filtered.filter(log => {
+        const logDate = new Date(log.startTime);
+        
+        if (filter === 'today') {
+          return logDate.toDateString() === now.toDateString();
+        } else if (filter === 'week') {
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          return logDate >= weekAgo;
+        } else if (filter === 'month') {
+          const monthAgo = new Date(now.setMonth(now.getMonth() - 1));
+          return logDate >= monthAgo;
+        }
+        return true;
+      });
+    }
+
+    // Sort
+    if (sortBy === 'newest') {
+      filtered.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+    } else if (sortBy === 'supervisor') {
+      filtered.sort((a, b) => (a.supervisorName || '').localeCompare(b.supervisorName || ''));
+    }
+
+    return filtered;
   };
 
   const filteredLogs = getFilteredLogs();
   const totalPages = Math.ceil(filteredLogs.length / ITEMS_PER_PAGE);
   const currentLogs = filteredLogs.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  const uniqueNames = [...new Set(logs.map(log => log.User?.fullName || log.supervisorName).filter(Boolean))];
+  
+  const employeeOptions = [
+    { value: 'all', label: 'كل الموظفين' },
+    ...uniqueNames.map(name => ({ value: name, label: name }))
+  ];
+
+  const sortOptions = [
+    { value: 'newest', label: 'الأحدث أولاً' },
+    { value: 'supervisor', label: 'حسب اسم الموظف' }
+  ];
 
   // Calculate total duration for filtered logs in minutes
   const totalDurationMs = filteredLogs.reduce((total, log) => total + log.durationMs, 0);
@@ -86,9 +158,31 @@ const Monitoring = () => {
   return (
     <div className="monitoring-container">
       <header className="page-header">
-        <div className="page-title-wrapper">
-          <Activity size={28} className="title-icon text-blue" />
-          <h1 className="page-title gradient-title">مراقبة الأداء</h1>
+        <div className="page-title-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <Activity size={28} className="title-icon text-blue" />
+            <h1 className="page-title gradient-title">المتابعة الحية للاستراحات</h1>
+          </div>
+          <button 
+            onClick={fetchLogs} 
+            disabled={loading}
+            style={{
+              background: 'rgba(59, 130, 246, 0.1)',
+              color: 'var(--blue)',
+              border: '1px solid rgba(59, 130, 246, 0.3)',
+              borderRadius: '8px',
+              padding: '0.4rem 0.8rem',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              transition: 'all 0.3s ease'
+            }}
+            title="تحديث البيانات"
+          >
+            <RefreshCw size={18} className={loading ? 'spinner' : ''} />
+            <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>تحديث</span>
+          </button>
         </div>
       </header>
 
@@ -118,50 +212,91 @@ const Monitoring = () => {
       </div>
 
       <div className="filter-section">
-        <div className="filter-group-container">
-          <h3 className="filter-title">تصفية السجل:</h3>
-          <div className="radio-filter-group">
-            <label className="filter-radio">
-              <input 
-                type="radio" 
-                name="timeFilter" 
-                value="today" 
-                checked={filter === 'today'} 
-                onChange={(e) => setFilter(e.target.value)} 
-              />
-              <span>اليوم</span>
-            </label>
-            <label className="filter-radio">
-              <input 
-                type="radio" 
-                name="timeFilter" 
-                value="week" 
-                checked={filter === 'week'} 
-                onChange={(e) => setFilter(e.target.value)} 
-              />
-              <span>الأسبوع</span>
-            </label>
-            <label className="filter-radio">
-              <input 
-                type="radio" 
-                name="timeFilter" 
-                value="month" 
-                checked={filter === 'month'} 
-                onChange={(e) => setFilter(e.target.value)} 
-              />
-              <span>الشهر</span>
-            </label>
-            <label className="filter-radio">
-              <input 
-                type="radio" 
-                name="timeFilter" 
-                value="all" 
-                checked={filter === 'all'} 
-                onChange={(e) => setFilter(e.target.value)} 
-              />
-              <span>الكل</span>
-            </label>
+        <div className="filter-toolbar">
+          <div className="filter-group-container">
+            <h3 className="filter-title">تصفية السجل:</h3>
+            <div className="mon-radio-filter-group">
+              <label className="mon-filter-radio">
+                <input 
+                  type="radio" 
+                  name="timeFilter" 
+                  value="today" 
+                  checked={filter === 'today'} 
+                  onChange={(e) => setFilter(e.target.value)} 
+                />
+                <span>اليوم</span>
+              </label>
+              <label className="mon-filter-radio">
+                <input 
+                  type="radio" 
+                  name="timeFilter" 
+                  value="week" 
+                  checked={filter === 'week'} 
+                  onChange={(e) => setFilter(e.target.value)} 
+                />
+                <span>الأسبوع</span>
+              </label>
+              <label className="mon-filter-radio">
+                <input 
+                  type="radio" 
+                  name="timeFilter" 
+                  value="month" 
+                  checked={filter === 'month'} 
+                  onChange={(e) => setFilter(e.target.value)} 
+                />
+                <span>الشهر</span>
+              </label>
+              <label className="mon-filter-radio">
+                <input 
+                  type="radio" 
+                  name="timeFilter" 
+                  value="all" 
+                  checked={filter === 'all'} 
+                  onChange={(e) => setFilter(e.target.value)} 
+                />
+                <span>الكل</span>
+              </label>
+            </div>
           </div>
+          
+          <div className="filter-actions-container">
+            <button
+              onClick={() => setMyStatsOnly(!myStatsOnly)}
+              className={`my-stats-toggle ${myStatsOnly ? 'active' : ''}`}
+            >
+              <User size={18} />
+              <span>بياناتي</span>
+            </button>
+            
+            <div className="search-container">
+              <div className="search-icon-box">
+                <Search size={18} />
+              </div>
+              <input 
+                type="text"
+                placeholder="ابحث باسم الموظف..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="employee-search-input"
+              />
+            </div>
+          </div>
+        </div>
+        
+        <div className="advanced-filters-container">
+          <CustomSelect 
+            options={employeeOptions}
+            value={selectedSupervisor}
+            onChange={setSelectedSupervisor}
+            icon={<Users size={18} />}
+          />
+          
+          <CustomSelect 
+            options={sortOptions}
+            value={sortBy}
+            onChange={setSortBy}
+            icon={<ArrowUpDown size={18} />}
+          />
         </div>
       </div>
 
@@ -169,6 +304,7 @@ const Monitoring = () => {
         <table className="calls-table">
           <thead>
             <tr>
+              <th>الموظف</th>
               <th>التاريخ</th>
               <th>نوع الفترة</th>
               <th>بداية الفترة</th>
@@ -178,11 +314,52 @@ const Monitoring = () => {
             </tr>
           </thead>
           <tbody>
-            {currentLogs.length > 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan="7" className="empty-state">
+                  <div className="empty-content">
+                    <Loader size={40} className="spinner text-blue" />
+                    <p>جاري تحميل السجلات...</p>
+                  </div>
+                </td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan="7" className="empty-state">
+                  <div className="empty-content">
+                    <AlertTriangle size={40} className="text-orange" />
+                    <p>{error}</p>
+                    <button onClick={fetchLogs} style={{ marginTop: '1rem', padding: '0.5rem 1rem', borderRadius: '8px', background: 'var(--blue)', color: 'white', border: 'none', cursor: 'pointer' }}>إعادة المحاولة</button>
+                  </div>
+                </td>
+              </tr>
+            ) : currentLogs.length > 0 ? (
               currentLogs.map(log => {
                 const isIdle = !log.type || log.type === 'idle';
+                const AvatarIcon = log.User && log.User.avatar ? (avatarMap[log.User.avatar] || User) : User;
                 return (
                   <tr key={log.id}>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div style={{ 
+                          width: '40px', 
+                          height: '40px', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center', 
+                          background: 'rgba(var(--theme-color-rgb, 59, 130, 246), 0.15)', 
+                          border: '1px solid rgba(var(--theme-color-rgb, 59, 130, 246), 0.3)', 
+                          borderRadius: '50%',
+                          flexShrink: 0
+                        }}>
+                          <AvatarIcon size={20} style={{ color: 'var(--theme-color, #3b82f6)' }} />
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 'bold', color: 'var(--theme-color)' }}>{log.User ? log.User.fullName : (log.supervisorName || 'موظف')}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{log.User ? log.User.jobTitle : ''}</div>
+                        </div>
+                      </div>
+                    </td>
                     <td className="date-cell">
                       <div className="date-content">
                         <Calendar size={14} className="cell-icon text-orange" />
@@ -215,14 +392,20 @@ const Monitoring = () => {
                       )}
                     </td>
                     <td className="time-cell" dir="ltr">{formatTime(log.startTime)}</td>
-                    <td className="time-cell" dir="ltr">{formatTime(log.endTime)}</td>
+                    <td className="time-cell" dir="ltr">
+                      {log.endTime ? formatTime(log.endTime) : <span style={{ color: 'var(--text-secondary)' }}>---</span>}
+                    </td>
                     <td className="duration-cell">
                       <span className="duration-badge">
                         {formatDuration(log.durationMs)}
                       </span>
                     </td>
                     <td>
-                      {isIdle ? (
+                      {!log.endTime ? (
+                        <span className="text-orange" style={{fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px'}}>
+                          <Activity size={14} className="spinner" /> قيد التقدم
+                        </span>
+                      ) : isIdle ? (
                         <span className="text-orange" style={{fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px'}}>
                           <AlertTriangle size={14} /> تنبيه
                         </span>
@@ -237,10 +420,10 @@ const Monitoring = () => {
               })
             ) : (
               <tr>
-                <td colSpan="6" className="empty-state">
+                <td colSpan="7" className="empty-state">
                   <div className="empty-content">
-                    <Activity size={40} className="empty-icon text-orange" />
-                    <p>لا يوجد فترات خمول مسجلة تتجاوز 10 دقائق في هذه الفترة.</p>
+                    <Coffee size={40} className="empty-icon text-orange" />
+                    <p>لا توجد فترات استراحة مسجلة في هذه الفترة.</p>
                   </div>
                 </td>
               </tr>

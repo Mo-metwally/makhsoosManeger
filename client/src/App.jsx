@@ -22,19 +22,22 @@ import DiscountsReport from './pages/DiscountsReport';
 import PermissionsReport from './pages/PermissionsReport';
 import ShiftManagement from './pages/ShiftManagement';
 import Attendance from './pages/Attendance';
+import DayOff from './pages/DayOff';
+import DayOffManagement from './pages/DayOffManagement';
 import NotFound from './pages/NotFound';
 import Login from './pages/Login';
+import StaffManagement from './pages/StaffManagement';
+import ShiftStaffDetails from './pages/ShiftStaffDetails';
 import PendingApproval from './pages/PendingApproval';
 import CheckInPage from './pages/CheckInPage';
 import CheckoutModal from './components/CheckoutModal';
+import TodayFollowup from './pages/TodayFollowup';
 import './App.css';
 
 function AppContent() {
   const { user, loading } = useAuth();
   
-  const [isIdle, setIsIdle] = useState(false);
-  const [idleStartTime, setIdleStartTime] = useState(null);
-  
+
   // Attendance State
   const [attendanceChecked, setAttendanceChecked] = useState(false);
   const [needsCheckIn, setNeedsCheckIn] = useState(false);
@@ -59,46 +62,6 @@ function AppContent() {
     }
   }, [user]);
   
-  // 5 minutes in milliseconds for the warning popup
-  const IDLE_TIMEOUT = 5 * 60 * 1000;
-  // 10 minutes in milliseconds for logging
-  const LOG_THRESHOLD = 10 * 60 * 1000;
-
-  const resetIdleTimer = useCallback(() => {
-    if (isIdle || !user) return; // Don't reset if already idle or not logged in
-    
-    // Clear existing timer
-    if (window.idleTimer) clearTimeout(window.idleTimer);
-    
-    // Set new timer
-    window.idleTimer = setTimeout(() => {
-      const activeBreak = localStorage.getItem('activeBreak');
-      if (activeBreak) {
-        return;
-      }
-      
-      setIsIdle(true);
-      setIdleStartTime(new Date(Date.now() - IDLE_TIMEOUT));
-    }, IDLE_TIMEOUT);
-  }, [isIdle, user, IDLE_TIMEOUT]);
-
-  useEffect(() => {
-    if (!user) return;
-    
-    resetIdleTimer();
-    const events = ['mousemove', 'keydown', 'scroll', 'click', 'touchstart'];
-    
-    const handleUserActivity = () => {
-      resetIdleTimer();
-    };
-
-    events.forEach(event => window.addEventListener(event, handleUserActivity));
-
-    return () => {
-      if (window.idleTimer) clearTimeout(window.idleTimer);
-      events.forEach(event => window.removeEventListener(event, handleUserActivity));
-    };
-  }, [resetIdleTimer, user]);
 
   useEffect(() => {
     const applyTheme = () => {
@@ -114,37 +77,6 @@ function AppContent() {
     };
   }, [user]);
 
-  const handleReactivate = async () => {
-    if (idleStartTime) {
-      const endTime = new Date();
-      const durationMs = endTime.getTime() - idleStartTime.getTime();
-      
-      if (durationMs > LOG_THRESHOLD) {
-        const newLog = {
-          id: Date.now().toString(),
-          startTime: idleStartTime.toISOString(),
-          endTime: endTime.toISOString(),
-          durationMs: durationMs,
-          type: 'idle',
-          supervisorName: user.name
-        };
-        try {
-          await api.post('/data/inactivity', [newLog]);
-        } catch (error) {
-          console.error("Failed to save idle log to server", error);
-        }
-      }
-    }
-
-    setIsIdle(false);
-    setIdleStartTime(null);
-
-    if (window.idleTimer) clearTimeout(window.idleTimer);
-    window.idleTimer = setTimeout(() => {
-      setIsIdle(true);
-      setIdleStartTime(new Date(Date.now() - IDLE_TIMEOUT));
-    }, IDLE_TIMEOUT);
-  };
 
   if (loading || (user && user.status === 'Active' && !attendanceChecked)) {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'white' }}>جاري التحميل...</div>;
@@ -184,7 +116,12 @@ function AppContent() {
           <Route path="/report-editor/discounts" element={<DiscountsReport />} />
           <Route path="/permissions" element={<PermissionsReport />} />
           <Route path="/shift-management" element={<ShiftManagement />} />
+          <Route path="/dayoff-management" element={<DayOffManagement />} />
+          <Route path="/dayoff" element={<DayOff />} />
           <Route path="/attendance" element={<Attendance />} />
+          <Route path="/staff-management" element={<StaffManagement />} />
+          <Route path="/staff-management/:shiftId" element={<ShiftStaffDetails />} />
+          <Route path="/today-followup" element={<TodayFollowup />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         
@@ -198,32 +135,7 @@ function AppContent() {
 
       <CheckoutModal />
 
-      {isIdle && (
-        <div className="idle-overlay">
-          <div className="idle-modal">
-            <div className="idle-icon-wrapper">
-              <TriangleAlert size={70} strokeWidth={1.5} color="#f97316" />
-            </div>
-            
-            <h2 className="idle-title">تنبيه خمول:</h2>
-            
-            <p className="idle-subtitle">
-              تم تحويل حالتك إلى <span className="idle-red-text">(غير نشط)</span>
-            </p>
-            <p className="idle-desc">لعدم رصد حركة.</p>
-            
-            <button className="idle-reactivate-btn" onClick={handleReactivate}>
-              <PlayCircle size={22} />
-              <span>إعادة تنشيط والعودة للعمل</span>
-            </button>
-            
-            <div className="idle-footer">
-              <Info size={14} />
-              <span>لم يتم رصد أي حركة لمدة 5 دقائق.</span>
-            </div>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }

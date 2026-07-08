@@ -1,0 +1,216 @@
+.dom-container {
+  flex: 1;
+  padding-bottom: 4rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.dom-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.dom-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 2rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.dom-subtitle {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+}
+
+.dom-section {
+  padding: 1.5rem;
+  border-radius: 16px;
+  background: var(--glass-bg);
+  border: var(--glass-border);
+  margin-bottom: 2rem;
+}
+
+.dom-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.dom-table-wrapper {
+  overflow-x: auto;
+}
+
+.dom-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dom-table th, .dom-table td {
+  padding: 1rem;
+  text-align: right;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dom-table th {
+  color: var(--text-secondary);
+  font-weight: normal;
+}
+
+.dom-table td {
+  color: var(--text-primary);
+}
+
+.dom-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.dom-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dom-btn-approve {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.1);
+}
+.dom-btn-approve:hover { background: #22c55e; color: white; }
+
+.dom-btn-reject {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+.dom-btn-reject:hover { background: #ef4444; color: white; }
+
+.dom-badge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  display: inline-block;
+}
+
+.dom-badge.pending {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.dom-badge.approved {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+.dom-badge.rejected {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.dom-filters-group {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.dom-filter-btn {
+  background: var(--glass-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.6rem 1.2rem;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.dom-filter-btn:hover {
+  background: var(--glass-bg-hover);
+  transform: translateY(-2px);
+}
+
+.dom-filter-btn.active-all {
+  background: var(--theme-color);
+  color: var(--btn-text-color, #fff);
+  border-color: var(--theme-color);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.dom-filter-btn.active-pending {
+  background: #f97316;
+  color: #fff;
+  border-color: #f97316;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+.dom-filter-btn.active-approved {
+  background: #22c55e;
+  color: #fff;
+  border-color: #22c55e;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.dom-filter-btn.active-rejected {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.dom-group-row {
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.dom-group-row:hover {
+  background: var(--glass-bg-hover);
+}
+
+.dom-expanded-content {
+  padding: 1.5rem 2rem;
+  background: var(--bg-main);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: inset 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.dom-inner-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--glass-bg);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.dom-inner-table th, .dom-inner-table td {
+  padding: 1rem;
+  text-align: right;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dom-inner-table th {
+  color: var(--text-secondary);
+  font-weight: normal;
+  font-size: 0.9rem;
+  background: var(--glass-bg-hover);
+}
+
+.text-orange-500 { color: #f97316 !important; font-weight: bold; }
+.text-green-500 { color: #22c55e !important; font-weight: bold; }
+.text-red-500 { color: #ef4444 !important; font-weight: bold; }

@@ -1,4 +1,4 @@
-const { AttendanceLog, Shift, User } = require('../models');
+const { AttendanceLog, Shift, User, DayOffRequest, InactivityLog } = require('../models');
 const { Op } = require('sequelize');
 
 // Helper: Get active shift for a user for a given day name
@@ -137,9 +137,324 @@ exports.getAllLogs = async (req, res) => {
       ],
       order: [['date', 'DESC'], ['createdAt', 'DESC']]
     });
-    res.json(logs);
+
+    const inactivityLogs = await InactivityLog.findAll();
+    const breakMap = {}; // Key: "userId-YYYY-MM-DD"
+
+    inactivityLogs.forEach(log => {
+      if (!log.startTime) return;
+      const dateStr = log.startTime.split('T')[0];
+      const key = `${log.userId}-${dateStr}`;
+      
+      if (!breakMap[key]) {
+        breakMap[key] = { 'بريك صلاة': 0, 'بريك غداء': 0 };
+      }
+      if (log.type === 'بريك صلاة' || log.type === 'بريك غداء') {
+        breakMap[key][log.type] += (log.durationMs || 0);
+      }
+    });
+
+    const resultLogs = logs.map(log => {
+      const logData = log.toJSON();
+      const key = `${log.userId}-${log.date}`;
+      logData.breakDetails = breakMap[key] || { 'بريك صلاة': 0, 'بريك غداء': 0 };
+      return logData;
+    });
+
+    res.json(resultLogs);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+exports.registerAbsence = async (req, res) => {
+  try {
+    const { userId, date } = req.body;
+    if (!userId || !date) {
+      return res.status(400).json({ error: 'يجب تحديد الموظف والتاريخ' });
+    }
+    
+    const existingLog = await AttendanceLog.findOne({ where: { userId, date } });
+    if (existingLog) {
+      return res.status(400).json({ error: 'يوجد سجل حضور/غياب مسبق لهذا الموظف في هذا اليوم' });
+    }
+
+    const user = await User.findByPk(userId, {
+      include: [{
+        model: Shift,
+        through: { attributes: [] }
+      }]
+    });
+    
+    if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
+    
+    const d = new Date(date);
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayName = days[d.getDay()];
+    
+    const activeShift = user.Shifts && user.Shifts.find(shift => shift.workingDays.includes(dayName));
+    const shiftId = activeShift ? activeShift.id : (user.Shifts && user.Shifts.length > 0 ? user.Shifts[0].id : null);
+    
+    if (!shiftId) {
+      return res.status(400).json({ error: 'لا يمكن تسجيل الغياب: الموظف غير مرتبط بأي وردية' });
+    }
+
+    const log = await AttendanceLog.create({
+      userId,
+      shiftId,
+      date,
+      status: 'Absent'
+    });
+
+    res.status(201).json({ message: 'تم تسجيل غياب الموظف بنجاح', log });
+  } catch (error) {
+    console.error('Error registering absence:', error);
+    res.status(500).json({ error: 'حدث خطأ أثناء تسجيل الغياب' });
+  }
+};
+
+exports.getTodayStatus = async (req, res) => {
+  try {
+    const adminId = req.user.id;
+    
+    // Find shifts the admin belongs to
+    const adminUser = await User.findByPk(adminId, {
+      include: [{ model: Shift, through: { attributes: [] } }]
+    });
+
+    if (!adminUser || !adminUser.Shifts || adminUser.Shifts.length === 0) {
+      return res.json({ adminShifts: [], users: [] }); // No shifts assigned to this admin
+    }
+
+    const adminShifts = adminUser.Shifts.map(s => ({
+      name: s.name,
+      startTime: s.startTime,
+      endTime: s.endTime
+    }));
+
+    const shiftIds = adminUser.Shifts.map(s => s.id);
+
+    // Get all users in these shifts
+    const usersInShifts = await User.findAll({
+      include: [
+        { 
+          model: Shift, 
+          where: { id: shiftIds },
+          through: { attributes: [] }
+        }
+      ],
+      where: {
+        status: 'Active',
+        id: { [Op.ne]: adminId } // Exclude the admin themselves
+      },
+      attributes: ['id', 'fullName', 'username', 'avatar', 'jobTitle']
+    });
+
+    if (usersInShifts.length === 0) {
+      return res.json({ adminShifts, users: [] });
+    }
+
+    const userIds = usersInShifts.map(u => u.id);
+
+    // Get today's attendance logs for these users
+    const today = new Date().toISOString().split('T')[0];
+    
+    const attendances = await AttendanceLog.findAll({
+      where: {
+        userId: userIds,
+        date: today
+      }
+    });
+
+    // Get today's approved dayoffs for these users
+    const dayoffs = await DayOffRequest.findAll({
+      where: {
+        userId: userIds,
+        date: today,
+        status: 'Approved'
+      }
+    });
+
+    const attendanceMap = {};
+    attendances.forEach(a => {
+      attendanceMap[a.userId] = {
+        status: a.status || (a.checkOutTime ? 'Present' : 'Present'),
+        checkInTime: a.checkInTime,
+        checkOutTime: a.checkOutTime
+      };
+    });
+
+    const dayoffMap = {};
+    dayoffs.forEach(d => {
+      dayoffMap[d.userId] = 'DayOff';
+    });
+
+    // Get today's inactivity (break) logs
+    const inactiveLogs = await InactivityLog.findAll({
+      where: {
+        userId: userIds,
+        startTime: { [Op.startsWith]: today }
+      }
+    });
+
+    const breakMap = {};
+    const activeBreakMap = {}; // Key: userId, Value: break type
+
+    inactiveLogs.forEach(log => {
+      // Check if this log is an active break (no endTime)
+      if (!log.endTime) {
+        activeBreakMap[log.userId] = log.type;
+      }
+
+      if (!breakMap[log.userId]) {
+        breakMap[log.userId] = { 'بريك صلاة': 0, 'بريك غداء': 0 };
+      }
+      if (log.type === 'بريك صلاة' || log.type === 'بريك غداء') {
+        breakMap[log.userId][log.type] += (log.durationMs || 0);
+      }
+    });
+
+    // Combine data
+    const result = usersInShifts.map(user => {
+      let todayStatus = 'Pending'; // Default: Not attended yet
+      let checkInTime = null;
+      let checkOutTime = null;
+      
+      if (attendanceMap[user.id]) {
+        todayStatus = attendanceMap[user.id].status; // Present, Absent, Late
+        checkInTime = attendanceMap[user.id].checkInTime;
+        checkOutTime = attendanceMap[user.id].checkOutTime;
+      } else if (dayoffMap[user.id]) {
+        todayStatus = 'DayOff';
+      }
+
+      // Override status if currently on a break
+      if (activeBreakMap[user.id]) {
+        todayStatus = activeBreakMap[user.id];
+      }
+
+      return {
+        id: user.id,
+        fullName: user.fullName,
+        username: user.username,
+        avatar: user.avatar,
+        jobTitle: user.jobTitle,
+        shifts: user.Shifts.map(s => s.name),
+        todayStatus,
+        checkInTime,
+        checkOutTime,
+        breakDetails: breakMap[user.id] || { 'بريك صلاة': 0, 'بريك غداء': 0 }
+      };
+    });
+
+    // Sort by name
+    result.sort((a, b) => a.fullName.localeCompare(b.fullName, 'ar'));
+
+    res.json({
+      adminShifts,
+      users: result
+    });
+  } catch (error) {
+    console.error('Error in getTodayStatus:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+exports.adminUpdateStatus = async (req, res) => {
+  try {
+    const { userId, action, notes } = req.body;
+    
+    if (!userId || !action) {
+      return res.status(400).json({ error: 'يجب توفير معرف الموظف والإجراء' });
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    
+    const user = await User.findByPk(userId, {
+      include: [{ model: Shift, through: { attributes: [] } }]
+    });
+
+    if (!user) return res.status(404).json({ error: 'الموظف غير موجود' });
+
+    // Determine shiftId
+    const d = new Date();
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayName = days[d.getDay()];
+    const activeShift = user.Shifts && user.Shifts.find(shift => shift.workingDays.includes(dayName));
+    const shiftId = activeShift ? activeShift.id : (user.Shifts && user.Shifts.length > 0 ? user.Shifts[0].id : null);
+
+    if (!shiftId && action !== 'DayOff') {
+      return res.status(400).json({ error: 'الموظف غير مرتبط بوردية' });
+    }
+
+    // Find existing logs
+    let attendance = await AttendanceLog.findOne({ where: { userId, date: today } });
+    let dayOff = await DayOffRequest.findOne({ where: { userId, date: today } });
+
+    switch (action) {
+      case 'CheckIn':
+        if (dayOff) await dayOff.destroy();
+        if (!attendance) {
+          await AttendanceLog.create({
+            userId, shiftId, date: today, status: 'Present', checkInTime: new Date(), notes
+          });
+        } else {
+          attendance.status = 'Present';
+          if (!attendance.checkInTime) attendance.checkInTime = new Date();
+          if (notes) attendance.notes = (attendance.notes ? attendance.notes + '\\n' + notes : notes);
+          await attendance.save();
+        }
+        break;
+
+      case 'CheckOut':
+        if (dayOff) await dayOff.destroy();
+        if (!attendance) {
+          await AttendanceLog.create({
+            userId, shiftId, date: today, status: 'Present', checkOutTime: new Date(), notes
+          });
+        } else {
+          attendance.status = 'Present';
+          attendance.checkOutTime = new Date();
+          if (notes) attendance.notes = (attendance.notes ? attendance.notes + '\\n' + notes : notes);
+          await attendance.save();
+        }
+        break;
+
+      case 'Absent':
+        if (dayOff) await dayOff.destroy();
+        if (!attendance) {
+          await AttendanceLog.create({
+            userId, shiftId, date: today, status: 'Absent', notes
+          });
+        } else {
+          attendance.status = 'Absent';
+          attendance.checkInTime = null;
+          attendance.checkOutTime = null;
+          if (notes) attendance.notes = (attendance.notes ? attendance.notes + '\\n' + notes : notes);
+          await attendance.save();
+        }
+        break;
+
+      case 'DayOff':
+        if (attendance) await attendance.destroy();
+        if (!dayOff) {
+          await DayOffRequest.create({
+            userId, date: today, dayName, status: 'Approved', reason: 'إجازة مسجلة من الإدارة'
+          });
+        } else {
+          dayOff.status = 'Approved';
+          await dayOff.save();
+        }
+        break;
+
+      default:
+        return res.status(400).json({ error: 'إجراء غير صالح' });
+    }
+
+    res.json({ message: 'تم تحديث حالة الموظف بنجاح' });
+  } catch (error) {
+    console.error('Error in adminUpdateStatus:', error);
+    res.status(500).json({ error: 'حدث خطأ في الخادم' });
   }
 };
