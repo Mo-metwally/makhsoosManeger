@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Activity, Clock, Calendar, AlertTriangle, Coffee, Moon, BookOpen, ChevronRight, ChevronLeft, User, RefreshCw, Loader, Shield, Cat, Crown, Star, Smile, Briefcase, Flame, Zap, Heart, Search, Users, ArrowUpDown, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import { getLogicalDateString } from '../utils/dateHelpers';
 import CustomSelect from '../components/CustomSelect';
 import './Monitoring.css';
 
@@ -12,11 +14,17 @@ const avatarMap = {
 const Monitoring = () => {
   const { user } = useAuth();
   const [logs, setLogs] = useState([]);
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialEmployeeName = searchParams.get('employeeName');
+
   const [filter, setFilter] = useState('today'); // 'today', 'week', 'month', 'all'
   const [searchQuery, setSearchQuery] = useState('');
   const [myStatsOnly, setMyStatsOnly] = useState(false);
-  const [selectedSupervisor, setSelectedSupervisor] = useState('all');
+  const [selectedSupervisor, setSelectedSupervisor] = useState(initialEmployeeName || 'all');
   const [sortBy, setSortBy] = useState('newest');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
   
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 6;
@@ -85,7 +93,24 @@ const Monitoring = () => {
         const logDate = new Date(log.startTime);
         
         if (filter === 'today') {
-          return logDate.toDateString() === now.toDateString();
+          return getLogicalDateString(logDate) === getLogicalDateString(now);
+        } else if (filter === 'yesterday') {
+          const yesterday = new Date(now);
+          yesterday.setDate(yesterday.getDate() - 1);
+          return getLogicalDateString(logDate) === getLogicalDateString(yesterday);
+        } else if (filter === 'custom') {
+          let isValid = true;
+          if (customStartDate) {
+            const start = new Date(customStartDate);
+            start.setHours(0, 0, 0, 0);
+            if (logDate < start) isValid = false;
+          }
+          if (customEndDate) {
+            const end = new Date(customEndDate);
+            end.setHours(23, 59, 59, 999);
+            if (logDate > end) isValid = false;
+          }
+          return isValid;
         } else if (filter === 'week') {
           const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
           return logDate >= weekAgo;
@@ -193,7 +218,7 @@ const Monitoring = () => {
             <Clock size={28} />
           </div>
           <div className="summary-info">
-            <h3>إجمالي وقت الخمول ({filter === 'today' ? 'اليوم' : filter === 'week' ? 'هذا الأسبوع' : filter === 'month' ? 'هذا الشهر' : 'الكل'})</h3>
+            <h3>إجمالي وقت الخمول ({filter === 'today' ? 'اليوم' : filter === 'yesterday' ? 'أمس' : filter === 'week' ? 'هذا الأسبوع' : filter === 'month' ? 'هذا الشهر' : filter === 'custom' ? 'مخصص' : 'الكل'})</h3>
             <div className="summary-value">
               {totalHours > 0 ? (
                 <>
@@ -230,6 +255,16 @@ const Monitoring = () => {
                 <input 
                   type="radio" 
                   name="timeFilter" 
+                  value="yesterday" 
+                  checked={filter === 'yesterday'} 
+                  onChange={(e) => setFilter(e.target.value)} 
+                />
+                <span>أمس</span>
+              </label>
+              <label className="mon-filter-radio">
+                <input 
+                  type="radio" 
+                  name="timeFilter" 
                   value="week" 
                   checked={filter === 'week'} 
                   onChange={(e) => setFilter(e.target.value)} 
@@ -256,7 +291,29 @@ const Monitoring = () => {
                 />
                 <span>الكل</span>
               </label>
+              <label className="mon-filter-radio">
+                <input 
+                  type="radio" 
+                  name="timeFilter" 
+                  value="custom" 
+                  checked={filter === 'custom'} 
+                  onChange={(e) => setFilter(e.target.value)} 
+                />
+                <span>مخصص</span>
+              </label>
             </div>
+            {filter === 'custom' && (
+              <div className="custom-date-filters fade-in" style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                  <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>من تاريخ</label>
+                  <input type="date" className="employee-search-input" value={customStartDate} onChange={(e) => setCustomStartDate(e.target.value)} style={{ padding: '0.4rem', borderRadius: '6px', background: 'rgba(15, 23, 42, 0.6)' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                  <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>إلى تاريخ</label>
+                  <input type="date" className="employee-search-input" value={customEndDate} onChange={(e) => setCustomEndDate(e.target.value)} style={{ padding: '0.4rem', borderRadius: '6px', background: 'rgba(15, 23, 42, 0.6)' }} />
+                </div>
+              </div>
+            )}
           </div>
           
           <div className="filter-actions-container">

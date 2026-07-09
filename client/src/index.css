@@ -345,8 +345,8 @@ ul {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  right: 0;
+  bottom: 0;
   background-color: rgba(0, 0, 0, 0.7);
   background-image: radial-gradient(circle at center, var(--bg-active-menu), transparent 80%);
   backdrop-filter: blur(10px);
@@ -354,7 +354,7 @@ ul {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 9999;
   animation: overlayFadeIn 0.3s ease;
 }
 

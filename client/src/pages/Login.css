@@ -77,9 +77,23 @@
   margin-top: 1rem;
 }
 
-.login-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px var(--theme-glow);
+.login-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+}
+
+.login-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.spinner-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .success-message {

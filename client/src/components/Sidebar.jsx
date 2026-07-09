@@ -224,7 +224,13 @@ const Sidebar = () => {
           <li>
             <NavLink to="/" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
               <Home size={20} />
-              <span>الرئيسية</span>
+              <span>لوحة التشغيل</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/personal-followup" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
+              <Activity size={20} />
+              <span>المتابعة الشخصية</span>
             </NavLink>
           </li>
 
@@ -283,17 +289,17 @@ const Sidebar = () => {
                     <Activity size={18} />
                     <span>المتابعة الحية</span>
                   </NavLink>
-                  <NavLink to="/calls" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                  <NavLink to="/contacts" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <Phone size={18} />
-                    <span>المكالمات</span>
+                    <span>سجل التواصل</span>
                   </NavLink>
                   <NavLink to="/handleAdminReports" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <Folder size={18} />
                     <span>سجل المراقبة المجمع</span>
                   </NavLink>
-                  <NavLink to="/handleAdmin" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                  <NavLink to="/allcontacts" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <Database size={18} />
-                    <span>سجل المندوبين المجمع</span>
+                    <span>سجل التواصل المجمع</span>
                   </NavLink>
                 </div>
               </li>
@@ -371,9 +377,9 @@ const Sidebar = () => {
                   {isWorkMenuOpen ? <ChevronUp size={14} className="section-chevron" /> : <ChevronDown size={14} className="section-chevron" />}
                 </div>
                 <div className={`sub-menu ${isWorkMenuOpen ? 'open' : ''}`}>
-                  <NavLink to="/calls" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                  <NavLink to="/contacts" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <Phone size={18} />
-                    <span>المكالمات</span>
+                    <span>سجل التواصل</span>
                   </NavLink>
                   <NavLink to="/monitoring" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <Activity size={18} />

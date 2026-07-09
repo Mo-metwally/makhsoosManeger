@@ -8,7 +8,7 @@ const AdminNavBar = () => {
 
   const links = [
     { path: '/handleAdminAdd', label: 'رفع التقارير المجمعة', icon: UploadCloud },
-    { path: '/handleAdmin', label: 'سجل المندوبين المجمع', icon: Users },
+    { path: '/allcontacts', label: 'سجل التواصل المجمع', icon: Users },
     { path: '/handleAdminReports', label: 'سجل المراقبة المجمع', icon: Activity },
     { path: '/handleAdminPerformance', label: 'سجل مراقبة الأداء', icon: Activity },
     { path: '/handleAdminExport', label: 'تصدير التقارير', icon: DownloadCloud }

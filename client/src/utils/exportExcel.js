@@ -1,14 +1,8 @@
 import * as XLSX from 'xlsx-js-style';
 import * as zip from '@zip.js/zip.js';
+import { getLogicalDateString, getLogicalDateObj } from './dateHelpers';
 
 // Helpers
-const getLocalDateString = (date = new Date()) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
 const formatDuration = (ms) => {
   const minutes = Math.floor(ms / (1000 * 60));
   if (minutes >= 60) {
@@ -20,7 +14,7 @@ const formatDuration = (ms) => {
 };
 
 const getFilteredData = (data, filterType, dateField, startDate, endDate) => {
-  const now = new Date();
+  const now = getLogicalDateObj();
 
   if (filterType === 'all') return data;
 
@@ -39,13 +33,13 @@ const getFilteredData = (data, filterType, dateField, startDate, endDate) => {
     const itemDate = new Date(item[dateField]);
 
     if (filterType === 'today') {
-      return itemDate.toDateString() === now.toDateString();
+      return getLogicalDateString(itemDate) === getLogicalDateString();
     }
 
     if (filterType === 'yesterday') {
       const yesterday = new Date(now);
       yesterday.setDate(yesterday.getDate() - 1);
-      return itemDate.toDateString() === yesterday.toDateString();
+      return getLogicalDateString(itemDate) === getLogicalDateString(yesterday);
     }
 
     if (filterType === 'week') {
@@ -189,7 +183,7 @@ const getPerformanceSheet = (filterType, userName, startDate, endDate) => {
 };
 
 export const exportToExcel = async (filterType = 'today', startDate, endDate) => {
-  const todayStr = getLocalDateString();
+  const todayStr = getLogicalDateString();
   const userName = localStorage.getItem('userName') || 'المشرف';
 
   const wsCalls = getCallsSheet(filterType, startDate, endDate);
@@ -230,7 +224,7 @@ export const exportToExcel = async (filterType = 'today', startDate, endDate) =>
 };
 
 export const exportCallsOnly = (filterType = 'today', startDate, endDate) => {
-  const todayStr = getLocalDateString();
+  const todayStr = getLogicalDateString();
   const userName = localStorage.getItem('userName') || 'المشرف';
   const wsCalls = getCallsSheet(filterType, startDate, endDate);
 
@@ -389,7 +383,7 @@ export const getAdminPerformanceSheet = (filteredData) => {
 };
 
 export const exportAdminData = async (exportType, filteredCalls, filteredLogs, filteredPerf) => {
-  const todayStr = getLocalDateString();
+  const todayStr = getLogicalDateString();
   const fileNameBase = `تقرير_الإدارة_الشامل_${todayStr}`;
 
   if (exportType === 'calls_only') {

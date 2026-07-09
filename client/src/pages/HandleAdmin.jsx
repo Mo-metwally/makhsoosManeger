@@ -1,22 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Phone, Search, Trash2, PhoneCall, ChevronRight, ChevronLeft, RefreshCw } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { Calendar, Phone, Search, Trash2, PhoneCall, ChevronRight, ChevronLeft, RefreshCw, X, Link as LinkIcon, Info, FileText } from 'lucide-react';
 import AdminGuard from '../components/AdminGuard';
 import CustomSelect from '../components/CustomSelect';
 import { applyFiltersAndSort } from '../utils/filterAndSort';
 import api from '../services/api';
-import './Calls.css'; // Reuse Calls styles
+import './Calls.css';
 
 const HandleAdmin = () => {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialEmployeeName = searchParams.get('employeeName');
+
   const [calls, setCalls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [timeFilter, setTimeFilter] = useState('all');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
-  const [supervisorFilter, setSupervisorFilter] = useState('all');
+  const [supervisorFilter, setSupervisorFilter] = useState(initialEmployeeName || 'all');
   const [sortBy, setSortBy] = useState('date_desc');
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 6;
+  const [expandedRows, setExpandedRows] = useState(new Set());
+  const [phoneHistoryModal, setPhoneHistoryModal] = useState({ isOpen: false, phone: '', history: [], loading: false });
+  const ITEMS_PER_PAGE = 10;
 
   const fetchCalls = async () => {
     setLoading(true);
@@ -33,11 +40,10 @@ const HandleAdmin = () => {
   };
 
   useEffect(() => {
-    document.title = "سجل المندوبين المجمع | مخصوص";
+    document.title = "سجل التواصل المجمع | مخصوص";
     fetchCalls();
   }, []);
 
-  // Reset page when search or filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, timeFilter, supervisorFilter, sortBy, customStartDate, customEndDate]);
@@ -49,9 +55,47 @@ const HandleAdmin = () => {
     }
   };
 
-  const uniqueSupervisors = Array.from(new Set(calls.map(c => c.supervisorName).filter(Boolean)));
+  const openPhoneHistory = async (phone) => {
+    if (!phone) return;
+    setPhoneHistoryModal({ isOpen: true, phone, history: [], loading: true });
+    try {
+      const response = await api.get(`/data/calls/history/${phone}`);
+      setPhoneHistoryModal({
+        isOpen: true,
+        phone,
+        history: response.data,
+        loading: false
+      });
+    } catch (error) {
+      console.error("Failed to fetch phone history", error);
+      setPhoneHistoryModal(prev => ({ ...prev, loading: false }));
+    }
+  };
 
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '-';
+    const d = new Date(dateStr);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const h = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    return `${y}-${m}-${day} ${h}:${min}`;
+  };
+
+  const toggleRow = (id) => {
+    const newSet = new Set(expandedRows);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setExpandedRows(newSet);
+  };
+
+  const uniqueSupervisors = Array.from(new Set(calls.map(c => c.supervisorName).filter(Boolean)));
   const filteredCalls = applyFiltersAndSort(calls, { timeFilter, supervisorFilter, searchQuery, sortBy, customStartDate, customEndDate }, false);
+  
   const totalPages = Math.ceil(filteredCalls.length / ITEMS_PER_PAGE);
   const currentCalls = filteredCalls.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
@@ -83,7 +127,7 @@ const HandleAdmin = () => {
         <header className="page-header">
           <div className="title-section">
             <PhoneCall size={28} className="header-icon" />
-            <h1 className="page-title gradient-title">سجل المندوبين المجمع (إدارة)</h1>
+            <h1 className="page-title gradient-title">سجل التواصل المجمع (إدارة)</h1>
           </div>
           <div style={{ color: 'var(--text-secondary)', display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <span>إجمالي المكالمات المجمعة: <strong>{calls.length}</strong></span>
@@ -186,11 +230,11 @@ const HandleAdmin = () => {
           <table className="calls-table">
             <thead>
               <tr>
-                <th>تاريخ التقرير الأصلي</th>
-                <th>المشرف (رافع التقرير)</th>
+                <th>التاريخ</th>
+                <th>المشرف</th>
                 <th>اسم المندوب</th>
                 <th>رقم الهاتف</th>
-                <th>المحافظة/المدينة</th>
+                <th>المحافظة</th>
                 <th>طريقة التواصل</th>
                 <th>حالة المندوب</th>
                 <th>حالة المكالمة</th>
@@ -199,49 +243,95 @@ const HandleAdmin = () => {
             </thead>
             <tbody>
               {currentCalls.length > 0 ? (
-                currentCalls.map(call => (
-                  <tr key={call.id}>
-                    <td className="date-cell">
-                      <div className="date-content">
-                        <Calendar size={14} className="cell-icon" />
-                        <span dir="ltr">{call.createdAt ? new Date(call.createdAt).toLocaleDateString('en-CA') : (call.originalDateString || '-')}</span>
-                      </div>
-                    </td>
-                    <td><strong style={{ color: 'var(--theme-color)' }}>{call.supervisorName || '-'}</strong></td>
-                    <td>{call.agentName}</td>
-                    <td dir="ltr" style={{ textAlign: 'right' }}>{call.phone}</td>
-                    <td>{call.city}</td>
-                    <td className="status-cell">
-                      <span className={`status-badge ${getCommMethodBadgeClass(call.commMethod)}`}>
-                        {call.commMethod}
-                      </span>
-                    </td>
-                    <td className="status-cell">
-                       <span className={`status-badge ${getAgentStatusBadgeClass(call.agentStatus)}`}>
-                        {call.agentStatus}
-                      </span>
-                    </td>
-                    <td className="status-cell">
-                       <span className={`status-badge ${getStatusBadgeClass(call.callStatus)}`}>
-                        {call.callStatus}
-                      </span>
-                    </td>
-                    <td>
-                      <div style={{ maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={call.report}>
-                        {call.report}
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                currentCalls.map((call) => {
+                  const isExpanded = expandedRows.has(call.id);
+                  return (
+                    <React.Fragment key={call.id}>
+                      <tr 
+                        className={`expandable-row ${isExpanded ? 'active-row' : ''}`}
+                        onClick={() => toggleRow(call.id)}
+                      >
+                        <td className="date-cell">
+                          <div className="date-content">
+                            <Calendar size={14} className="cell-icon" />
+                            <span dir="ltr">{call.createdAt ? new Date(call.createdAt).toLocaleDateString('en-CA') : (call.originalDateString || '-')}</span>
+                          </div>
+                        </td>
+                        <td><strong style={{ color: 'var(--theme-color)' }}>{call.supervisorName || '-'}</strong></td>
+                        <td>{call.agentName}</td>
+                        <td 
+                          dir="ltr" 
+                          style={{ textAlign: 'right', color: 'var(--theme-color)', cursor: 'pointer', textDecoration: 'underline' }}
+                          onClick={(e) => { e.stopPropagation(); openPhoneHistory(call.phone); }}
+                        >
+                          {call.phone}
+                        </td>
+                        <td>{call.city}</td>
+                        <td className="status-cell">
+                          <span className={`status-badge ${getCommMethodBadgeClass(call.commMethod)}`}>
+                            {call.commMethod}
+                          </span>
+                        </td>
+                        <td className="status-cell">
+                           <span className={`status-badge ${getAgentStatusBadgeClass(call.agentStatus)}`}>
+                            {call.agentStatus}
+                          </span>
+                        </td>
+                        <td className="status-cell">
+                           <span className={`status-badge ${getStatusBadgeClass(call.callStatus)}`}>
+                            {call.callStatus}
+                          </span>
+                        </td>
+                        <td>
+                          <div style={{ maxWidth: '180px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {call.report}
+                          </div>
+                        </td>
+                      </tr>
+                      {isExpanded && (
+                        <tr className="expanded-details-row">
+                          <td colSpan="9" style={{ padding: '0', background: 'rgba(0,0,0,0.15)' }}>
+                            <div className="advanced-details-card">
+                              <div className="detail-section full-width">
+                                <div className="detail-section-header">
+                                  <FileText size={18} /> نص التقرير
+                                </div>
+                                <div className="detail-section-content">
+                                  {call.report || 'لا يوجد تقرير'}
+                                </div>
+                              </div>
+                              
+                              {call.notes && (
+                                <div className="detail-section full-width">
+                                  <div className="detail-section-header" style={{ color: '#f59e0b' }}>
+                                    <Info size={18} /> ملاحظات إضافية
+                                  </div>
+                                  <div className="detail-section-content" style={{ borderColor: 'rgba(245, 158, 11, 0.2)', background: 'rgba(245, 158, 11, 0.05)' }}>
+                                    {call.notes}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {call.profileLink && (
+                                <div className="detail-section full-width" style={{ marginTop: '0.5rem' }}>
+                                  <a href={call.profileLink.startsWith('http') ? call.profileLink : `https://${call.profileLink}`} target="_blank" rel="noopener noreferrer" className="detail-link-btn">
+                                    <LinkIcon size={18} /> زيارة الحساب الشخصي
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan="9" className="empty-state">
                     <div className="empty-content">
                       <Search size={40} className="empty-icon" />
                       <p>لا يوجد مكالمات مجمعة في قاعدة البيانات حالياً.</p>
-                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-                        قم بالذهاب إلى صفحة handleAdminAdd لرفع ملفات ZIP.
-                      </span>
                     </div>
                   </td>
                 </tr>
@@ -277,6 +367,79 @@ const HandleAdmin = () => {
           )}
         </div>
       </div>
+
+      {/* Phone History Modal */}
+      {phoneHistoryModal.isOpen && (
+        <div className="modal-overlay" onClick={() => setPhoneHistoryModal({ ...phoneHistoryModal, isOpen: false })}>
+          <div className="modal-content advanced-history-modal" style={{ width: '90%', maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
+              <h2>
+                <Phone size={24} style={{ color: 'var(--primary-color)', marginLeft: '0.5rem', verticalAlign: 'middle' }} />
+                تاريخ تواصل الرقم: <span dir="ltr" style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{phoneHistoryModal.phone}</span>
+              </h2>
+              <button className="btn-icon" onClick={() => setPhoneHistoryModal({ ...phoneHistoryModal, isOpen: false })}>
+                <X size={24} />
+              </button>
+            </div>
+            <div className="modal-body" style={{ marginTop: '1.5rem' }}>
+              {phoneHistoryModal.loading ? (
+                <div style={{ textAlign: 'center', padding: '2rem' }}>جاري التحميل...</div>
+              ) : phoneHistoryModal.history.length > 0 ? (
+                <div className="history-timeline">
+                  {phoneHistoryModal.history.map((histCall, index) => (
+                    <div className="timeline-item" key={histCall.id || index}>
+                      <div className="timeline-dot"></div>
+                      <div className="timeline-content">
+                        <div className="timeline-header">
+                          <div className="timeline-meta">
+                            <span className="timeline-agent">
+                              <Info size={16} style={{ color: 'var(--theme-color)' }} />
+                              {histCall.agentName}
+                            </span>
+                            <span className="timeline-supervisor">
+                              المشرف: {histCall.supervisorName || '-'}
+                            </span>
+                          </div>
+                          <div className="timeline-date">
+                            <Calendar size={14} />
+                            {formatDate(histCall.createdAt)}
+                          </div>
+                        </div>
+                        
+                        <div className="timeline-badges" style={{ marginBottom: '1rem' }}>
+                          <span className={`status-badge ${getCommMethodBadgeClass(histCall.commMethod)}`}>{histCall.commMethod}</span>
+                          <span className={`status-badge ${getAgentStatusBadgeClass(histCall.agentStatus)}`}>{histCall.agentStatus}</span>
+                          <span className={`status-badge ${getStatusBadgeClass(histCall.callStatus)}`}>{histCall.callStatus}</span>
+                        </div>
+                        
+                        <div className="timeline-body">
+                          {histCall.report || 'لا يوجد تفاصيل تقرير.'}
+                        </div>
+                        
+                        <div className="timeline-footer">
+                          {histCall.notes && (
+                            <div className="timeline-note">
+                              <strong>ملاحظات:</strong> {histCall.notes}
+                            </div>
+                          )}
+                          {histCall.profileLink && (
+                            <a href={histCall.profileLink.startsWith('http') ? histCall.profileLink : `https://${histCall.profileLink}`} target="_blank" rel="noopener noreferrer" className="timeline-link">
+                              <LinkIcon size={16} /> الحساب الشخصي
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ textAlign: 'center' }}>لا يوجد سجل تواصل مسجل لهذا الرقم.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
     </AdminGuard>
   );
 };

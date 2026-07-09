@@ -1,8 +1,68 @@
-import React, { useState, useEffect } from 'react';
-import { ShieldAlert, CheckCircle, XCircle, Users, RefreshCw, ChevronDown, ChevronUp, Save, X, Edit2, Smartphone, KeyRound, Trash2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ShieldAlert, CheckCircle, XCircle, Users, RefreshCw, ChevronDown, ChevronUp, Save, X, Edit2, Smartphone, KeyRound, Trash2, Crown, Shield, User } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import './PermissionsReport.css';
+import CustomSelect from '../components/CustomSelect';
+
+const RoleSelector = ({ currentRole, currentUserRole, userId, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  const options = [];
+  if (currentUserRole === 'SuperAdmin') {
+    options.push({ value: 'SuperAdmin', label: 'مدير تنفيذي', icon: <Crown size={16} /> });
+  }
+  options.push({ value: 'Admin', label: 'مدير', icon: <Shield size={16} /> });
+  options.push({ value: 'Supervisor', label: 'مشرف', icon: <User size={16} /> });
+
+  const selectedOption = options.find(o => o.value === currentRole) || { label: currentRole, icon: <User size={16} /> };
+
+  return (
+    <div className="adv-role-selector" ref={dropdownRef}>
+      <div className={`adv-role-selected role-${currentRole.toLowerCase()}`} onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {selectedOption.icon}
+          <span>{selectedOption.label}</span>
+        </div>
+        <ChevronDown size={14} className={`adv-role-arrow ${isOpen ? 'open' : ''}`} />
+      </div>
+      {isOpen && (
+        <div className="adv-role-dropdown scale-in">
+          {options.map(opt => (
+            <div 
+              key={opt.value} 
+              className={`adv-role-option ${currentRole === opt.value ? 'active' : ''}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsOpen(false);
+                if (opt.value !== currentRole) onChange(userId, opt.value);
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span className={`role-icon-wrapper role-${opt.value.toLowerCase()}`}>
+                  {opt.icon}
+                </span>
+                <span>{opt.label}</span>
+              </div>
+              {currentRole === opt.value && <CheckCircle size={14} className="adv-role-check text-green-500" />}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const UserRow = ({ user, currentUser, onRefresh, handleRoleChange, handleAction }) => {
   const [expanded, setExpanded] = useState(false);
@@ -63,19 +123,18 @@ const UserRow = ({ user, currentUser, onRefresh, handleRoleChange, handleAction 
           </div>
         </td>
         <td>{user.fullName}</td>
-        <td onClick={(e) => e.stopPropagation()}>
-          {(currentUser?.role === 'SuperAdmin' || currentUser?.role === 'Admin') && user.role !== 'SuperAdmin' ? (
-            <select 
-              className="pr-filter" 
-              style={{ minWidth: '120px', padding: '0.3rem 0.5rem', fontSize: '0.9rem', height: 'auto' }}
-              value={user.role}
-              onChange={(e) => handleRoleChange(user.id, e.target.value)}
-            >
-              <option value="Admin">مدير (Admin)</option>
-              <option value="Supervisor">مشرف (Supervisor)</option>
-            </select>
+        <td onClick={(e) => e.stopPropagation()} style={{ position: 'relative' }}>
+          {(currentUser?.role === 'SuperAdmin' || currentUser?.role === 'Admin') && (currentUser?.role === 'SuperAdmin' || user.role !== 'SuperAdmin') ? (
+            <RoleSelector 
+              currentRole={user.role} 
+              currentUserRole={currentUser?.role} 
+              userId={user.id} 
+              onChange={handleRoleChange} 
+            />
           ) : (
-            user.role
+            <span style={{ fontSize: '0.95rem' }}>
+              {user.role === 'SuperAdmin' ? 'مدير تنفيذي (SuperAdmin)' : user.role === 'Admin' ? 'مدير (Admin)' : 'مشرف (Supervisor)'}
+            </span>
           )}
         </td>
         <td>
@@ -179,6 +238,7 @@ const PermissionsReport = () => {
   const [error, setError] = useState('');
   const [roleFilter, setRoleFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: null, isLoading: false });
 
   const fetchUsers = async () => {
     try {
@@ -211,13 +271,24 @@ const PermissionsReport = () => {
     }
   };
 
-  const handleRoleChange = async (id, newRole) => {
-    try {
-      await api.put(`/admin/users/${id}/role`, { role: newRole });
-      fetchUsers();
-    } catch (error) {
-      alert(error.response?.data?.error || 'حدث خطأ أثناء تغيير الصلاحية');
-    }
+  const handleRoleChange = (id, newRole) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'تأكيد تغيير الصلاحية',
+      message: `هل أنت متأكد من تغيير صلاحية هذا الحساب إلى ${newRole === 'SuperAdmin' ? 'مدير تنفيذي' : newRole === 'Admin' ? 'مدير' : 'مشرف'}؟\nتنبيه: سيتم تطبيق الصلاحيات الجديدة فوراً.`,
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isLoading: true }));
+        try {
+          await api.put(`/admin/users/${id}/role`, { role: newRole });
+          fetchUsers();
+        } catch (error) {
+          alert(error.response?.data?.error || 'حدث خطأ أثناء تغيير الصلاحية');
+          fetchUsers(); // Reset UI on error
+        } finally {
+          setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null, isLoading: false });
+        }
+      }
+    });
   };
 
   const pendingUsers = users.filter(u => u.status === 'Pending Approval');
@@ -241,17 +312,27 @@ const PermissionsReport = () => {
           <p className="pr-subtitle mt-2 text-slate-400">تحكم كامل في الحسابات، صلاحيات الدخول، ومراجعة طلبات الانضمام.</p>
         </div>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-          <select className="pr-filter" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
-            <option value="All">جميع الصلاحيات</option>
-            <option value="SuperAdmin">المدير العام (SuperAdmin)</option>
-            <option value="Admin">مدير (Admin)</option>
-            <option value="Supervisor">مشرف (Supervisor)</option>
-          </select>
-          <select className="pr-filter" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="All">جميع الحالات</option>
-            <option value="Active">نشط</option>
-            <option value="Suspended">موقوف</option>
-          </select>
+          <CustomSelect
+            options={[
+              { value: 'All', label: 'جميع الصلاحيات' },
+              { value: 'SuperAdmin', label: 'المدير العام (SuperAdmin)' },
+              { value: 'Admin', label: 'مدير (Admin)' },
+              { value: 'Supervisor', label: 'مشرف (Supervisor)' }
+            ]}
+            value={roleFilter}
+            onChange={setRoleFilter}
+            placeholder="الصلاحية"
+          />
+          <CustomSelect
+            options={[
+              { value: 'All', label: 'جميع الحالات' },
+              { value: 'Active', label: 'نشط' },
+              { value: 'Suspended', label: 'موقوف' }
+            ]}
+            value={statusFilter}
+            onChange={setStatusFilter}
+            placeholder="الحالة"
+          />
           <button className="pr-refresh-btn" onClick={fetchUsers}>
             <RefreshCw size={20} className={loading ? 'spinning' : ''} />
             تحديث البيانات
@@ -340,6 +421,34 @@ const PermissionsReport = () => {
           )}
         </div>
       </div>
+
+      {/* Custom Confirmation Modal */}
+      {confirmModal.isOpen && (
+        <div className="custom-modal-overlay fade-in" onClick={() => !confirmModal.isLoading && setConfirmModal({ isOpen: false })}>
+          <div className="custom-modal-content scale-in" onClick={e => e.stopPropagation()}>
+            <div className="custom-modal-header">
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#f97316' }}>
+                <ShieldAlert size={24} />
+                {confirmModal.title}
+              </h3>
+              <button className="close-btn" onClick={() => setConfirmModal({ isOpen: false })} disabled={confirmModal.isLoading}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="custom-modal-body">
+              {confirmModal.message.split('\n').map((line, i) => (
+                <p key={i} style={{ marginBottom: '0.5rem' }}>{line}</p>
+              ))}
+            </div>
+            <div className="custom-modal-footer">
+              <button className="pr-btn-cancel" onClick={() => setConfirmModal({ isOpen: false })} disabled={confirmModal.isLoading}>إلغاء</button>
+              <button className="pr-btn-confirm" onClick={confirmModal.onConfirm} disabled={confirmModal.isLoading}>
+                {confirmModal.isLoading ? <RefreshCw size={18} className="spinning" /> : 'تأكيد وحفظ'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,4 +1,5 @@
 const { AttendanceLog, Shift, User, DayOffRequest, InactivityLog } = require('../models');
+const { getLogicalDate } = require('../utils/dateUtils');
 const { Op } = require('sequelize');
 
 // Helper: Get active shift for a user for a given day name
@@ -18,7 +19,7 @@ const getActiveShiftForDay = async (userId, dayName) => {
 exports.getStatus = async (req, res) => {
   try {
     const userId = req.user.id;
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const today = getLogicalDate(); // YYYY-MM-DD
     
     // Find an unclosed log from any day
     const unclosedLog = await AttendanceLog.findOne({
@@ -54,7 +55,7 @@ exports.getStatus = async (req, res) => {
 exports.checkIn = async (req, res) => {
   try {
     const userId = req.user.id;
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLogicalDate();
     
     // Check if already checked in
     const existingLog = await AttendanceLog.findOne({ where: { userId, date: today } });
@@ -92,12 +93,16 @@ exports.checkIn = async (req, res) => {
 exports.checkOut = async (req, res) => {
   try {
     const userId = req.user.id;
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLogicalDate();
 
-    const log = await AttendanceLog.findOne({ where: { userId, date: today } });
+    // Find the most recent unclosed log
+    const log = await AttendanceLog.findOne({ 
+      where: { userId, checkOutTime: null },
+      order: [['createdAt', 'DESC']]
+    });
     
     if (!log) {
-      return res.status(404).json({ error: 'لم تقم بتسجيل الحضور اليوم لتتمكن من الانصراف' });
+      return res.status(404).json({ error: 'لا يوجد حضور مفتوح لتسجيل الانصراف' });
     }
     
     if (log.checkOutTime) {
@@ -223,30 +228,26 @@ exports.getTodayStatus = async (req, res) => {
       include: [{ model: Shift, through: { attributes: [] } }]
     });
 
-    if (!adminUser || !adminUser.Shifts || adminUser.Shifts.length === 0) {
-      return res.json({ adminShifts: [], users: [] }); // No shifts assigned to this admin
+    let adminShifts = [];
+    if (adminUser && adminUser.Shifts) {
+      adminShifts = adminUser.Shifts.map(s => ({
+        name: s.name,
+        startTime: s.startTime,
+        endTime: s.endTime
+      }));
     }
 
-    const adminShifts = adminUser.Shifts.map(s => ({
-      name: s.name,
-      startTime: s.startTime,
-      endTime: s.endTime
-    }));
-
-    const shiftIds = adminUser.Shifts.map(s => s.id);
-
-    // Get all users in these shifts
+    // Get all users
     const usersInShifts = await User.findAll({
       include: [
         { 
           model: Shift, 
-          where: { id: shiftIds },
           through: { attributes: [] }
         }
       ],
       where: {
         status: 'Active',
-        id: { [Op.ne]: adminId } // Exclude the admin themselves
+        role: ['Admin', 'Supervisor']
       },
       attributes: ['id', 'fullName', 'username', 'avatar', 'jobTitle']
     });
@@ -258,7 +259,7 @@ exports.getTodayStatus = async (req, res) => {
     const userIds = usersInShifts.map(u => u.id);
 
     // Get today's attendance logs for these users
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLogicalDate();
     
     const attendances = await AttendanceLog.findAll({
       where: {
@@ -363,13 +364,21 @@ exports.getTodayStatus = async (req, res) => {
 
 exports.adminUpdateStatus = async (req, res) => {
   try {
-    const { userId, action, notes } = req.body;
+    const { userId, action, notes, manualCheckInTime, manualCheckOutTime } = req.body;
     
     if (!userId || !action) {
       return res.status(400).json({ error: 'يجب توفير معرف الموظف والإجراء' });
     }
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLogicalDate();
+
+    const getValidDate = (timeString) => {
+      if (!timeString) return null;
+      return new Date(`${today}T${timeString}:00`);
+    };
+
+    let checkInDate = getValidDate(manualCheckInTime);
+    let checkOutDate = getValidDate(manualCheckOutTime);
     
     const user = await User.findByPk(userId, {
       include: [{ model: Shift, through: { attributes: [] } }]
@@ -394,28 +403,24 @@ exports.adminUpdateStatus = async (req, res) => {
 
     switch (action) {
       case 'CheckIn':
-        if (dayOff) await dayOff.destroy();
-        if (!attendance) {
-          await AttendanceLog.create({
-            userId, shiftId, date: today, status: 'Present', checkInTime: new Date(), notes
-          });
-        } else {
-          attendance.status = 'Present';
-          if (!attendance.checkInTime) attendance.checkInTime = new Date();
-          if (notes) attendance.notes = (attendance.notes ? attendance.notes + '\\n' + notes : notes);
-          await attendance.save();
-        }
-        break;
-
       case 'CheckOut':
+      case 'EditTimes':
         if (dayOff) await dayOff.destroy();
         if (!attendance) {
           await AttendanceLog.create({
-            userId, shiftId, date: today, status: 'Present', checkOutTime: new Date(), notes
+            userId, shiftId, date: today, status: 'Present', 
+            checkInTime: checkInDate || (action === 'CheckIn' ? new Date() : null),
+            checkOutTime: checkOutDate || (action === 'CheckOut' ? new Date() : null),
+            notes
           });
         } else {
           attendance.status = 'Present';
-          attendance.checkOutTime = new Date();
+          if (manualCheckInTime) attendance.checkInTime = checkInDate;
+          else if (action === 'CheckIn' && !attendance.checkInTime) attendance.checkInTime = new Date();
+
+          if (manualCheckOutTime) attendance.checkOutTime = checkOutDate;
+          else if (action === 'CheckOut' && !attendance.checkOutTime) attendance.checkOutTime = new Date();
+
           if (notes) attendance.notes = (attendance.notes ? attendance.notes + '\\n' + notes : notes);
           await attendance.save();
         }

@@ -106,7 +106,7 @@ const CheckInPage = ({ onCheckedIn, shift, userName }) => {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ color: 'var(--text-secondary)' }}>توقيت الوردية:</span>
-              <span style={{ direction: 'ltr', color: 'var(--text-primary)' }}><Clock size={14} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'middle', color: '#60a5fa' }} /> {shift.startTime} - {shift.endTime}</span>
+              <span style={{ color: 'var(--text-primary)' }}><Clock size={14} style={{ display: 'inline', marginLeft: '4px', verticalAlign: 'middle', color: '#60a5fa' }} /> من {shift.startTime} إلى {shift.endTime}</span>
             </div>
             {delayStr && (
               <div style={{ marginTop: '0.5rem', padding: '0.8rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '8px', color: '#ef4444', fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>

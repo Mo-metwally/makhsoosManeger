@@ -32,6 +32,7 @@ import PendingApproval from './pages/PendingApproval';
 import CheckInPage from './pages/CheckInPage';
 import CheckoutModal from './components/CheckoutModal';
 import TodayFollowup from './pages/TodayFollowup';
+import PersonalFollowup from './pages/PersonalFollowup';
 import './App.css';
 
 function AppContent() {
@@ -42,6 +43,7 @@ function AppContent() {
   const [attendanceChecked, setAttendanceChecked] = useState(false);
   const [needsCheckIn, setNeedsCheckIn] = useState(false);
   const [todayShift, setTodayShift] = useState(null);
+  const [isEarlyForShift, setIsEarlyForShift] = useState(false);
 
   useEffect(() => {
     if (user && user.status === 'Active') {
@@ -49,6 +51,15 @@ function AppContent() {
          if (res.data.hasShiftToday && !res.data.hasCheckedIn) {
             setTodayShift(res.data.shift);
             setNeedsCheckIn(true);
+            
+            // Calculate isEarlyForShift synchronously to prevent UI flicker
+            if (res.data.shift && res.data.shift.startTime) {
+              const [startHour, startMinute] = res.data.shift.startTime.split(':').map(Number);
+              const startTimeDate = new Date();
+              startTimeDate.setHours(startHour, startMinute, 0, 0);
+              const diffMs = new Date().getTime() - startTimeDate.getTime();
+              setIsEarlyForShift(diffMs < -300000);
+            }
          } else {
             setNeedsCheckIn(false);
          }
@@ -61,6 +72,27 @@ function AppContent() {
       setAttendanceChecked(true);
     }
   }, [user]);
+
+  // Check if it's too early for the shift (more than 5 minutes before start)
+  useEffect(() => {
+    if (needsCheckIn && todayShift && todayShift.startTime) {
+      const checkEarly = () => {
+        const [startHour, startMinute] = todayShift.startTime.split(':').map(Number);
+        const startTimeDate = new Date();
+        startTimeDate.setHours(startHour, startMinute, 0, 0);
+        
+        const diffMs = new Date().getTime() - startTimeDate.getTime();
+        // If diffMs < -300000 (more than 5 mins early), it is early
+        setIsEarlyForShift(diffMs < -300000);
+      };
+      
+      checkEarly();
+      const timer = setInterval(checkEarly, 10000); // Check every 10 seconds
+      return () => clearInterval(timer);
+    } else {
+      setIsEarlyForShift(false);
+    }
+  }, [needsCheckIn, todayShift]);
   
 
   useEffect(() => {
@@ -91,7 +123,8 @@ function AppContent() {
     return <PendingApproval />;
   }
 
-  if (needsCheckIn) {
+  // Show CheckInPage only if they need to check in AND it's not more than 5 mins early
+  if (needsCheckIn && !isEarlyForShift) {
     return <CheckInPage onCheckedIn={() => setNeedsCheckIn(false)} shift={todayShift} userName={user.fullName} />;
   }
 
@@ -101,11 +134,11 @@ function AppContent() {
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/calls" element={<Calls />} />
+          <Route path="/contacts" element={<Calls />} />
           <Route path="/monitoring" element={<Monitoring />} />
           <Route path="/account" element={<Account />} />
           <Route path="/handleAdminAdd" element={<HandleAdminAdd />} />
-          <Route path="/handleAdmin" element={<HandleAdmin />} />
+          <Route path="/allcontacts" element={<HandleAdmin />} />
           <Route path="/handleAdminReports" element={<HandleAdminReports />} />
           <Route path="/handleAdminPerformance" element={<HandleAdminPerformance />} />
           <Route path="/handleAdminExport" element={<HandleAdminExport />} />
@@ -122,6 +155,7 @@ function AppContent() {
           <Route path="/staff-management" element={<StaffManagement />} />
           <Route path="/staff-management/:shiftId" element={<ShiftStaffDetails />} />
           <Route path="/today-followup" element={<TodayFollowup />} />
+          <Route path="/personal-followup/:employeeId?" element={<PersonalFollowup />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         

@@ -1,15 +1,23 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Activity, Search, Trash2, ChevronRight, ChevronLeft, Users, LogIn, LogOut, CheckCircle, Calendar } from 'lucide-react';
 import AdminGuard from '../components/AdminGuard';
 import CustomSelect from '../components/CustomSelect';
+import { getLogicalDateString } from '../utils/dateHelpers';
 import api from '../services/api';
 import './Monitoring.css';
 
 const HandleAdminReports = () => {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialEmployeeName = searchParams.get('employeeName');
+
   const [attendanceLogs, setAttendanceLogs] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [timeFilter, setTimeFilter] = useState('all');
-  const [employeeFilter, setEmployeeFilter] = useState('all');
+  const [customStartDate, setCustomStartDate] = useState('');
+  const [customEndDate, setCustomEndDate] = useState('');
+  const [employeeFilter, setEmployeeFilter] = useState(initialEmployeeName || 'all');
   const [sortBy, setSortBy] = useState('date_desc');
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 8; // Adjust if needed
@@ -72,12 +80,12 @@ const HandleAdminReports = () => {
     filteredLogs = filteredLogs.filter(log => {
       const logDate = new Date(log.date || log.createdAt);
       if (timeFilter === 'today') {
-        return logDate.toDateString() === now.toDateString();
+        return getLogicalDateString(logDate) === getLogicalDateString(now);
       }
       if (timeFilter === 'yesterday') {
         const yesterday = new Date(now);
         yesterday.setDate(yesterday.getDate() - 1);
-        return logDate.toDateString() === yesterday.toDateString();
+        return getLogicalDateString(logDate) === getLogicalDateString(yesterday);
       }
       if (timeFilter === 'week') {
         const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -85,6 +93,13 @@ const HandleAdminReports = () => {
       }
       if (timeFilter === 'month') {
         return logDate.getMonth() === now.getMonth() && logDate.getFullYear() === now.getFullYear();
+      }
+      if (timeFilter === 'custom' && customStartDate && customEndDate) {
+        const start = new Date(customStartDate);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(customEndDate);
+        end.setHours(23, 59, 59, 999);
+        return logDate >= start && logDate <= end;
       }
       return true;
     });
@@ -143,7 +158,7 @@ const HandleAdminReports = () => {
           
           {/* Time Filters */}
           <div className="admin-filter-group">
-            {['all', 'today', 'yesterday', 'week', 'month'].map(val => (
+            {['all', 'today', 'yesterday', 'week', 'month', 'custom'].map(val => (
               <div className="admin-filter-radio" key={val}>
                 <label>
                   <input 
@@ -153,12 +168,25 @@ const HandleAdminReports = () => {
                     checked={timeFilter === val} 
                     onChange={(e) => setTimeFilter(e.target.value)} 
                   /> 
-                  <span>{val === 'all' ? 'الكل' : val === 'today' ? 'اليوم' : val === 'yesterday' ? 'أمس' : val === 'week' ? 'الأسبوع' : 'الشهر'}</span>
+                  <span>{val === 'all' ? 'الكل' : val === 'today' ? 'اليوم' : val === 'yesterday' ? 'أمس' : val === 'week' ? 'الأسبوع' : val === 'month' ? 'الشهر' : 'مخصص'}</span>
                   {timeFilter === val && <div className="radio-bg"></div>}
                 </label>
               </div>
             ))}
           </div>
+
+          {timeFilter === 'custom' && (
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap', background: 'var(--glass-bg)', padding: '1rem', borderRadius: '12px', border: 'var(--glass-border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>من:</span>
+                <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} className="search-input" style={{ width: 'auto', padding: '0.5rem', margin: 0 }} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>إلى:</span>
+                <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} className="search-input" style={{ width: 'auto', padding: '0.5rem', margin: 0 }} />
+              </div>
+            </div>
+          )}
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
             <div className="search-bar" style={{ flex: 1, minWidth: '250px', maxWidth: '400px', margin: 0 }}>
@@ -220,7 +248,31 @@ const HandleAdminReports = () => {
                   <tr key={log.id}>
                     <td>
                       <div style={{ fontWeight: 'bold', color: 'var(--theme-color)', fontSize: '1.1rem' }}>{log.User ? log.User.fullName : '---'}</div>
-                      <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>{log.User ? log.User.jobTitle : ''}</div>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.2rem', marginBottom: '0.5rem' }}>{log.User ? log.User.jobTitle : ''}</div>
+                      {log.userId && (
+                        <Link 
+                          to={`/personal-followup/${log.userId}`}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.3rem',
+                            padding: '0.3rem 0.6rem',
+                            background: 'rgba(59, 130, 246, 0.15)',
+                            color: '#60a5fa',
+                            borderRadius: '4px',
+                            textDecoration: 'none',
+                            fontSize: '0.75rem',
+                            fontWeight: 'bold',
+                            transition: 'background 0.2s',
+                          }}
+                          onMouseOver={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.25)'}
+                          onMouseOut={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)'}
+                          title="عرض إحصائيات الموظف"
+                        >
+                          <Activity size={14} />
+                          متابعة الأداء
+                        </Link>
+                      )}
                     </td>
                     <td>{formatDate(log.date)}</td>
                     <td>{log.Shift ? log.Shift.name : '---'}</td>

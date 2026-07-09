@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Phone, Search, ChevronDown, Edit2, Check, X, Download, PhoneCall, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Calendar, Phone, Search, ChevronDown, Edit2, Check, X, Download, PhoneCall, ChevronRight, ChevronLeft, FileText, Info, Link as LinkIcon } from 'lucide-react';
 import { exportCallsOnly } from '../utils/exportExcel';
 import ExportModal from '../components/ExportModal';
 import api from '../services/api';
+import { getLogicalDateString } from '../utils/dateHelpers';
 import './Calls.css';
 
 const Calls = () => {
@@ -17,7 +18,30 @@ const Calls = () => {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
   const [currentPage, setCurrentPage] = useState(1);
+  const [expandedRows, setExpandedRows] = useState(new Set());
+  const [phoneHistoryModal, setPhoneHistoryModal] = useState({ isOpen: false, phone: '', history: [], loading: false });
   const ITEMS_PER_PAGE = 6;
+
+  const toggleRow = (id) => {
+    const newSet = new Set(expandedRows);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setExpandedRows(newSet);
+  };
+
+  const openPhoneHistory = async (phone) => {
+    setPhoneHistoryModal({ isOpen: true, phone, history: [], loading: true });
+    try {
+      const res = await api.get(`/data/calls/history/${phone}`);
+      setPhoneHistoryModal({ isOpen: true, phone, history: res.data, loading: false });
+    } catch (error) {
+      showToast('خطأ في جلب تاريخ الرقم', 'error');
+      setPhoneHistoryModal({ isOpen: true, phone, history: [], loading: false });
+    }
+  };
 
   // Reset page when filters change
   useEffect(() => {
@@ -25,7 +49,7 @@ const Calls = () => {
   }, [filter, searchQuery]);
 
   useEffect(() => {
-    document.title = "سجل المكالمات | مخصوص";
+    document.title = "سجل التواصل | مخصوص";
     fetchCalls();
   }, []);
 
@@ -61,13 +85,13 @@ const Calls = () => {
         const callDate = new Date(call.createdAt);
 
         if (filter === 'today') {
-          return callDate.toDateString() === now.toDateString();
+          return getLogicalDateString(callDate) === getLogicalDateString(now);
         }
 
         if (filter === 'yesterday') {
           const yesterday = new Date(now);
           yesterday.setDate(yesterday.getDate() - 1);
-          return callDate.toDateString() === yesterday.toDateString();
+          return getLogicalDateString(callDate) === getLogicalDateString(yesterday);
         }
 
         if (filter === 'week') {
@@ -206,12 +230,17 @@ const Calls = () => {
           </div>
         ) : (
           <div className="view-mode group-hover">
-            <span className={`cell-text ${field}-text`} dir={field === 'phone' ? 'ltr' : 'rtl'}>
+            <span 
+              className={`cell-text ${field}-text`} 
+              dir={field === 'phone' ? 'ltr' : 'rtl'}
+              onClick={field === 'phone' ? (e) => { e.stopPropagation(); openPhoneHistory(call[field]); } : undefined}
+              style={field === 'phone' ? { color: '#3b82f6', cursor: 'pointer', textDecoration: 'underline', fontWeight: 'bold' } : {}}
+            >
               {call[field] || '-'}
             </span>
             <button
               className="btn-icon edit-icon hide-until-hover"
-              onClick={() => setEditingCell({ callId: call.id, field, value: call[field] || '' })}
+              onClick={(e) => { e.stopPropagation(); setEditingCell({ callId: call.id, field, value: call[field] || '' }) }}
               title="تعديل"
             >
               <Edit2 size={14} />
@@ -260,7 +289,7 @@ const Calls = () => {
       <header className="page-header">
         <div className="title-section">
           <PhoneCall size={28} className="header-icon" />
-          <h1 className="page-title gradient-title">سجل المكالمات</h1>
+          <h1 className="page-title gradient-title">سجل التواصل</h1>
         </div>
       </header>
 
@@ -382,14 +411,21 @@ const Calls = () => {
           </thead>
           <tbody>
             {currentCalls.length > 0 ? (
-              currentCalls.map(call => (
-                <tr key={call.id} className={openDropdownId?.includes(call.id) ? 'active-row' : ''}>
-                  <td className="date-cell">
-                    <div className="date-content">
-                      <Calendar size={14} className="cell-icon" />
-                      <span>{formatDate(call.createdAt)}</span>
-                    </div>
-                  </td>
+              currentCalls.map(call => {
+                const isExpanded = expandedRows.has(call.id);
+                return (
+                <React.Fragment key={call.id}>
+                  <tr 
+                    className={`${openDropdownId?.includes(call.id) ? 'active-row' : ''} expandable-row`}
+                    onClick={() => toggleRow(call.id)}
+                    style={{ cursor: 'pointer', background: isExpanded ? 'rgba(59, 130, 246, 0.05)' : '' }}
+                  >
+                    <td className="date-cell">
+                      <div className="date-content">
+                        {isExpanded ? <ChevronDown size={14} className="cell-icon" style={{color: 'var(--theme-color)'}} /> : <ChevronRight size={14} className="cell-icon" style={{color: 'var(--theme-color)'}} />}
+                        <span>{formatDate(call.createdAt)}</span>
+                      </div>
+                    </td>
                   {renderEditableCell(call, 'agentName')}
                   {renderEditableCell(call, 'phone')}
                   {renderEditableCell(call, 'city')}
@@ -397,7 +433,7 @@ const Calls = () => {
                     <div className="custom-dropdown-container">
                       <button
                         className={`status-badge dropdown-trigger ${getCommMethodBadgeClass(call.commMethod)}`}
-                        onClick={() => setOpenDropdownId(openDropdownId === `commMethod-${call.id}` ? null : `commMethod-${call.id}`)}
+                        onClick={(e) => { e.stopPropagation(); setOpenDropdownId(openDropdownId === `commMethod-${call.id}` ? null : `commMethod-${call.id}`); }}
                       >
                         {call.commMethod || 'مكالمة هاتفية'}
                         <ChevronDown size={14} className={`dropdown-arrow ${openDropdownId === `commMethod-${call.id}` ? 'open' : ''}`} />
@@ -409,7 +445,8 @@ const Calls = () => {
                             <button
                               key={method}
                               className={`dropdown-item ${call.commMethod === method ? 'active' : ''}`}
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 if (method !== call.commMethod) {
                                   setConfirmModal({
                                     isOpen: true,
@@ -435,7 +472,7 @@ const Calls = () => {
                     <div className="custom-dropdown-container">
                       <button
                         className={`status-badge dropdown-trigger ${getAgentStatusBadgeClass(call.agentStatus)}`}
-                        onClick={() => setOpenDropdownId(openDropdownId === `agentStatus-${call.id}` ? null : `agentStatus-${call.id}`)}
+                        onClick={(e) => { e.stopPropagation(); setOpenDropdownId(openDropdownId === `agentStatus-${call.id}` ? null : `agentStatus-${call.id}`); }}
                       >
                         {call.agentStatus || 'اختر الحالة'}
                         <ChevronDown size={14} className={`dropdown-arrow ${openDropdownId === `agentStatus-${call.id}` ? 'open' : ''}`} />
@@ -447,7 +484,8 @@ const Calls = () => {
                             <button
                               key={status}
                               className={`dropdown-item ${call.agentStatus === status ? 'active' : ''}`}
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 if (status !== call.agentStatus) {
                                   setConfirmModal({
                                     isOpen: true,
@@ -473,7 +511,7 @@ const Calls = () => {
                     <div className="custom-dropdown-container">
                       <button
                         className={`status-badge dropdown-trigger ${getStatusBadgeClass(call.callStatus)}`}
-                        onClick={() => setOpenDropdownId(openDropdownId === `callStatus-${call.id}` ? null : `callStatus-${call.id}`)}
+                        onClick={(e) => { e.stopPropagation(); setOpenDropdownId(openDropdownId === `callStatus-${call.id}` ? null : `callStatus-${call.id}`); }}
                       >
                         {call.callStatus}
                         <ChevronDown size={14} className={`dropdown-arrow ${openDropdownId === `callStatus-${call.id}` ? 'open' : ''}`} />
@@ -485,7 +523,8 @@ const Calls = () => {
                             <button
                               key={status}
                               className={`dropdown-item ${call.callStatus === status ? 'active' : ''}`}
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 if (status !== call.callStatus) {
                                   setConfirmModal({
                                     isOpen: true,
@@ -508,8 +547,44 @@ const Calls = () => {
                     </div>
                   </td>
                   {renderEditableCell(call, 'report', true)}
-                </tr>
-              ))
+                  </tr>
+                  {isExpanded && (
+                    <tr className="expanded-details-row">
+                      <td colSpan="8" style={{ padding: '0', background: 'rgba(0,0,0,0.15)' }}>
+                        <div className="advanced-details-card">
+                          <div className="detail-section full-width">
+                            <div className="detail-section-header">
+                              <FileText size={18} /> نص التقرير
+                            </div>
+                            <div className="detail-section-content">
+                              {call.report || 'لا يوجد تقرير'}
+                            </div>
+                          </div>
+                          
+                          {call.notes && (
+                            <div className="detail-section full-width">
+                              <div className="detail-section-header" style={{ color: '#f59e0b' }}>
+                                <Info size={18} /> ملاحظات إضافية
+                              </div>
+                              <div className="detail-section-content" style={{ borderColor: 'rgba(245, 158, 11, 0.2)', background: 'rgba(245, 158, 11, 0.05)' }}>
+                                {call.notes}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {call.profileLink && (
+                            <div className="detail-section full-width" style={{ marginTop: '0.5rem' }}>
+                              <a href={call.profileLink.startsWith('http') ? call.profileLink : `https://${call.profileLink}`} target="_blank" rel="noopener noreferrer" className="detail-link-btn">
+                                <LinkIcon size={18} /> زيارة الحساب الشخصي
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              )})
             ) : (
               <tr>
                 <td colSpan="7" className="empty-state">
@@ -604,8 +679,81 @@ const Calls = () => {
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
         onExport={exportCallsOnly}
-        title="تحميل سجل المكالمات"
+        title="تحميل سجل التواصل"
       />
+
+      {/* Phone History Modal */}
+      {phoneHistoryModal.isOpen && (
+        <div className="modal-overlay" onClick={() => setPhoneHistoryModal({ ...phoneHistoryModal, isOpen: false })}>
+          <div className="modal-content advanced-history-modal" style={{ width: '90%', maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
+              <h2>
+                <Phone size={24} style={{ color: 'var(--primary-color)', marginLeft: '0.5rem', verticalAlign: 'middle' }} />
+                تاريخ تواصل الرقم: <span dir="ltr" style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{phoneHistoryModal.phone}</span>
+              </h2>
+              <button className="btn-icon" onClick={() => setPhoneHistoryModal({ ...phoneHistoryModal, isOpen: false })}>
+                <X size={24} />
+              </button>
+            </div>
+            <div className="modal-body" style={{ marginTop: '1.5rem' }}>
+              {phoneHistoryModal.loading ? (
+                <div style={{ textAlign: 'center', padding: '2rem' }}>جاري التحميل...</div>
+              ) : phoneHistoryModal.history.length > 0 ? (
+                <div className="history-timeline">
+                  {phoneHistoryModal.history.map((histCall, index) => (
+                    <div className="timeline-item" key={histCall.id || index}>
+                      <div className="timeline-dot"></div>
+                      <div className="timeline-content">
+                        <div className="timeline-header">
+                          <div className="timeline-meta">
+                            <span className="timeline-agent">
+                              <Info size={16} style={{ color: 'var(--theme-color)' }} />
+                              {histCall.agentName}
+                            </span>
+                            <span className="timeline-supervisor">
+                              المشرف: {histCall.supervisorName || '-'}
+                            </span>
+                          </div>
+                          <div className="timeline-date">
+                            <Calendar size={14} />
+                            {formatDate(histCall.createdAt)}
+                          </div>
+                        </div>
+                        
+                        <div className="timeline-badges" style={{ marginBottom: '1rem' }}>
+                          <span className={`status-badge ${getCommMethodBadgeClass(histCall.commMethod)}`}>{histCall.commMethod}</span>
+                          <span className={`status-badge ${getAgentStatusBadgeClass(histCall.agentStatus)}`}>{histCall.agentStatus}</span>
+                          <span className={`status-badge ${getStatusBadgeClass(histCall.callStatus)}`}>{histCall.callStatus}</span>
+                        </div>
+                        
+                        <div className="timeline-body">
+                          {histCall.report || 'لا يوجد تفاصيل تقرير.'}
+                        </div>
+                        
+                        <div className="timeline-footer">
+                          {histCall.notes && (
+                            <div className="timeline-note">
+                              <strong>ملاحظات:</strong> {histCall.notes}
+                            </div>
+                          )}
+                          {histCall.profileLink && (
+                            <a href={histCall.profileLink.startsWith('http') ? histCall.profileLink : `https://${histCall.profileLink}`} target="_blank" rel="noopener noreferrer" className="timeline-link">
+                              <LinkIcon size={16} /> الحساب الشخصي
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ textAlign: 'center' }}>لا يوجد سجل تواصل مسجل لهذا الرقم.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

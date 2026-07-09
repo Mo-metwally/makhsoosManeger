@@ -343,7 +343,9 @@
 }
 
 .tf-form-group label {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
   font-size: 0.95rem;
   color: var(--text-primary);
   margin-bottom: 0.5rem;
@@ -355,43 +357,140 @@
   margin-right: 0.2rem;
 }
 
-/* Radio Buttons */
-.tf-radio-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+/* Advanced Radio Buttons */
+.tf-adv-radio-group {
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.8rem;
+  margin-top: 0.5rem;
 }
 
-.tf-radio-label {
+.tf-adv-radio-label {
+  flex: 1 1 calc(33.333% - 0.8rem);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.8rem;
-  background: var(--glass-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  gap: 0.6rem;
+  padding: 1rem 0.5rem;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: var(--text-secondary);
-  font-weight: normal !important;
-  margin: 0 !important;
+  position: relative;
+  overflow: hidden;
 }
 
-.tf-radio-label input[type="radio"] {
+.tf-adv-radio-label input[type="radio"] {
   display: none;
 }
 
-.tf-radio-label:hover {
-  background: var(--glass-bg-hover);
-  border-color: rgba(249, 115, 22, 0.3);
+.tf-adv-radio-label .radio-icon {
+  opacity: 0.7;
+  transition: all 0.3s ease;
 }
 
-.tf-radio-label.active {
-  background: rgba(249, 115, 22, 0.15);
+.tf-adv-radio-label span {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.tf-adv-radio-label:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+}
+
+/* Active States with Colors */
+.tf-adv-radio-label.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.tf-adv-radio-label.active .radio-icon {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+.tf-adv-radio-label.active.checkin {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.tf-adv-radio-label.active.checkout {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.tf-adv-radio-label.active.edittimes {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.tf-adv-radio-label.active.absent {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.tf-adv-radio-label.active.dayoff {
+  background: rgba(168, 85, 247, 0.15);
+  border-color: #a855f7;
+  color: #a855f7;
+}
+
+/* Advanced Time Inputs */
+.tf-time-inputs-container {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  background: rgba(0, 0, 0, 0.15);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tf-time-input-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.tf-time-input-wrapper label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #94a3b8;
+  margin-bottom: 0;
+}
+
+.tf-adv-input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-family: monospace;
+  transition: all 0.3s ease;
+  text-align: center;
+  letter-spacing: 2px;
+}
+
+.tf-adv-input:focus {
+  outline: none;
   border-color: var(--primary-color);
-  color: var(--primary-color);
-  font-weight: bold !important;
+  background: rgba(15, 23, 42, 0.8);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
 .tf-select, .tf-textarea {

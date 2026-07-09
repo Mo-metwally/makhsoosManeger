@@ -1,24 +1,70 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, Check, Phone, CheckCircle, TrendingUp, Info, ChevronRight, Plus, UserPlus, Coffee, Moon, BookOpen, Play, LayoutDashboard, User, MapPin, PhoneCall as PhoneIcon, MessageSquare, FileText, Activity, MessageCircle, Send } from 'lucide-react';
+import { Calendar, Clock, Check, Phone, CheckCircle, TrendingUp, Info, ChevronRight, Plus, UserPlus, Coffee, Moon, BookOpen, Play, LayoutDashboard, User, MapPin, PhoneCall as PhoneIcon, MessageSquare, FileText, Activity, MessageCircle, Send, Link } from 'lucide-react';
 import api from '../services/api';
+import { getLogicalDateString } from '../utils/dateHelpers';
 import './Home.css';
+
+const FacebookIcon = ({ size = 24, color = "currentColor", style }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}>
+    <path d="M7 10v4h3v7h4v-7h3l1 -4h-4v-2a1 1 0 0 1 1 -1h3v-4h-3a5 5 0 0 0 -5 5v2h-3" />
+  </svg>
+);
+
+const WhatsAppIcon = ({ size = 24, color = "currentColor", style }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}>
+    <path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9" />
+    <path d="M9 10a.5 .5 0 0 0 1 0v-1a.5 .5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a.5 .5 0 0 0 0 -1h-1a.5 .5 0 0 0 0 1" />
+  </svg>
+);
 
 const TARGET_CALLS = 30;
 
 const Home = () => {
   const [calls, setCalls] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [reportMethod, setReportMethod] = useState(null);
+  const [phoneInput, setPhoneInput] = useState('');
+  const [phoneStatus, setPhoneStatus] = useState('empty');
+  const [existingCommMethod, setExistingCommMethod] = useState(null);
+  const [showConfirmDuplicate, setShowConfirmDuplicate] = useState(false);
+  const [pendingCallData, setPendingCallData] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
 
-  // Helper function to get local YYYY-MM-DD string to avoid timezone issues
-  const getLocalDateString = (date = new Date()) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
+  useEffect(() => {
+    if (!phoneInput) {
+      setPhoneStatus('empty');
+      return;
+    }
+    const checkPhone = async () => {
+      setPhoneStatus('checking');
+      try {
+        const res = await api.get(`/data/calls/check-phone?phone=${encodeURIComponent(phoneInput)}`);
+        if (res.data.exists) {
+          setPhoneStatus('exists');
+          setExistingCommMethod(res.data.commMethod);
+        } else {
+          setPhoneStatus('new');
+          setExistingCommMethod(null);
+        }
+      } catch (err) {
+        console.error('Error checking phone:', err);
+        setPhoneStatus('empty');
+        setExistingCommMethod(null);
+      }
+    };
 
-  const [selectedDate, setSelectedDate] = useState(getLocalDateString());
+    const timer = setTimeout(() => {
+      if (phoneInput.length >= 8) {
+        checkPhone();
+      } else {
+        setPhoneStatus('empty');
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [phoneInput]);
+
+  const [selectedDate, setSelectedDate] = useState(getLogicalDateString());
   const [pendingDate, setPendingDate] = useState(null);
   const [isDateWarningOpen, setIsDateWarningOpen] = useState(false);
 
@@ -29,7 +75,7 @@ const Home = () => {
   const [userName, setUserName] = useState('');
 
   useEffect(() => {
-    document.title = "لوحة التحكم | مخصوص";
+    document.title = "لوحة التشغيل | مخصوص";
     let interval;
     if (activeBreak && breakStartTime) {
       interval = setInterval(() => {
@@ -56,7 +102,7 @@ const Home = () => {
   const handleStartBreak = async (breakType) => {
     const startTime = new Date().toISOString();
     const breakLogId = Date.now().toString();
-    
+
     setActiveBreak(breakType);
     setBreakStartTime(startTime);
     localStorage.setItem('activeBreak', breakType);
@@ -90,7 +136,7 @@ const Home = () => {
         durationMs,
         type: activeBreak
       };
-      
+
       try {
         await api.post('/data/inactivity', [newLog]);
       } catch (err) {
@@ -131,7 +177,7 @@ const Home = () => {
 
   const handleDateChange = (e) => {
     const newDate = e.target.value;
-    const today = getLocalDateString();
+    const today = getLogicalDateString();
 
     if (newDate < today) {
       setPendingDate(newDate);
@@ -154,7 +200,8 @@ const Home = () => {
     const callStatus = formData.get('callStatus');
     const report = formData.get('report');
     const city = formData.get('city');
-    const commMethod = formData.get('commMethod');
+    const profileLink = formData.get('profileLink');
+    const commMethod = reportMethod === 'call' ? 'مكالمة هاتفية' : (reportMethod === 'facebook' ? 'فيسبوك' : (reportMethod === 'whatsapp' ? 'واتساب' : formData.get('commMethod')));
     const agentStatus = formData.get('agentStatus');
 
     // Custom Validation
@@ -163,11 +210,12 @@ const Home = () => {
       return;
     }
 
-    // Validate phone number (basic check for digits/length)
-    const phoneRegex = /^[0-9+]{8,15}$/;
-    if (!phone || !phoneRegex.test(phone.trim())) {
-      showToast('يرجى إدخال رقم هاتف صحيح', 'error');
-      return;
+    if (reportMethod === 'call' || reportMethod === 'whatsapp') {
+      const phoneRegex = /^[0-9+]{8,15}$/;
+      if (!phone || !phoneRegex.test(phone.trim())) {
+        showToast('يرجى إدخال رقم هاتف صحيح', 'error');
+        return;
+      }
     }
 
     if (!city || city.trim() === '') {
@@ -195,13 +243,6 @@ const Home = () => {
       return;
     }
 
-    // Check if phone number already exists
-    const isPhoneExists = calls.some(call => call.phone === phone.trim());
-    if (isPhoneExists) {
-      showToast('هذا الرقم مسجل بالفعل في النظام', 'error');
-      return;
-    }
-
     // Construct date using selectedDate but current time
     const now = new Date();
     const selectedDateObj = new Date(selectedDate);
@@ -209,19 +250,40 @@ const Home = () => {
 
     const newCall = {
       agentName,
-      phone,
+      phone: phone || '',
       city,
       commMethod,
+      profileLink: profileLink || '',
       agentStatus,
       callStatus,
       report,
+      date: selectedDate,
+      time: selectedDateObj.toTimeString().split(' ')[0].substring(0, 5),
       createdAt: selectedDateObj.toISOString()
     };
 
+    // Check if phone number already exists
+    const isPhoneExistsLocal = phone && phone.trim() !== '' ? calls.some(call => call.phone === phone.trim()) : false;
+    if ((isPhoneExistsLocal || phoneStatus === 'exists') && phone && phone.trim() !== '') {
+      setPendingCallData(newCall);
+      setShowConfirmDuplicate(true);
+      return;
+    }
+
+    await processCallReport(newCall);
+  };
+
+  const processCallReport = async (newCall) => {
     try {
       await api.post('/data/calls', [newCall]);
       await fetchCalls(); // Refresh to get proper ID and any other DB fields
       setIsModalOpen(false);
+      setReportMethod(null);
+      setPhoneInput('');
+      setPhoneStatus('empty');
+      setExistingCommMethod(null);
+      setShowConfirmDuplicate(false);
+      setPendingCallData(null);
       showToast('تم حفظ تقرير المكالمة بنجاح!', 'success');
     } catch (err) {
       console.error(err);
@@ -231,7 +293,7 @@ const Home = () => {
 
   // Filter calls by selected date (using local date to match date picker)
   const filteredCalls = calls.filter(call => {
-    const callDateStr = getLocalDateString(new Date(call.createdAt));
+    const callDateStr = call.date || getLogicalDateString(new Date(call.createdAt));
     return callDateStr === selectedDate;
   });
 
@@ -253,17 +315,17 @@ const Home = () => {
       <header className="home-header">
         <div className="page-title-wrapper">
           <LayoutDashboard size={28} className="title-icon text-blue" />
-          <h1 className="page-title gradient-title">لوحة التحكم</h1>
-           <div className="header-datetime">
-          <input
-            type="date"
-            className="date-picker-input"
-            value={selectedDate}
-            onChange={handleDateChange}
-          />
+          <h1 className="page-title gradient-title">لوحة التشغيل</h1>
+          <div className="header-datetime">
+            <input
+              type="date"
+              className="date-picker-input"
+              value={selectedDate}
+              onChange={handleDateChange}
+            />
+          </div>
         </div>
-        </div>
-       
+
       </header>
 
       {/* Main Status */}
@@ -327,9 +389,9 @@ const Home = () => {
         <div className="dashboard-card target-card">
           <div className="card-header-with-action">
             <h3 className="card-title">تارجت المكالمات اليوم</h3>
-            <button className="add-btn" onClick={() => setIsModalOpen(true)}>
-              <Plus size={16} />
-              <span>إنشاء تقرير</span>
+            <button className="add-btn" onClick={() => { setIsModalOpen(true); setReportMethod(null); setPhoneInput(''); setPhoneStatus('empty'); }}>
+              <Plus size={20} />
+              إضافة تقرير مكالمة
             </button>
           </div>
 
@@ -411,123 +473,227 @@ const Home = () => {
 
       {/* Create Report Modal */}
       {isModalOpen && (
-        <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
+        <div className="modal-overlay" onClick={() => { setIsModalOpen(false); setReportMethod(null); setPhoneInput(''); setPhoneStatus('empty'); }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>إنشاء تقرير مكالمة</h2>
-              <button className="close-btn" onClick={() => setIsModalOpen(false)}>&times;</button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                <h2 style={{ margin: 0 }}>{!reportMethod ? 'اختر طريقة التواصل' : reportMethod === 'facebook' ? 'إنشاء تقرير فيسبوك' : reportMethod === 'whatsapp' ? 'إنشاء تقرير واتساب' : 'إنشاء تقرير مكالمة'}</h2>
+                {reportMethod && (
+                  <button
+                    type="button"
+                    onClick={() => { setReportMethod(null); setPhoneInput(''); setPhoneStatus('empty'); setExistingCommMethod(null); }}
+                    style={{
+                      background: 'rgba(59, 130, 246, 0.15)',
+                      color: '#3b82f6',
+                      border: 'none',
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '6px',
+                      fontSize: '0.85rem',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                      transition: 'background 0.2s',
+                    }}
+                    onMouseOver={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.25)'}
+                    onMouseOut={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)'}
+                  >
+                    <ChevronRight size={16} />
+                    تغيير طريقة التواصل
+                  </button>
+                )}
+              </div>
+              <button className="close-btn" onClick={() => { setIsModalOpen(false); setReportMethod(null); setPhoneInput(''); setPhoneStatus('empty'); setExistingCommMethod(null); }}>&times;</button>
             </div>
-            <form className="create-report-form" onSubmit={handleSaveReport} noValidate>
 
-              <div className="form-section">
-                <h4 className="section-title"><User size={18}/> بيانات المندوب</h4>
-                <div className="form-row three-cols">
-                  <div className="form-group">
-                    <label>اسم المندوب</label>
-                    <div className="input-with-icon">
-                      <input type="text" name="agentName" required placeholder="أدخل اسم المندوب" />
-                      <User size={16} className="input-icon"/>
+            {!reportMethod ? (
+              <div style={{ padding: '2rem', display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <div
+                  style={{ flex: '1 1 120px', padding: '2rem', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '16px', textAlign: 'center', cursor: 'pointer', transition: '0.3s' }}
+                  onClick={() => setReportMethod('call')}
+                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.2)'}
+                  onMouseOut={(e) => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)'}
+                >
+                  <PhoneIcon size={40} color="#3b82f6" style={{ margin: '0 auto 1rem' }} />
+                  <h3 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>مكالمة</h3>
+                </div>
+
+                <div
+                  style={{ flex: '1 1 120px', padding: '2rem', background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.1)', borderRadius: '16px', textAlign: 'center', cursor: 'pointer', transition: '0.3s' }}
+                  onClick={() => setReportMethod('facebook')}
+                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)'}
+                  onMouseOut={(e) => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.05)'}
+                >
+                  <FacebookIcon size={40} color="#3b82f6" style={{ margin: '0 auto 1rem', display: 'block' }} />
+                  <h3 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>فيسبوك</h3>
+                </div>
+
+                <div
+                  style={{ flex: '1 1 120px', padding: '2rem', background: 'rgba(34, 197, 94, 0.05)', border: '1px solid rgba(34, 197, 94, 0.1)', borderRadius: '16px', textAlign: 'center', cursor: 'pointer', transition: '0.3s' }}
+                  onClick={() => setReportMethod('whatsapp')}
+                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(34, 197, 94, 0.1)'}
+                  onMouseOut={(e) => e.currentTarget.style.background = 'rgba(34, 197, 94, 0.05)'}
+                >
+                  <WhatsAppIcon size={40} color="#22c55e" style={{ margin: '0 auto 1rem', display: 'block' }} />
+                  <h3 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>واتساب</h3>
+                </div>
+              </div>
+            ) : (
+              <form className="create-report-form" onSubmit={handleSaveReport} noValidate>
+
+                <div className="form-section">
+                  <h4 className="section-title"><User size={18} /> بيانات المندوب</h4>
+                  <div className="form-row three-cols">
+                    <div className="form-group">
+                      <label>اسم المندوب</label>
+                      <div className="input-with-icon">
+                        <input type="text" name="agentName" required placeholder="أدخل اسم المندوب" />
+                        <User size={16} className="input-icon2" />
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label>رقم الهاتف {reportMethod === 'facebook' && '(اختياري)'}</label>
+                      <div className={`input-with-icon ${phoneStatus === 'exists' ? 'phone-exists' : phoneStatus === 'new' ? 'phone-new' : ''}`}>
+                        <input
+                          type="tel"
+                          name="phone"
+                          required={reportMethod === 'call' || reportMethod === 'whatsapp'}
+                          placeholder="أدخل رقم الهاتف"
+                          dir="ltr"
+                          style={{ textAlign: 'right' }}
+                          value={phoneInput}
+                          onChange={(e) => setPhoneInput(e.target.value)}
+                        />
+                        <PhoneIcon size={16} className="input-icon2" />
+                      </div>
+                      {phoneStatus === 'exists' && (
+                        <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '0.2rem', display: 'block' }}>
+                          {reportMethod === 'whatsapp' && existingCommMethod === 'مكالمة هاتفية'
+                            ? 'هذا الرقم مسجل مسبقاً عن طريق مكالمة'
+                            : reportMethod === 'call' && existingCommMethod === 'واتساب'
+                              ? 'هذا الرقم مسجل مسبقاً عن طريق واتساب'
+                              : 'هذا الرقم مسجل مسبقاً'}
+                        </span>
+                      )}
+                      {phoneStatus === 'new' && <span style={{ color: '#22c55e', fontSize: '0.8rem', marginTop: '0.2rem', display: 'block' }}>رقم جديد</span>}
+                      {phoneStatus === 'checking' && <span style={{ color: '#3b82f6', fontSize: '0.8rem', marginTop: '0.2rem', display: 'block' }}>جاري التحقق...</span>}
+                    </div>
+                    <div className="form-group">
+                      <label>المحافظة / المدينة</label>
+                      <div className="input-with-icon">
+                        <input type="text" name="city" required placeholder="مثال: القاهرة، الإسكندرية..." />
+                        <MapPin size={16} className="input-icon2" />
+                      </div>
                     </div>
                   </div>
-                  <div className="form-group">
-                    <label>رقم الهاتف</label>
-                    <div className="input-with-icon">
-                      <input type="tel" name="phone" required placeholder="أدخل رقم الهاتف" dir="ltr" style={{ textAlign: 'right' }} />
-                      <PhoneIcon size={16} className="input-icon"/>
+                  {reportMethod === 'facebook' && (
+                    <div className="form-group" style={{ marginTop: '1.2rem' }}>
+                      <label>لينك الصفحة الشخصية (اختياري)</label>
+                      <div className="input-with-icon">
+                        <input type="url" name="profileLink" placeholder="أدخل الرابط..." dir="ltr" style={{ textAlign: 'right' }} />
+                        <Link size={16} className="input-icon2" />
+                      </div>
                     </div>
-                  </div>
-                  <div className="form-group">
-                    <label>المحافظة / المدينة</label>
-                    <div className="input-with-icon">
-                      <input type="text" name="city" required placeholder="مثال: القاهرة، الإسكندرية..." />
-                      <MapPin size={16} className="input-icon"/>
+                  )}
+                </div>
+
+
+                <div className="form-section">
+                  <h4 className="section-title"><Activity size={18} /> الحالة والنتيجة</h4>
+                  <div className="form-row two-cols">
+                    <div className="form-group full-width">
+                      <label style={{ marginBottom: '0.8rem', display: 'block' }}>حالة المندوب</label>
+                      <div className="radio-group">
+                        <label className="radio-label status-license-only">
+                          <input type="radio" name="agentStatus" value="رخصة قيادة" required />
+                          <span>رخصة قيادة</span>
+                        </label>
+                        <label className="radio-label status-license-bike">
+                          <input type="radio" name="agentStatus" value="رخصة وموتوسيكل" required />
+                          <span>رخصة وموتوسيكل</span>
+                        </label>
+                        <label className="radio-label status-no-license">
+                          <input type="radio" name="agentStatus" value="بدون (لا يوجد)" required />
+                          <span>بدون (لا يوجد)</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="form-group full-width">
+                      <label style={{ marginBottom: '0.8rem', display: 'block' }}>حالة المكالمة</label>
+                      <div className="radio-group">
+                        <label className="radio-label status-no-answer">
+                          <input type="radio" name="callStatus" value="لا يوجد رد" required />
+                          <span>لا يوجد رد</span>
+                        </label>
+                        <label className="radio-label status-rejected">
+                          <input type="radio" name="callStatus" value="رفض" required />
+                          <span>رفض</span>
+                        </label>
+                        <label className="radio-label status-details-sent">
+                          <input type="radio" name="callStatus" value="تم إرسال تفاصيل" required />
+                          <span>تم إرسال تفاصيل</span>
+                        </label>
+                        <label className="radio-label status-interested">
+                          <input type="radio" name="callStatus" value="مهتم (موافق)" required />
+                          <span>مهتم (موافق)</span>
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="form-section">
-                <h4 className="section-title"><MessageSquare size={18}/> تفاصيل التواصل</h4>
-                <div className="form-row">
-                  <div className="form-group full-width">
-                    <label style={{ marginBottom: '0.8rem', display: 'block' }}>طريقة التواصل</label>
-                    <div className="radio-group">
-                      <label className="radio-label comm-whatsapp">
-                        <input type="radio" name="commMethod" value="واتساب" required />
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><MessageCircle size={16} /> واتساب</span>
-                      </label>
-                      <label className="radio-label comm-messenger">
-                        <input type="radio" name="commMethod" value="ماسينجر" required />
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Send size={16} /> ماسينجر</span>
-                      </label>
-                      <label className="radio-label comm-call">
-                        <input type="radio" name="commMethod" value="مكالمة هاتفية" required />
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><PhoneIcon size={16} /> مكالمة هاتفية</span>
-                      </label>
+                <div className="form-section">
+                  <h4 className="section-title"><FileText size={18} /> التقرير</h4>
+                  <div className="form-row">
+                    <div className="form-group full-width">
+                      <textarea name="report" rows="3" required placeholder="اكتب ملخص ما تم في المكالمة..."></textarea>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="form-section">
-                <h4 className="section-title"><Activity size={18}/> الحالة والنتيجة</h4>
-                <div className="form-row two-cols">
-                  <div className="form-group full-width">
-                    <label style={{ marginBottom: '0.8rem', display: 'block' }}>حالة المندوب</label>
-                    <div className="radio-group">
-                      <label className="radio-label status-license-only">
-                        <input type="radio" name="agentStatus" value="رخصة قيادة" required />
-                        <span>رخصة قيادة</span>
-                      </label>
-                      <label className="radio-label status-license-bike">
-                        <input type="radio" name="agentStatus" value="رخصة وموتوسيكل" required />
-                        <span>رخصة وموتوسيكل</span>
-                      </label>
-                      <label className="radio-label status-no-license">
-                        <input type="radio" name="agentStatus" value="بدون (لا يوجد)" required />
-                        <span>بدون (لا يوجد)</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="form-group full-width">
-                    <label style={{ marginBottom: '0.8rem', display: 'block' }}>حالة المكالمة</label>
-                    <div className="radio-group">
-                      <label className="radio-label status-no-answer">
-                        <input type="radio" name="callStatus" value="لا يوجد رد" required />
-                        <span>لا يوجد رد</span>
-                      </label>
-                      <label className="radio-label status-rejected">
-                        <input type="radio" name="callStatus" value="رفض" required />
-                        <span>رفض</span>
-                      </label>
-                      <label className="radio-label status-details-sent">
-                        <input type="radio" name="callStatus" value="تم إرسال تفاصيل" required />
-                        <span>تم إرسال تفاصيل</span>
-                      </label>
-                      <label className="radio-label status-interested">
-                        <input type="radio" name="callStatus" value="مهتم (موافق)" required />
-                        <span>مهتم (موافق)</span>
-                      </label>
-                    </div>
-                  </div>
+                <div className="form-actions">
+                  <button type="submit" className="btn-save">حفظ التقرير</button>
+                  <button type="button" className="btn-cancel" onClick={() => { setIsModalOpen(false); setReportMethod(null); setPhoneInput(''); setPhoneStatus('empty'); }}>إلغاء</button>
                 </div>
-              </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
 
-              <div className="form-section">
-                <h4 className="section-title"><FileText size={18}/> التقرير</h4>
-                <div className="form-row">
-                  <div className="form-group full-width">
-                    <textarea name="report" rows="3" required placeholder="اكتب ملخص ما تم في المكالمة..."></textarea>
-                  </div>
-                </div>
-              </div>
-
-              <div className="form-actions">
-                <button type="button" className="btn-cancel" onClick={() => setIsModalOpen(false)}>إلغاء</button>
-                <button type="submit" className="btn-save">حفظ المكالمة</button>
-              </div>
-            </form>
+      {/* Confirm Duplicate Modal */}
+      {showConfirmDuplicate && (
+        <div className="modal-overlay" style={{ zIndex: 1000 }} onClick={() => setShowConfirmDuplicate(false)}>
+          <div className="modal-content" style={{ maxWidth: '400px', textAlign: 'center', padding: '2rem' }} onClick={e => e.stopPropagation()}>
+            <div style={{ color: '#ef4444', marginBottom: '1rem' }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto' }}>
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            </div>
+            <h3 style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>تنبيه: الرقم مسجل مسبقاً</h3>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', lineHeight: '1.5' }}>
+              هذا الرقم موجود بالفعل في النظام. هل أنت متأكد أنك تريد المتابعة وحفظ التقرير؟
+            </p>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+              <button
+                type="button"
+                className="btn-save"
+                onClick={() => processCallReport(pendingCallData)}
+              >
+                نعم، احفظ التقرير
+              </button>
+              <button
+                type="button"
+                className="btn-cancel"
+                onClick={() => { setShowConfirmDuplicate(false); setPendingCallData(null); }}
+              >
+                إلغاء
+              </button>
+            </div>
           </div>
         </div>
       )}

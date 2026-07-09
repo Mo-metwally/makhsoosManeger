@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Loader, ShieldAlert, CheckCircle, XCircle, Clock, CalendarRange, HelpCircle, Activity, Edit2, Shield, Cat, Crown, Star, Smile, Briefcase, Flame, Zap, Heart, Moon, User, RefreshCw } from 'lucide-react';
+import { Users, Loader, ShieldAlert, CheckCircle, XCircle, Clock, CalendarRange, HelpCircle, Activity, Edit2, Shield, Cat, Crown, Star, Smile, Briefcase, Flame, Zap, Heart, Moon, User, RefreshCw, LogIn, LogOut, UserX, CalendarOff } from 'lucide-react';
 import api from '../services/api';
 import './TodayFollowup.css';
 
@@ -48,11 +48,28 @@ const TodayFollowup = () => {
     }
   };
 
+  const [manualCheckIn, setManualCheckIn] = useState('');
+  const [manualCheckOut, setManualCheckOut] = useState('');
+
   const openModal = (emp) => {
     setSelectedEmp(emp);
-    setAction('CheckIn');
+    setAction(emp.todayStatus === 'Present' || emp.todayStatus === 'Late' ? 'EditTimes' : 'CheckIn');
     setNotes('');
     setIsEarlyCheckout(false);
+
+    if (emp.checkInTime) {
+      const ci = new Date(emp.checkInTime);
+      setManualCheckIn(`${ci.getHours().toString().padStart(2,'0')}:${ci.getMinutes().toString().padStart(2,'0')}`);
+    } else {
+      setManualCheckIn('');
+    }
+
+    if (emp.checkOutTime) {
+      const co = new Date(emp.checkOutTime);
+      setManualCheckOut(`${co.getHours().toString().padStart(2,'0')}:${co.getMinutes().toString().padStart(2,'0')}`);
+    } else {
+      setManualCheckOut('');
+    }
   };
 
   const closeModal = () => {
@@ -90,7 +107,9 @@ const TodayFollowup = () => {
       await api.post('/attendance/admin/update-status', {
         userId: selectedEmp.id,
         action,
-        notes
+        notes,
+        manualCheckInTime: manualCheckIn,
+        manualCheckOutTime: manualCheckOut
       });
       alert('تم تحديث حالة الموظف بنجاح');
       closeModal();
@@ -394,26 +413,52 @@ const TodayFollowup = () => {
 
               <form onSubmit={handleUpdateStatus} className="tf-form">
                 <div className="tf-form-group">
-                  <label>الإجراء المطلوب:</label>
-                  <div className="tf-radio-group">
-                    <label className={`tf-radio-label ${action === 'CheckIn' ? 'active' : ''}`}>
+                  <label className="tf-section-label">الإجراء المطلوب:</label>
+                  <div className="tf-adv-radio-group">
+                    <label className={`tf-adv-radio-label ${action === 'CheckIn' ? 'active checkin' : ''}`}>
                       <input type="radio" value="CheckIn" checked={action === 'CheckIn'} onChange={(e) => setAction(e.target.value)} />
-                      تسجيل حضور
+                      <LogIn size={20} className="radio-icon" />
+                      <span>تسجيل حضور</span>
                     </label>
-                    <label className={`tf-radio-label ${action === 'CheckOut' ? 'active' : ''}`}>
+                    <label className={`tf-adv-radio-label ${action === 'CheckOut' ? 'active checkout' : ''}`}>
                       <input type="radio" value="CheckOut" checked={action === 'CheckOut'} onChange={(e) => setAction(e.target.value)} />
-                      تسجيل إنصراف
+                      <LogOut size={20} className="radio-icon" />
+                      <span>تسجيل إنصراف</span>
                     </label>
-                    <label className={`tf-radio-label ${action === 'Absent' ? 'active' : ''}`}>
+                    <label className={`tf-adv-radio-label ${action === 'EditTimes' ? 'active edittimes' : ''}`}>
+                      <input type="radio" value="EditTimes" checked={action === 'EditTimes'} onChange={(e) => setAction(e.target.value)} />
+                      <Clock size={20} className="radio-icon" />
+                      <span>تعديل الأوقات</span>
+                    </label>
+                    <label className={`tf-adv-radio-label ${action === 'Absent' ? 'active absent' : ''}`}>
                       <input type="radio" value="Absent" checked={action === 'Absent'} onChange={(e) => setAction(e.target.value)} />
-                      تسجيل غياب
+                      <UserX size={20} className="radio-icon" />
+                      <span>تسجيل غياب</span>
                     </label>
-                    <label className={`tf-radio-label ${action === 'DayOff' ? 'active' : ''}`}>
+                    <label className={`tf-adv-radio-label ${action === 'DayOff' ? 'active dayoff' : ''}`}>
                       <input type="radio" value="DayOff" checked={action === 'DayOff'} onChange={(e) => setAction(e.target.value)} />
-                      تسجيل إجازة
+                      <CalendarOff size={20} className="radio-icon" />
+                      <span>تسجيل إجازة</span>
                     </label>
                   </div>
                 </div>
+
+                {(action === 'CheckIn' || action === 'CheckOut' || action === 'EditTimes') && (
+                  <div className="tf-form-group tf-time-inputs-container fade-in">
+                    <div className="tf-time-input-wrapper">
+                      <label>
+                        <LogIn size={16} /> وقت الحضور:
+                      </label>
+                      <input type="time" value={manualCheckIn} onChange={(e) => setManualCheckIn(e.target.value)} className="tf-adv-input" />
+                    </div>
+                    <div className="tf-time-input-wrapper">
+                      <label>
+                        <LogOut size={16} /> وقت الانصراف:
+                      </label>
+                      <input type="time" value={manualCheckOut} onChange={(e) => setManualCheckOut(e.target.value)} className="tf-adv-input" />
+                    </div>
+                  </div>
+                )}
 
                 {isEarlyCheckout && action === 'CheckOut' && (
                   <div className="tf-alert warning">

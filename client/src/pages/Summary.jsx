@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FileText, PhoneCall, ListTodo, StickyNote, Save, Edit2, Check, Sparkles, Activity, Download, AlertCircle, X } from 'lucide-react';
 import * as XLSX from 'xlsx-js-style';
 import api from '../services/api';
+import { getLogicalDateString } from '../utils/dateHelpers';
 import './Calls.css';
 
 const Summary = () => {
@@ -28,7 +29,7 @@ const Summary = () => {
     document.title = "ملخص الاداء | مخصوص";
     
     const now = new Date();
-    const todayStr = now.toDateString();
+    const todayStr = getLogicalDateString(now);
     
     // Load from daily_summary first to check if they saved a manual count
     const savedSummary = JSON.parse(localStorage.getItem('daily_summary') || '{}');
@@ -52,7 +53,7 @@ const Summary = () => {
       const savedCalls = response.data || [];
       const todayCalls = savedCalls.filter(call => {
         const callDate = new Date(call.createdAt);
-        return callDate.toDateString() === now.toDateString();
+        return getLogicalDateString(callDate) === getLogicalDateString(now);
       });
       setTodayCallsCount(todayCalls.length);
     } catch (error) {
@@ -74,7 +75,7 @@ const Summary = () => {
       return;
     }
 
-    const todayStr = new Date().toDateString();
+    const todayStr = getLogicalDateString();
     const summaryData = {
       date: todayStr,
       timestamp: new Date().toISOString(),

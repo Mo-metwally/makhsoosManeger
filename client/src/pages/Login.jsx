@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Lock, User as UserIcon, Mail, Phone, UserPlus, LogIn, KeyRound, Briefcase } from 'lucide-react';
+import { Lock, User as UserIcon, Mail, Phone, UserPlus, LogIn, KeyRound, Briefcase, Loader2 } from 'lucide-react';
 import api from '../services/api';
 import './Login.css';
 
@@ -20,6 +20,7 @@ const Login = () => {
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -31,6 +32,7 @@ const Login = () => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setIsLoading(true);
 
     try {
       if (mode === 'login') {
@@ -51,6 +53,7 @@ const Login = () => {
       } else if (mode === 'forgot_reset') {
         if (formData.newPassword !== formData.confirmPassword) {
           setError('كلمتي المرور غير متطابقتين.');
+          setIsLoading(false);
           return;
         }
         const res = await api.post('/auth/reset-password', { email: formData.email, otp: formData.otp, newPassword: formData.newPassword });
@@ -59,6 +62,8 @@ const Login = () => {
       }
     } catch (err) {
       setError(err.response?.data?.error || 'حدث خطأ في العملية');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -219,12 +224,18 @@ const Login = () => {
             </div>
           )}
 
-          <button type="submit" className="login-btn">
-            {mode === 'login' && <><LogIn size={20} style={{ marginLeft: '8px' }} /> دخول</>}
-            {mode === 'signup' && <><UserPlus size={20} style={{ marginLeft: '8px' }} /> إنشاء الحساب</>}
-            {mode === 'forgot_email' && 'إرسال الرمز'}
-            {mode === 'forgot_otp' && 'تأكيد الرمز'}
-            {mode === 'forgot_reset' && 'تعيين كلمة المرور'}
+          <button type="submit" className="login-btn" disabled={isLoading}>
+            {isLoading ? (
+              <Loader2 size={20} className="spinner-icon" />
+            ) : (
+              <>
+                {mode === 'login' && <><LogIn size={20} style={{ marginLeft: '8px' }} /> دخول</>}
+                {mode === 'signup' && <><UserPlus size={20} style={{ marginLeft: '8px' }} /> إنشاء الحساب</>}
+                {mode === 'forgot_email' && 'إرسال الرمز'}
+                {mode === 'forgot_otp' && 'تأكيد الرمز'}
+                {mode === 'forgot_reset' && 'تعيين كلمة المرور'}
+              </>
+            )}
           </button>
         </form>
 

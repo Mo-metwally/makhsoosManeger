@@ -1,3 +1,5 @@
+import { getLogicalDateString, getLogicalDateObj } from './dateHelpers';
+
 export const parseArabicDate = (arStr) => {
   if (!arStr) return new Date().toISOString();
   const months = { 'يناير':1, 'فبراير':2, 'مارس':3, 'أبريل':4, 'مايو':5, 'يونيو':6, 'يوليو':7, 'أغسطس':8, 'سبتمبر':9, 'أكتوبر':10, 'نوفمبر':11, 'ديسمبر':12 };
@@ -27,12 +29,12 @@ export const applyFiltersAndSort = (data, { timeFilter, supervisorFilter, search
     filtered = filtered.filter(item => {
       const itemDate = new Date(item.createdAt || new Date());
       if (timeFilter === 'today') {
-        return itemDate.toDateString() === now.toDateString();
+        return getLogicalDateString(itemDate) === getLogicalDateString();
       }
       if (timeFilter === 'yesterday') {
         const yesterday = new Date(now);
         yesterday.setDate(yesterday.getDate() - 1);
-        return itemDate.toDateString() === yesterday.toDateString();
+        return getLogicalDateString(itemDate) === getLogicalDateString(yesterday);
       }
       if (timeFilter === 'week') {
         const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);

@@ -58,6 +58,7 @@
   border-radius: 16px;
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.05);
+  overflow: visible !important;
 }
 
 .pending-section {
@@ -76,7 +77,7 @@
 .text-green-500 { color: #22c55e; }
 
 .pr-table-wrapper {
-  overflow-x: auto;
+  overflow: visible !important;
 }
 
 .pr-table {
@@ -267,6 +268,113 @@
   background: rgba(239, 68, 68, 0.2);
 }
 
+/* Custom Modal Styles */
+.custom-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.custom-modal-content {
+  background: var(--theme-glass);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 450px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  color: white;
+}
+
+.custom-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.5rem;
+}
+
+.custom-modal-header .close-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.2rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.custom-modal-header .close-btn:hover:not(:disabled) {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.custom-modal-body {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #e2e8f0;
+  margin-bottom: 1.5rem;
+}
+
+.custom-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.pr-btn-cancel, .pr-btn-confirm {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pr-btn-cancel {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.pr-btn-cancel:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.pr-btn-confirm {
+  background: #f97316;
+  color: white;
+}
+
+.pr-btn-confirm:hover:not(:disabled) {
+  background: #ea580c;
+}
+
+.pr-btn-cancel:disabled, .pr-btn-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.scale-in {
+  animation: scaleIn 0.2s ease-out forwards;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -335,4 +443,101 @@
 
 .btn-unlock:hover {
   background: rgba(249, 115, 22, 0.2);
+}
+
+/* Advanced Role Selector */
+.adv-role-selector {
+  position: relative;
+  width: max-content;
+  min-width: 170px;
+}
+
+.adv-role-selected {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.adv-role-selected:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.adv-role-arrow {
+  transition: transform 0.3s ease;
+  opacity: 0.7;
+}
+
+.adv-role-arrow.open {
+  transform: rotate(180deg);
+}
+
+.adv-role-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 100%;
+  min-width: 180px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem;
+  z-index: 100;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.adv-role-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  color: #cbd5e1;
+}
+
+.adv-role-option:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+.adv-role-option.active {
+  background: rgba(249, 115, 22, 0.1);
+  color: #f97316;
+}
+
+.role-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.role-superadmin {
+  color: #eab308;
+}
+
+.role-admin {
+  color: #f97316;
+}
+
+.role-supervisor {
+  color: #3b82f6;
 }

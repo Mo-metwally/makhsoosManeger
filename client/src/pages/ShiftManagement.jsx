@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Plus, Users, Trash2, Calendar, Check, Save, TriangleAlert, Search, User as UserIcon, Edit, ShieldCheck, Crown, Shield, Cat, Star, Smile, Briefcase, Flame, Zap, Heart, Moon } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Clock, Plus, Users, Trash2, Calendar, Check, Save, TriangleAlert, Search, User as UserIcon, Edit, ShieldCheck, Crown, Shield, Cat, Star, Smile, Briefcase, Flame, Zap, Heart, Moon, Activity } from 'lucide-react';
 import api from '../services/api';
 import './Account.css'; // Reuse form styles
 
@@ -404,6 +405,29 @@ const ShiftManagement = () => {
                                   </div>
                                   <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>{user.jobTitle || 'موظف'}</div>
                                 </div>
+                                
+                                <Link 
+                                  to={`/personal-followup/${user.id}`}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.4rem',
+                                    padding: '0.5rem 0.8rem',
+                                    background: 'rgba(59, 130, 246, 0.15)',
+                                    color: '#60a5fa',
+                                    borderRadius: '6px',
+                                    textDecoration: 'none',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 'bold',
+                                    transition: 'background 0.2s',
+                                  }}
+                                  onMouseOver={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.25)'}
+                                  onMouseOut={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)'}
+                                  title="عرض إحصائيات الموظف"
+                                >
+                                  <Activity size={16} />
+                                  متابعة
+                                </Link>
                               </div>
                             )
                           })}
