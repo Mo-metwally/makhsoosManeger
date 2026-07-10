@@ -7,6 +7,9 @@ const Notification = require('./Notification');
 const Shift = require('./Shift');
 const AttendanceLog = require('./AttendanceLog');
 const DayOffRequest = require('./DayOffRequest');
+const Budget = require('./Budget')(sequelize);
+const Expense = require('./Expense')(sequelize);
+const AdvanceRequest = require('./AdvanceRequest')(sequelize);
 
 // Relationships
 User.hasMany(Notification, { foreignKey: 'userId', onDelete: 'CASCADE' });
@@ -32,6 +35,22 @@ AttendanceLog.belongsTo(Shift, { foreignKey: 'shiftId' });
 User.hasMany(DayOffRequest, { foreignKey: 'userId', onDelete: 'CASCADE' });
 DayOffRequest.belongsTo(User, { foreignKey: 'userId' });
 
+User.hasMany(Budget, { foreignKey: 'userId', onDelete: 'CASCADE' });
+Budget.belongsTo(User, { foreignKey: 'userId' });
+
+Budget.hasMany(Expense, { foreignKey: 'budgetId', onDelete: 'CASCADE' });
+Expense.belongsTo(Budget, { foreignKey: 'budgetId' });
+
+User.hasMany(Expense, { foreignKey: 'userId', onDelete: 'CASCADE' });
+Expense.belongsTo(User, { foreignKey: 'userId' });
+
+// AdvanceRequest Associations
+User.hasMany(AdvanceRequest, { as: 'MyAdvances', foreignKey: 'userId', onDelete: 'CASCADE' });
+AdvanceRequest.belongsTo(User, { as: 'Requester', foreignKey: 'userId' });
+
+User.hasMany(AdvanceRequest, { as: 'ApprovedAdvances', foreignKey: 'adminId', onDelete: 'SET NULL' });
+AdvanceRequest.belongsTo(User, { as: 'Approver', foreignKey: 'adminId' });
+
 module.exports = {
   sequelize,
   User,
@@ -41,5 +60,8 @@ module.exports = {
   Notification,
   Shift,
   AttendanceLog,
-  DayOffRequest
+  DayOffRequest,
+  Budget,
+  Expense,
+  AdvanceRequest
 };

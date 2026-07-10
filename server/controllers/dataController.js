@@ -258,12 +258,15 @@ const getPersonalStats = async (req, res) => {
     const prevAvgCheckInMins = prevCheckInDays > 0 ? Math.round(prevCheckInMins / prevCheckInDays) : 0;
     const prevAvgCheckInTime = prevAvgCheckInMins > 0 ? `${String(Math.floor(prevAvgCheckInMins / 60)).padStart(2, '0')}:${String(prevAvgCheckInMins % 60).padStart(2, '0')}` : '--:--';
 
-    // Next Day Off
+    // Next Day Off (strictly after today)
+    const todayActual = new Date();
+    const todayStrActual = `${todayActual.getFullYear()}-${String(todayActual.getMonth() + 1).padStart(2, '0')}-${String(todayActual.getDate()).padStart(2, '0')}`;
+    
     const nextDayOff = await DayOffRequest.findOne({
       where: { 
         userId, 
         status: 'Approved',
-        date: { [Op.gte]: endStr }
+        date: { [Op.gt]: todayStrActual }
       },
       order: [['date', 'ASC']]
     });

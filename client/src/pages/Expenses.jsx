@@ -1,0 +1,800 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { CreditCard, Wallet, Filter, TrendingUp, X, Edit2, User, Clock, Calendar, Search, Users, ShoppingBag, FileText, ChevronDown, CheckCircle, DollarSign, PenTool, Trash2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
+import './Expenses.css';
+
+const Expenses = () => {
+  const { user } = useAuth();
+  const userName = user ? (user.fullName || user.username) : 'غير معروف';
+
+  const formatTime12Hour = (timeStr) => {
+    if (!timeStr) return '';
+    const [hours, minutes] = timeStr.split(':');
+    const h = parseInt(hours, 10);
+    const ampm = h >= 12 ? 'م' : 'ص';
+    const h12 = h % 12 || 12;
+    return `${h12}:${minutes} ${ampm}`;
+  };
+
+  const todayMonthKey = new Date().toISOString().slice(0, 7);
+  const [selectedMonth, setSelectedMonth] = useState(todayMonthKey);
+  const [filterMonthInput, setFilterMonthInput] = useState(todayMonthKey);
+
+  const isFirstOfMonth = (selectedMonth === todayMonthKey) && (new Date().getDate() === 1);
+  const currentMonthName = new Date(selectedMonth + '-01').toLocaleString('ar-EG', { month: 'long', year: 'numeric' });
+
+  const [activeTab, setActiveTab] = useState('budget'); // 'budget' or 'advances'
+  const [advanceRequests, setAdvanceRequests] = useState([]);
+  const [shiftInfo, setShiftInfo] = useState(null);
+
+  useEffect(() => {
+    api.get('/attendance/status')
+      .then(res => {
+        if (res.data && res.data.shift) {
+          setShiftInfo(res.data.shift);
+        }
+      })
+      .catch(err => console.error(err));
+  }, []);
+
+  const [monthlyExpense, setMonthlyExpense] = useState(0);
+  const [openingBalance, setOpeningBalance] = useState(0);
+
+  // Expense States
+  const [expenses, setExpenses] = useState([]);
+  const [showExpenseModal, setShowExpenseModal] = useState(false);
+  const [expenseType, setExpenseType] = useState('supplies'); // 'supplies' or 'advance'
+  const [expenseAmount, setExpenseAmount] = useState('');
+  const [expenseItem, setExpenseItem] = useState('');
+  const [expenseEmployee, setExpenseEmployee] = useState('');
+  const [expenseEmployeeId, setExpenseEmployeeId] = useState('');
+  const [expenseNotes, setExpenseNotes] = useState('');
+  const [editingExpenseId, setEditingExpenseId] = useState(null);
+
+  const [allUsers, setAllUsers] = useState([]);
+  const [employeeSearchQuery, setEmployeeSearchQuery] = useState('');
+  const [isEmployeeDropdownOpen, setIsEmployeeDropdownOpen] = useState(false);
+  const employeeDropdownRef = useRef(null);
+
+  // Load data for the selected month
+  useEffect(() => {
+    if (user && user.id) {
+      api.get(`/budgets/me?month=${selectedMonth}`)
+        .then(res => {
+          if (res.data) {
+            setMonthlyExpense(res.data.totalBudget);
+            setOpeningBalance(res.data.openingBalance);
+          }
+        })
+        .catch(err => console.error('Error fetching budget:', err));
+
+      api.get(`/budgets/expenses?month=${selectedMonth}`)
+        .then(res => {
+          if (res.data) setExpenses(res.data);
+        })
+        .catch(err => console.error('Error fetching expenses:', err));
+      
+      // Fetch users for employee advance selector
+      api.get('/admin/users')
+        .then(res => setAllUsers(res.data))
+        .catch(err => console.error('Error fetching users:', err));
+        
+      fetchAdvanceRequests();
+    }
+  }, [selectedMonth, user, activeTab]);
+
+  const fetchAdvanceRequests = () => {
+    if (user && (user.role === 'Admin' || user.role === 'SuperAdmin')) {
+      api.get(`/advances/all?monthKey=${selectedMonth}`)
+        .then(res => setAdvanceRequests(res.data))
+        .catch(err => console.error('Error fetching advance requests:', err));
+    }
+  };
+
+  const handleUpdateAdvanceStatus = (id, status) => {
+    api.put(`/advances/${id}/status`, { status })
+      .then(res => {
+        // Refresh requests
+        fetchAdvanceRequests();
+        // If approved, refresh budget and expenses
+        if (status === 'approved') {
+          api.get(`/budgets/expenses?month=${selectedMonth}`)
+            .then(res2 => { if (res2.data) setExpenses(res2.data); });
+        }
+      })
+      .catch(err => {
+        alert(err.response?.data?.error || 'حدث خطأ أثناء تحديث حالة الطلب');
+        console.error('Error updating status:', err);
+      });
+  };
+  
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (employeeDropdownRef.current && !employeeDropdownRef.current.contains(event.target)) {
+        setIsEmployeeDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  
+  const [showBudgetModal, setShowBudgetModal] = useState(false);
+  const [budgetInput, setBudgetInput] = useState('');
+  const [budgetAction, setBudgetAction] = useState('add');
+
+  useEffect(() => {
+    if (isFirstOfMonth && monthlyExpense === 0) {
+      setShowBudgetModal(true);
+    }
+  }, [isFirstOfMonth, monthlyExpense]);
+
+  const handleSaveBudget = () => {
+    const val = parseFloat(budgetInput) || 0;
+    if (val > 0) {
+      const newTotal = (monthlyExpense > 0 && budgetAction === 'edit') ? val : monthlyExpense + val;
+      const newOpeningBalance = openingBalance === 0 ? newTotal : openingBalance;
+      
+      api.post('/budgets', {
+        userId: user.id,
+        monthKey: selectedMonth,
+        totalBudget: newTotal,
+        openingBalance: newOpeningBalance
+      })
+      .then(res => {
+        setMonthlyExpense(res.data.totalBudget);
+        setOpeningBalance(res.data.openingBalance);
+      })
+      .catch(err => console.error('Error saving budget:', err));
+    }
+    setBudgetInput('');
+    setShowBudgetModal(false);
+  };
+
+  const handleSaveExpense = () => {
+    const val = parseFloat(expenseAmount) || 0;
+    if (val <= 0) return;
+
+    const payload = {
+      amount: val,
+      type: expenseType,
+      employeeName: expenseType === 'advance' ? expenseEmployee : '',
+      employeeId: expenseType === 'advance' ? expenseEmployeeId : '',
+      item: expenseItem,
+      notes: expenseNotes,
+      monthKey: selectedMonth
+    };
+
+    if (editingExpenseId) {
+      api.put(`/budgets/expenses/${editingExpenseId}`, payload)
+        .then(res => {
+          setExpenses(expenses.map(exp => exp.id === editingExpenseId ? res.data : exp));
+          closeExpenseModal();
+        })
+        .catch(err => console.error('Error updating expense:', err));
+    } else {
+      api.post('/budgets/expenses', payload)
+        .then(res => {
+          setExpenses([res.data, ...expenses]);
+          closeExpenseModal();
+        })
+        .catch(err => console.error('Error saving expense:', err));
+    }
+  };
+
+  const closeExpenseModal = () => {
+    setShowExpenseModal(false);
+    setExpenseAmount('');
+    setExpenseItem('');
+    setExpenseEmployee('');
+    setExpenseEmployeeId('');
+    setExpenseNotes('');
+    setEditingExpenseId(null);
+  };
+
+  const handleEditExpense = (expense) => {
+    setExpenseAmount(expense.amount.toString());
+    setExpenseType(expense.type);
+    if (expense.type === 'advance') {
+      setExpenseEmployee(expense.employeeName || '');
+      // Try to find employeeId from allUsers by matching name
+      const foundUser = allUsers.find(u => u.fullName === expense.employeeName);
+      setExpenseEmployeeId(foundUser ? foundUser.id : '');
+    } else {
+      setExpenseItem(expense.item || '');
+    }
+    setExpenseNotes(expense.notes || '');
+    setEditingExpenseId(expense.id);
+    setShowExpenseModal(true);
+  };
+
+  const handleDeleteExpense = (id) => {
+    if (window.confirm('هل أنت متأكد من حذف هذه العملية واسترداد قيمتها للميزانية؟')) {
+      api.delete(`/budgets/expenses/${id}`)
+        .then(() => {
+          setExpenses(expenses.filter(exp => exp.id !== id));
+        })
+        .catch(err => {
+          alert('حدث خطأ أثناء الحذف');
+          console.error(err);
+        });
+    }
+  };
+  
+  const handleApplyFilter = () => {
+    if (filterMonthInput) {
+      setSelectedMonth(filterMonthInput);
+    }
+  };
+  
+  const totalMonthly = monthlyExpense;
+  
+  const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+  const remaining = totalMonthly - totalExpenses;
+
+  const getAdvanceStatusBadge = (status) => {
+    switch (status) {
+      case 'pending': return <span className="type-badge supplies-badge"><Clock size={14}/> قيد المراجعة</span>;
+      case 'approved': return <span className="type-badge advance-badge"><CheckCircle size={14}/> مقبول (سلفة)</span>;
+      case 'rejected': return <span className="type-badge" style={{background: 'rgba(107,114,128,0.15)', color: '#9ca3af'}}><X size={14}/> مرفوض</span>;
+      case 'settled': return <span className="type-badge advance-badge" style={{background: 'rgba(59,130,246,0.15)', color: '#3b82f6'}}><CheckCircle size={14}/> مسدد</span>;
+      default: return null;
+    }
+  };
+
+  return (
+    <div className="expenses-page">
+      <header className="page-header">
+        <div className="header-title">
+          <Wallet className="header-icon" size={32} /> 
+          <h1>إدارة المصروفات</h1>
+        </div>
+        <p>متابعة وتحليل المصروفات الشهرية والإضافية بشكل متقدم</p>
+      </header>
+
+      {/* Header Tabs */}
+      <div className="admin-tabs-container">
+        <button 
+          className={`admin-tab-btn ${activeTab === 'budget' ? 'active' : ''}`}
+          onClick={() => setActiveTab('budget')}
+        >
+          <Wallet size={20}/>
+          الميزانية العامة
+        </button>
+        <button 
+          className={`admin-tab-btn ${activeTab === 'advances' ? 'active' : ''}`}
+          onClick={() => setActiveTab('advances')}
+        >
+          <Users size={20}/>
+          طلبات السلف ({advanceRequests.filter(r => r.status === 'pending').length})
+        </button>
+      </div>
+      
+      <div className="expenses-filter-section">
+        <Filter size={20} className="theme-color" />
+        <label>عرض بيانات شهر:</label>
+        <input 
+          type="month" 
+          value={filterMonthInput}
+          onChange={(e) => setFilterMonthInput(e.target.value)}
+          className="month-filter-input"
+        />
+        <button className="apply-filter-btn" onClick={handleApplyFilter}>
+          تطبيق
+        </button>
+      </div>
+
+      {activeTab === 'budget' ? (
+        <>
+          <section className="expenses-hero-section">
+            
+            {/* User Info Bar */}
+            <div className="user-info-bar">
+              <div className="info-item">
+                <User size={18} className="info-icon" />
+                <span className="info-label">صاحب الحساب:</span>
+                <span className="info-value">{userName}</span>
+              </div>
+              {shiftInfo ? (
+                <>
+                  <div className="info-item">
+                    <Calendar size={18} className="info-icon" />
+                    <span className="info-label">الوردية:</span>
+                    <span className="info-value">{shiftInfo.name}</span>
+                  </div>
+                  <div className="info-item">
+                    <Clock size={18} className="info-icon" />
+                    <span className="info-label">ساعات العمل:</span>
+                    <span className="info-value" dir="ltr">{shiftInfo.endTime} - {shiftInfo.startTime}</span>
+                  </div>
+                </>
+              ) : (
+                <div className="info-item">
+                  <span className="info-label">الوردية:</span>
+                  <span className="info-value text-muted">غير محددة</span>
+                </div>
+              )}
+            </div>
+
+            <div className="expenses-main-row">
+              <div className="expenses-inputs-container" style={{ flexDirection: 'column', alignItems: 'stretch', justifyContent: 'center' }}>
+              
+              <div className="opening-balance-badge">
+                <span className="badge-label">مبلغ بداية المدة ({currentMonthName}):</span>
+                <span className="badge-value">{openingBalance.toLocaleString()} <small>ج.م</small></span>
+              </div>
+
+              <div className="input-card">
+                <div className="input-card-header">
+                  <div style={{display:'flex', alignItems:'center', gap:'0.75rem'}}>
+                    <CreditCard className="card-icon theme-color" size={24}/>
+                    <h3>إجمالي ميزانية الشهر</h3>
+                  </div>
+                  {user.role === 'SuperAdmin' && (
+                    <button className="edit-btn" onClick={() => setShowBudgetModal(true)} title="تعديل الميزانية">
+                      <Edit2 size={16} />
+                    </button>
+                  )}
+                </div>
+                <div className="input-wrapper">
+                  <div className="glass-input readonly-display">
+                    {monthlyExpense.toLocaleString()}
+                  </div>
+                  <span className="input-currency">ج.م</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="visa-card-widget">
+              <div className="visa-glow"></div>
+              
+              <div className="visa-top">
+                <div className="visa-chip">
+                  <div className="chip-line"></div>
+                  <div className="chip-line"></div>
+                  <div className="chip-line"></div>
+                </div>
+                <div className="visa-logo">MAKHSOOS</div>
+              </div>
+              
+              <div className="visa-middle">
+                <div className="visa-label">إجمالي المصاريف المتبقية</div>
+                <div className={`visa-balance ${remaining < 0 ? 'negative' : ''}`}>
+                  <span className="amount">{remaining.toLocaleString()}</span>
+                  <span className="currency">EGP</span>
+                </div>
+              </div>
+              
+              <div className="visa-bottom">
+                <div className="visa-holder">
+                  <span>CARD HOLDER</span>
+                  <div className="name">{userName}</div>
+                </div>
+                <div className="visa-expires">
+                  <span>STATUS</span>
+                  <div className="date">{remaining >= 0 ? 'ACTIVE' : 'WARNING'}</div>
+                </div>
+              </div>
+            </div>
+            </div>
+
+            <div className="use-card-actions">
+              <button className="use-card-btn glow-hover" onClick={() => setShowExpenseModal(true)}>
+                <CreditCard size={20} />
+                <span>إستخدام البطاقة</span>
+              </button>
+              <div className="card-usage-count">
+                تم استخدام البطاقة <span className="highlight-count">{expenses.length}</span> مرات هذا الشهر
+              </div>
+            </div>
+
+          </section>
+
+          {/* Expense Table Section */}
+          {expenses.length > 0 && (
+            <section className="expenses-table-section fade-in">
+              <div className="table-header-box">
+                <FileText size={24} className="theme-color" />
+                <h2>حركات البطاقة (المصروفات)</h2>
+              </div>
+              <div className="advanced-table-wrapper">
+                <table className="expenses-advanced-table">
+                  <thead>
+                    <tr>
+                        <th>التاريخ واليوم</th>
+                        <th>الوقت</th>
+                        <th>النوع</th>
+                        <th>التفاصيل / الاسم</th>
+                        <th>المبلغ المخصوم</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {expenses.map(exp => (
+                      <tr key={exp.id}>
+                        <td>
+                          <div className="date-cell">
+                            <Calendar size={16}/>
+                            <span>{new Date(exp.date).toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="time-cell">
+                            <Clock size={14}/>
+                            <span dir="ltr">{formatTime12Hour(exp.time)}</span>
+                          </div>
+                        </td>
+                        <td>
+                          <div className={`type-badge ${exp.type === 'advance' ? 'advance-badge' : 'supplies-badge'}`}>
+                            {exp.type === 'advance' ? <Users size={14}/> : <ShoppingBag size={14}/>}
+                            <span>{exp.type === 'advance' ? 'سلفة موظف' : 'مستلزمات'}</span>
+                          </div>
+                        </td>
+                        <td>
+                            <span className="details-text">
+                              {exp.type === 'advance' ? (
+                                <div style={{display:'flex', flexDirection:'column'}}>
+                                  <span>{exp.employeeName}</span>
+                                  {exp.item && <small style={{color:'var(--text-secondary)'}}>{exp.item}</small>}
+                                  {exp.notes && <small style={{color:'var(--text-secondary)'}}>{exp.notes}</small>}
+                                </div>
+                              ) : (
+                                <div style={{display:'flex', flexDirection:'column'}}>
+                                  <span>{exp.item || 'مستلزمات'}</span>
+                                  {exp.notes && <small style={{color:'var(--text-secondary)'}}>{exp.notes}</small>}
+                                </div>
+                              )}
+                            </span>
+                        </td>
+                        <td>
+                            <span className="amount-cell negative-val">
+                              -{exp.amount.toLocaleString()} ج.م
+                            </span>
+                        </td>
+                        <td>
+                           <div style={{display:'flex', gap:'0.5rem', alignItems:'center'}}>
+                              <button 
+                                className="edit-btn" 
+                                style={{background:'rgba(59, 130, 246, 0.15)', color:'#3b82f6'}}
+                                onClick={() => handleEditExpense(exp)}
+                                title="تعديل"
+                              >
+                                <Edit2 size={16}/>
+                              </button>
+                              <button 
+                                className="edit-btn" 
+                                style={{background:'rgba(239, 68, 68, 0.15)', color:'#ef4444'}}
+                                onClick={() => handleDeleteExpense(exp.id)}
+                                title="حذف"
+                              >
+                                <Trash2 size={16}/>
+                              </button>
+                           </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+        </>
+      ) : (
+        /* Advances Tab */
+        <section className="expenses-table-section fade-in">
+          <div className="table-header-box">
+            <Users size={24} className="theme-color" />
+            <h2>إدارة طلبات السلف للموظفين</h2>
+          </div>
+          {advanceRequests.length === 0 ? (
+            <div className="text-muted" style={{textAlign:'center', padding: '2rem'}}>لا توجد طلبات سلف مسجلة هذا الشهر.</div>
+          ) : (
+            <div className="advanced-table-wrapper">
+              <table className="expenses-advanced-table">
+                <thead>
+                  <tr>
+                      <th>الموظف</th>
+                      <th>التاريخ</th>
+                      <th>القيمة</th>
+                      <th>السبب</th>
+                      <th>الحالة</th>
+                      <th>الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {advanceRequests.map(req => (
+                    <tr key={req.id}>
+                      <td>
+                        <div style={{fontWeight: 'bold', color: 'var(--text-primary)'}}>
+                          {req.Requester?.fullName || req.Requester?.username}
+                        </div>
+                      </td>
+                      <td>
+                        <div className="date-cell">
+                          <Calendar size={14}/>
+                          {new Date(req.date).toLocaleDateString('ar-EG')}
+                        </div>
+                      </td>
+                      <td>
+                        <span className="amount-cell" style={{color: 'var(--theme-color)', fontWeight: 'bold'}}>
+                          {req.amount.toLocaleString()} ج.م
+                        </span>
+                      </td>
+                      <td>
+                        <span className="details-text text-muted">{req.reason || '---'}</span>
+                      </td>
+                      <td>
+                        {getAdvanceStatusBadge(req.status)}
+                      </td>
+                      <td>
+                        {req.status === 'pending' && (
+                          <div style={{display:'flex', gap:'0.5rem'}}>
+                            <button 
+                              className="apply-filter-btn" 
+                              style={{padding: '0.4rem 0.8rem', fontSize: '0.85rem'}}
+                              onClick={() => handleUpdateAdvanceStatus(req.id, 'approved')}
+                            >
+                              موافقة
+                            </button>
+                            <button 
+                              className="apply-filter-btn" 
+                              style={{padding: '0.4rem 0.8rem', fontSize: '0.85rem', background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444'}}
+                              onClick={() => handleUpdateAdvanceStatus(req.id, 'rejected')}
+                            >
+                              رفض
+                            </button>
+                          </div>
+                        )}
+                        {req.status === 'approved' && (
+                          <button 
+                            className="apply-filter-btn" 
+                            style={{padding: '0.4rem 0.8rem', fontSize: '0.85rem', background: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6'}}
+                            onClick={() => handleUpdateAdvanceStatus(req.id, 'settled')}
+                          >
+                            <CheckCircle size={14} style={{display:'inline', verticalAlign:'middle', marginLeft:'4px'}}/>
+                            تم السداد والتسوية
+                          </button>
+                        )}
+                        {(req.status === 'settled' || req.status === 'rejected') && (
+                          <span className="text-muted" style={{fontSize: '0.85rem'}}>لا يوجد إجراء</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Budget Edit/Add Modal */}
+      {showBudgetModal && (
+        <div className="modal-overlay fade-in">
+          <div className="budget-modal">
+            <div className="modal-header">
+              <h3>{monthlyExpense === 0 ? 'إعداد ميزانية الشهر الجديد' : 'تعديل الميزانية'}</h3>
+              {(!isFirstOfMonth || monthlyExpense > 0) && (
+                <button className="close-btn" onClick={() => setShowBudgetModal(false)}>
+                  <X size={20} />
+                </button>
+              )}
+            </div>
+            <div className="modal-body">
+              {monthlyExpense === 0 && isFirstOfMonth && (
+                <div className="modal-alert">
+                  يرجى إدخال ميزانية هذا الشهر للتمكن من استخدام الصفحة.
+                </div>
+              )}
+              
+              {monthlyExpense > 0 && (
+                <div className="modal-tabs">
+                  <button 
+                    className={`tab-btn ${budgetAction === 'add' ? 'active' : ''}`}
+                    onClick={() => setBudgetAction('add')}
+                  >
+                    إضافة مبلغ للميزانية
+                  </button>
+                  <button 
+                    className={`tab-btn ${budgetAction === 'edit' ? 'active' : ''}`}
+                    onClick={() => setBudgetAction('edit')}
+                  >
+                    تعديل المبلغ بالكامل
+                  </button>
+                </div>
+              )}
+
+              <div className="input-group">
+                <label>
+                  {monthlyExpense === 0 
+                    ? 'الميزانية الكلية للشهر:' 
+                    : (budgetAction === 'add' ? 'القيمة المراد إضافتها للميزانية:' : 'الميزانية الكلية الجديدة:')}
+                </label>
+                <input 
+                  type="number" 
+                  value={budgetInput}
+                  onChange={e => setBudgetInput(e.target.value)}
+                  className="premium-input modal-input"
+                  placeholder="0"
+                  autoFocus
+                />
+              </div>
+              <button 
+                className="save-btn" 
+                onClick={handleSaveBudget} 
+                disabled={!budgetInput || budgetInput <= 0}
+              >
+                {monthlyExpense === 0 ? 'حفظ الميزانية' : 'تأكيد العملية'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Expense Modal */}
+      {showExpenseModal && (
+        <div className="modal-overlay fade-in">
+          <div className="expense-modal">
+            <div className="modal-header">
+              <div style={{display:'flex', alignItems:'center', gap:'0.75rem'}}>
+                <CreditCard size={24} className="theme-color" />
+                <h3>تسجيل استخدام البطاقة</h3>
+              </div>
+              <button className="close-btn" onClick={closeExpenseModal}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="expense-type-cards">
+                <div 
+                  className={`type-card ${expenseType === 'advance' ? 'active' : ''}`}
+                  onClick={() => setExpenseType('advance')}
+                >
+                  <Users size={24} />
+                  <span>سلفة موظف</span>
+                </div>
+                <div 
+                  className={`type-card ${expenseType === 'supplies' ? 'active' : ''}`}
+                  onClick={() => setExpenseType('supplies')}
+                >
+                  <ShoppingBag size={24} />
+                  <span>مستلزمات</span>
+                </div>
+              </div>
+
+              <div className="input-group">
+                <label>القيمة (ج.م):</label>
+                <div className="input-with-icon">
+                  <DollarSign size={18} className="input-icon" />
+                  <input 
+                    type="number" 
+                    placeholder="أدخل المبلغ المخصوم..."
+                    value={expenseAmount}
+                    onChange={(e) => setExpenseAmount(e.target.value)}
+                    className="glass-input"
+                  />
+                </div>
+              </div>
+
+              {expenseType === 'advance' && (
+                <div className="input-group slide-down">
+                  <label>اسم الموظف:</label>
+                  <div className="advanced-select-container" ref={employeeDropdownRef}>
+                    <div 
+                      className={`advanced-select-trigger ${isEmployeeDropdownOpen ? 'open' : ''}`}
+                      onClick={() => setIsEmployeeDropdownOpen(!isEmployeeDropdownOpen)}
+                    >
+                      <User size={18} className="theme-color" />
+                      <span className="selected-value">
+                        {expenseEmployee || 'اختر الموظف...'}
+                      </span>
+                      <ChevronDown size={18} className="dropdown-icon" />
+                    </div>
+
+                    {isEmployeeDropdownOpen && (
+                      <div className="advanced-select-dropdown slide-down">
+                        <div className="dropdown-search">
+                          <Search size={16} />
+                          <input 
+                            type="text" 
+                            placeholder="ابحث عن موظف..." 
+                            value={employeeSearchQuery}
+                            onChange={(e) => setEmployeeSearchQuery(e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            autoFocus
+                          />
+                        </div>
+                        <div className="dropdown-options">
+                          {allUsers
+                            .filter(u => (u.fullName || '').toLowerCase().includes(employeeSearchQuery.toLowerCase()))
+                            .map(u => (
+                              <div 
+                                key={u.id}
+                                className={`dropdown-option ${expenseEmployee === u.fullName ? 'selected' : ''}`}
+                                onClick={() => {
+                                  setExpenseEmployee(u.fullName);
+                                  setExpenseEmployeeId(u.id);
+                                  setIsEmployeeDropdownOpen(false);
+                                  setEmployeeSearchQuery('');
+                                }}
+                              >
+                                {u.fullName}
+                                {expenseEmployee === u.fullName && <CheckCircle size={16} className="theme-color" />}
+                              </div>
+                            ))}
+                          {allUsers.filter(u => (u.fullName || '').toLowerCase().includes(employeeSearchQuery.toLowerCase())).length === 0 && (
+                            <div className="dropdown-no-results">لا توجد نتائج</div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {expenseType === 'advance' && (
+                <div className="input-group slide-down">
+                  <label>ملاحظة (اختياري):</label>
+                  <div className="input-with-icon">
+                    <FileText size={18} className="input-icon" />
+                    <input 
+                      type="text" 
+                      placeholder="سبب السلفة..."
+                      value={expenseNotes}
+                      onChange={(e) => setExpenseNotes(e.target.value)}
+                      className="glass-input"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {expenseType === 'supplies' && (
+                <>
+                  <div className="input-group slide-down">
+                    <label>السلعة / المستلزمات:</label>
+                    <div className="input-with-icon">
+                      <ShoppingBag size={18} className="input-icon" />
+                      <input 
+                        type="text" 
+                        placeholder="مثل: ورق طباعة، أدوات نظافة..."
+                        value={expenseItem}
+                        onChange={(e) => setExpenseItem(e.target.value)}
+                        className="glass-input"
+                      />
+                    </div>
+                  </div>
+                  <div className="input-group slide-down">
+                    <label>ملاحظات (اختياري):</label>
+                    <div className="input-with-icon">
+                      <FileText size={18} className="input-icon" />
+                      <input 
+                        type="text" 
+                        placeholder="تفاصيل إضافية..."
+                        value={expenseNotes}
+                        onChange={(e) => setExpenseNotes(e.target.value)}
+                        className="glass-input"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <button 
+                className="expense-submit-btn" 
+                onClick={handleSaveExpense}
+                disabled={!expenseAmount || (expenseType === 'advance' ? !expenseEmployee : !expenseItem)}
+              >
+                <CheckCircle size={18} /> حفظ الخصم
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+};
+
+export default Expenses;

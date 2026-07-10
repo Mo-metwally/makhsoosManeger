@@ -25,7 +25,7 @@ const Monitoring = () => {
   const [sortBy, setSortBy] = useState('newest');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
-  
+
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 6;
 
@@ -55,14 +55,14 @@ const Monitoring = () => {
   };
 
   useEffect(() => {
-    document.title = "المتابعة الحية | مخصوص";
+    document.title = "المتابعة الخمول | مخصوص";
     fetchLogs();
-    
+
     // Auto refresh every 2 minutes
     const interval = setInterval(() => {
       fetchLogs();
     }, 2 * 60 * 1000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -91,7 +91,7 @@ const Monitoring = () => {
       const now = new Date();
       filtered = filtered.filter(log => {
         const logDate = new Date(log.startTime);
-        
+
         if (filter === 'today') {
           return getLogicalDateString(logDate) === getLogicalDateString(now);
         } else if (filter === 'yesterday') {
@@ -136,7 +136,7 @@ const Monitoring = () => {
   const totalPages = Math.ceil(filteredLogs.length / ITEMS_PER_PAGE);
   const currentLogs = filteredLogs.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
   const uniqueNames = [...new Set(logs.map(log => log.User?.fullName || log.supervisorName).filter(Boolean))];
-  
+
   const employeeOptions = [
     { value: 'all', label: 'كل الموظفين' },
     ...uniqueNames.map(name => ({ value: name, label: name }))
@@ -186,10 +186,10 @@ const Monitoring = () => {
         <div className="page-title-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <Activity size={28} className="title-icon text-blue" />
-            <h1 className="page-title gradient-title">المتابعة الحية للاستراحات</h1>
+            <h1 className="page-title gradient-title">المتابعة الخمول للاستراحات</h1>
           </div>
-          <button 
-            onClick={fetchLogs} 
+          <button
+            onClick={fetchLogs}
             disabled={loading}
             style={{
               background: 'rgba(59, 130, 246, 0.1)',
@@ -222,7 +222,7 @@ const Monitoring = () => {
             <div className="summary-value">
               {totalHours > 0 ? (
                 <>
-                  <span className="number">{totalHours}</span> <span className="label">ساعة</span> 
+                  <span className="number">{totalHours}</span> <span className="label">ساعة</span>
                   <span className="number">{remainingMinutes}</span> <span className="label">دقيقة</span>
                 </>
               ) : (
@@ -242,62 +242,62 @@ const Monitoring = () => {
             <h3 className="filter-title">تصفية السجل:</h3>
             <div className="mon-radio-filter-group">
               <label className="mon-filter-radio">
-                <input 
-                  type="radio" 
-                  name="timeFilter" 
-                  value="today" 
-                  checked={filter === 'today'} 
-                  onChange={(e) => setFilter(e.target.value)} 
+                <input
+                  type="radio"
+                  name="timeFilter"
+                  value="today"
+                  checked={filter === 'today'}
+                  onChange={(e) => setFilter(e.target.value)}
                 />
                 <span>اليوم</span>
               </label>
               <label className="mon-filter-radio">
-                <input 
-                  type="radio" 
-                  name="timeFilter" 
-                  value="yesterday" 
-                  checked={filter === 'yesterday'} 
-                  onChange={(e) => setFilter(e.target.value)} 
+                <input
+                  type="radio"
+                  name="timeFilter"
+                  value="yesterday"
+                  checked={filter === 'yesterday'}
+                  onChange={(e) => setFilter(e.target.value)}
                 />
                 <span>أمس</span>
               </label>
               <label className="mon-filter-radio">
-                <input 
-                  type="radio" 
-                  name="timeFilter" 
-                  value="week" 
-                  checked={filter === 'week'} 
-                  onChange={(e) => setFilter(e.target.value)} 
+                <input
+                  type="radio"
+                  name="timeFilter"
+                  value="week"
+                  checked={filter === 'week'}
+                  onChange={(e) => setFilter(e.target.value)}
                 />
                 <span>الأسبوع</span>
               </label>
               <label className="mon-filter-radio">
-                <input 
-                  type="radio" 
-                  name="timeFilter" 
-                  value="month" 
-                  checked={filter === 'month'} 
-                  onChange={(e) => setFilter(e.target.value)} 
+                <input
+                  type="radio"
+                  name="timeFilter"
+                  value="month"
+                  checked={filter === 'month'}
+                  onChange={(e) => setFilter(e.target.value)}
                 />
                 <span>الشهر</span>
               </label>
               <label className="mon-filter-radio">
-                <input 
-                  type="radio" 
-                  name="timeFilter" 
-                  value="all" 
-                  checked={filter === 'all'} 
-                  onChange={(e) => setFilter(e.target.value)} 
+                <input
+                  type="radio"
+                  name="timeFilter"
+                  value="all"
+                  checked={filter === 'all'}
+                  onChange={(e) => setFilter(e.target.value)}
                 />
                 <span>الكل</span>
               </label>
               <label className="mon-filter-radio">
-                <input 
-                  type="radio" 
-                  name="timeFilter" 
-                  value="custom" 
-                  checked={filter === 'custom'} 
-                  onChange={(e) => setFilter(e.target.value)} 
+                <input
+                  type="radio"
+                  name="timeFilter"
+                  value="custom"
+                  checked={filter === 'custom'}
+                  onChange={(e) => setFilter(e.target.value)}
                 />
                 <span>مخصص</span>
               </label>
@@ -315,7 +315,7 @@ const Monitoring = () => {
               </div>
             )}
           </div>
-          
+
           <div className="filter-actions-container">
             <button
               onClick={() => setMyStatsOnly(!myStatsOnly)}
@@ -324,12 +324,12 @@ const Monitoring = () => {
               <User size={18} />
               <span>بياناتي</span>
             </button>
-            
+
             <div className="search-container">
               <div className="search-icon-box">
                 <Search size={18} />
               </div>
-              <input 
+              <input
                 type="text"
                 placeholder="ابحث باسم الموظف..."
                 value={searchQuery}
@@ -339,16 +339,16 @@ const Monitoring = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="advanced-filters-container">
-          <CustomSelect 
+          <CustomSelect
             options={employeeOptions}
             value={selectedSupervisor}
             onChange={setSelectedSupervisor}
             icon={<Users size={18} />}
           />
-          
-          <CustomSelect 
+
+          <CustomSelect
             options={sortOptions}
             value={sortBy}
             onChange={setSortBy}
@@ -398,14 +398,14 @@ const Monitoring = () => {
                   <tr key={log.id}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <div style={{ 
-                          width: '40px', 
-                          height: '40px', 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center', 
-                          background: 'rgba(var(--theme-color-rgb, 59, 130, 246), 0.15)', 
-                          border: '1px solid rgba(var(--theme-color-rgb, 59, 130, 246), 0.3)', 
+                        <div style={{
+                          width: '40px',
+                          height: '40px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: 'rgba(var(--theme-color-rgb, 59, 130, 246), 0.15)',
+                          border: '1px solid rgba(var(--theme-color-rgb, 59, 130, 246), 0.3)',
                           borderRadius: '50%',
                           flexShrink: 0
                         }}>
@@ -426,26 +426,26 @@ const Monitoring = () => {
                     <td>
                       {isIdle ? (
                         <span className="status-badge badge-warning">
-                          <Activity size={14} style={{marginLeft: '4px'}} />
+                          <Activity size={14} style={{ marginLeft: '4px' }} />
                           خمول تجاوز الحد
                         </span>
                       ) : log.type === 'بريك غداء' ? (
-                        <span className="status-badge badge-info" style={{backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', borderColor: '#f59e0b'}}>
-                          <Coffee size={14} style={{marginLeft: '4px'}} />
+                        <span className="status-badge badge-info" style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', borderColor: '#f59e0b' }}>
+                          <Coffee size={14} style={{ marginLeft: '4px' }} />
                           {log.type}
                         </span>
                       ) : log.type === 'بريك صلاة' ? (
-                        <span className="status-badge badge-success" style={{backgroundColor: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', borderColor: '#8b5cf6'}}>
-                          <Moon size={14} style={{marginLeft: '4px'}} />
+                        <span className="status-badge badge-success" style={{ backgroundColor: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', borderColor: '#8b5cf6' }}>
+                          <Moon size={14} style={{ marginLeft: '4px' }} />
                           {log.type}
                         </span>
                       ) : log.type === 'تدريب' ? (
-                        <span className="status-badge badge-primary" style={{backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', borderColor: '#3b82f6'}}>
-                          <BookOpen size={14} style={{marginLeft: '4px'}} />
+                        <span className="status-badge badge-primary" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', borderColor: '#3b82f6' }}>
+                          <BookOpen size={14} style={{ marginLeft: '4px' }} />
                           {log.type}
                         </span>
                       ) : (
-                         <span className="status-badge badge-default">{log.type}</span>
+                        <span className="status-badge badge-default">{log.type}</span>
                       )}
                     </td>
                     <td className="time-cell" dir="ltr">{formatTime(log.startTime)}</td>
@@ -459,15 +459,15 @@ const Monitoring = () => {
                     </td>
                     <td>
                       {!log.endTime ? (
-                        <span className="text-orange" style={{fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px'}}>
+                        <span className="text-orange" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <Activity size={14} className="spinner" /> قيد التقدم
                         </span>
                       ) : isIdle ? (
-                        <span className="text-orange" style={{fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px'}}>
+                        <span className="text-orange" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <AlertTriangle size={14} /> تنبيه
                         </span>
                       ) : (
-                        <span style={{color: '#22c55e', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px'}}>
+                        <span style={{ color: '#22c55e', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
                           مسجل ✔️
                         </span>
                       )}
@@ -491,21 +491,21 @@ const Monitoring = () => {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="pagination-container">
-            <button 
-              className="pagination-btn" 
+            <button
+              className="pagination-btn"
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
             >
               <ChevronRight size={18} />
               <span>السابق</span>
             </button>
-            
+
             <div className="pagination-info">
               صفحة <span className="current-page">{currentPage}</span> من <span className="total-pages">{totalPages}</span>
             </div>
-            
-            <button 
-              className="pagination-btn" 
+
+            <button
+              className="pagination-btn"
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
             >

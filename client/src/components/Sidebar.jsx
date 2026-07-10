@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import ExportModal from './ExportModal';
-import { Home, Phone, User, Users, Activity, Shield, Cat, Crown, Star, Smile, Briefcase, Download, Flame, Zap, Heart, Moon, FileText, History, Summary, Menu, Database, ChevronDown, ChevronUp, Folder, Bell, Clock, Calendar, Settings, Wallet } from 'lucide-react';
+import { Home, Phone, User, Users, Activity, Shield, Cat, Crown, Star, Smile, Briefcase, Download, Flame, Zap, Heart, Moon, FileText, History, Summary, Menu, Database, ChevronDown, ChevronUp, Folder, Bell, Clock, Calendar, Settings, Wallet, DollarSign } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { exportToExcel } from '../utils/exportExcel';
 import api from '../services/api';
@@ -26,16 +26,16 @@ const ReactIcon = ({ size = 24, color = "currentColor", className = '' }) => (
 
 const ViteIcon = ({ size = 24, color = "currentColor", className = '' }) => (
   <svg width={size} height={size} viewBox="0 0 410 404" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <path d="M399.641 43.1539L214.288 393.188C210.155 400.99 198.814 400.99 194.681 393.188L9.32832 43.1539C4.84378 34.6841 12.9231 25.4055 21.6663 28.9882L198.718 101.52C202.43 103.041 206.539 103.041 210.251 101.52L387.303 28.9882C396.046 25.4055 404.125 34.6841 399.641 43.1539Z" fill="url(#vite-grad-sidebar)"/>
-    <path d="M293.411 1.76185L208.627 122.188C206.565 125.118 202.404 125.118 200.342 122.188L115.558 1.76185C111.455 -4.06227 102.399 0.0818292 104.053 7.03965L149.332 197.433C150.312 201.554 154.512 203.955 158.423 202.668L199.191 189.261C202.646 188.125 206.323 188.125 209.778 189.261L250.546 202.668C254.457 203.955 258.657 201.554 259.637 197.433L304.916 7.03965C306.57 0.0818292 297.514 -4.06227 293.411 1.76185Z" fill="url(#vite-grad-2-sidebar)"/>
+    <path d="M399.641 43.1539L214.288 393.188C210.155 400.99 198.814 400.99 194.681 393.188L9.32832 43.1539C4.84378 34.6841 12.9231 25.4055 21.6663 28.9882L198.718 101.52C202.43 103.041 206.539 103.041 210.251 101.52L387.303 28.9882C396.046 25.4055 404.125 34.6841 399.641 43.1539Z" fill="url(#vite-grad-sidebar)" />
+    <path d="M293.411 1.76185L208.627 122.188C206.565 125.118 202.404 125.118 200.342 122.188L115.558 1.76185C111.455 -4.06227 102.399 0.0818292 104.053 7.03965L149.332 197.433C150.312 201.554 154.512 203.955 158.423 202.668L199.191 189.261C202.646 188.125 206.323 188.125 209.778 189.261L250.546 202.668C254.457 203.955 258.657 201.554 259.637 197.433L304.916 7.03965C306.57 0.0818292 297.514 -4.06227 293.411 1.76185Z" fill="url(#vite-grad-2-sidebar)" />
     <defs>
       <linearGradient id="vite-grad-sidebar" x1="204.485" y1="389.273" x2="204.485" y2="44.2543" gradientUnits="userSpaceOnUse">
-        <stop stopColor={color} stopOpacity="1"/>
-        <stop offset="1" stopColor={color} stopOpacity="0.5"/>
+        <stop stopColor={color} stopOpacity="1" />
+        <stop offset="1" stopColor={color} stopOpacity="0.5" />
       </linearGradient>
       <linearGradient id="vite-grad-2-sidebar" x1="204.485" y1="195.457" x2="204.485" y2="2.75628" gradientUnits="userSpaceOnUse">
-        <stop stopColor={color} stopOpacity="1"/>
-        <stop offset="1" stopColor={color} stopOpacity="0.3"/>
+        <stop stopColor={color} stopOpacity="1" />
+        <stop offset="1" stopColor={color} stopOpacity="0.3" />
       </linearGradient>
     </defs>
   </svg>
@@ -43,15 +43,15 @@ const ViteIcon = ({ size = 24, color = "currentColor", className = '' }) => (
 
 const NextIcon = ({ size = 24, color = "currentColor", className = '' }) => (
   <svg width={size} height={size} viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <path fillRule="evenodd" clipRule="evenodd" d="M90 180C139.706 180 180 139.706 180 90C180 40.2944 139.706 0 90 0C40.2944 0 0 40.2944 0 90C0 139.706 40.2944 180 90 180ZM65.8694 65V124H76.2804L121.737 57.0674L113.626 51.579L65.8694 65ZM111.458 114.372L74.8878 65H65.8694V115H74.8878V76.8406L104.912 120.25L111.458 114.372Z" fill={color}/>
-    <path fillRule="evenodd" clipRule="evenodd" d="M115 65H124.018V115H115V65Z" fill={color}/>
+    <path fillRule="evenodd" clipRule="evenodd" d="M90 180C139.706 180 180 139.706 180 90C180 40.2944 139.706 0 90 0C40.2944 0 0 40.2944 0 90C0 139.706 40.2944 180 90 180ZM65.8694 65V124H76.2804L121.737 57.0674L113.626 51.579L65.8694 65ZM111.458 114.372L74.8878 65H65.8694V115H74.8878V76.8406L104.912 120.25L111.458 114.372Z" fill={color} />
+    <path fillRule="evenodd" clipRule="evenodd" d="M115 65H124.018V115H115V65Z" fill={color} />
   </svg>
 );
 
 const VueIcon = ({ size = 24, color = "currentColor", className = '' }) => (
   <svg width={size} height={size} viewBox="0 0 256 221" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <path d="M204.8 0H256L128 220.8L0 0H51.2L128 132.48L204.8 0Z" fill={color}/>
-    <path d="M204.8 0H153.6L128 44.16L102.4 0H51.2L128 132.48L204.8 0Z" fill="rgba(255,255,255,0.4)"/>
+    <path d="M204.8 0H256L128 220.8L0 0H51.2L128 132.48L204.8 0Z" fill={color} />
+    <path d="M204.8 0H153.6L128 44.16L102.4 0H51.2L128 132.48L204.8 0Z" fill="rgba(255,255,255,0.4)" />
   </svg>
 );
 
@@ -63,7 +63,7 @@ const avatarMap = {
 
 const Sidebar = () => {
   const { user } = useAuth();
-  
+
   // Use user data from AuthContext, fallback to defaults
   const profile = {
     name: user?.fullName || user?.name || 'المشرف',
@@ -121,15 +121,15 @@ const Sidebar = () => {
     try {
       // Remove from UI immediately for better UX
       setNotifications(prev => prev.filter(notif => notif.id !== n.id));
-      
+
       // Update in backend
       await api.put(`/notifications/${n.id}/read`);
-      
+
       // If no notifications left, optionally close the dropdown
       if (notifications.length <= 1) {
         setIsNotifOpen(false);
       }
-      
+
       // Navigate based on content
       if (n.message.includes('إجازة')) {
         navigate('/dayoff-management');
@@ -166,7 +166,7 @@ const Sidebar = () => {
             <span>لوحة المشرف</span>
           </div>
         </div>
-        
+
         {/* Notification Bell */}
         {(user?.role === 'Admin' || user?.role === 'SuperAdmin') && isOpen && (
           <div className="notif-container" ref={notifRef}>
@@ -210,8 +210,8 @@ const Sidebar = () => {
           </div>
         )}
 
-        <button 
-          className="sidebar-toggle-btn" 
+        <button
+          className="sidebar-toggle-btn"
           onClick={() => setIsOpen(!isOpen)}
           title="تبديل القائمة الجانبية"
         >
@@ -228,16 +228,22 @@ const Sidebar = () => {
             </NavLink>
           </li>
           <li>
-            <NavLink to="/personal-followup" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
-              <Activity size={20} />
-              <span>المتابعة الشخصية</span>
-            </NavLink>
+            <NavLink to="/personal-followup" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}>
+          <Activity size={20} />
+          <span>المتابعة الشخصية</span>
+        </NavLink>
+
+        <NavLink to="/my-advances" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}>
+          <Wallet size={20} />
+          <span>سلفياتي</span>
+        </NavLink>
           </li>
+
 
           {(profile.role === 'Admin' || profile.role === 'SuperAdmin') && (
             <>
               <li className="nav-group">
-                <div 
+                <div
                   className="nav-section-header"
                   onClick={() => { setIsHRMenuOpen(!isHRMenuOpen); if (!isOpen) setIsOpen(true); }}
                   title="إدارة الموارد البشرية"
@@ -269,7 +275,7 @@ const Sidebar = () => {
               </li>
 
               <li className="nav-group">
-                <div 
+                <div
                   className="nav-section-header"
                   onClick={() => { setIsOpsMenuOpen(!isOpsMenuOpen); if (!isOpen) setIsOpen(true); }}
                   title="العمليات والمتابعة"
@@ -287,7 +293,7 @@ const Sidebar = () => {
                   </NavLink>
                   <NavLink to="/monitoring" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <Activity size={18} />
-                    <span>المتابعة الحية</span>
+                    <span>المتابعة الخمول</span>
                   </NavLink>
                   <NavLink to="/contacts" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <Phone size={18} />
@@ -305,7 +311,7 @@ const Sidebar = () => {
               </li>
 
               <li className="nav-group">
-                <div 
+                <div
                   className="nav-section-header"
                   onClick={() => { setIsPerfMenuOpen(!isPerfMenuOpen); if (!isOpen) setIsOpen(true); }}
                   title="الأداء والتقارير"
@@ -337,7 +343,7 @@ const Sidebar = () => {
               </li>
 
               <li className="nav-group">
-                <div 
+                <div
                   className="nav-section-header"
                   onClick={() => { setIsSettingsMenuOpen(!isSettingsMenuOpen); if (!isOpen) setIsOpen(true); }}
                   title="الإعدادات والماليات"
@@ -353,6 +359,12 @@ const Sidebar = () => {
                     <Wallet size={18} />
                     <span>إدارة المصروفات</span>
                   </NavLink>
+                  {(profile.role === 'SuperAdmin') && (
+                    <NavLink to="/expenses-add" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                      <DollarSign size={18} />
+                      <span>إدارة الميزانيات</span>
+                    </NavLink>
+                  )}
                   <NavLink to="/general-settings" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <Settings size={18} />
                     <span>إعدادات عامة</span>
@@ -365,7 +377,7 @@ const Sidebar = () => {
           {profile.role === 'Supervisor' && (
             <>
               <li className="nav-group">
-                <div 
+                <div
                   className="nav-section-header"
                   onClick={() => { setIsWorkMenuOpen(!isWorkMenuOpen); if (!isOpen) setIsOpen(true); }}
                   title="سجلات العمل"
@@ -389,7 +401,7 @@ const Sidebar = () => {
               </li>
 
               <li className="nav-group">
-                <div 
+                <div
                   className="nav-section-header"
                   onClick={() => { setIsPerfMenuOpen(!isPerfMenuOpen); if (!isOpen) setIsOpen(true); }}
                   title="الأداء والتقارير"
@@ -419,7 +431,7 @@ const Sidebar = () => {
           )}
 
           <li className="nav-group">
-            <div 
+            <div
               className="nav-section-header"
               onClick={() => { setIsPersonalMenuOpen(!isPersonalMenuOpen); if (!isOpen) setIsOpen(true); }}
               title="مساحتي الشخصية"
@@ -433,7 +445,7 @@ const Sidebar = () => {
             <div className={`sub-menu ${isPersonalMenuOpen ? 'open' : ''}`}>
               <NavLink to="/attendance" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                 <Clock size={18} />
-                <span>تسجيل الحضور</span>
+                <span>سجل الحضور</span>
               </NavLink>
               <NavLink to="/dayoff" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                 <Calendar size={18} />
@@ -466,9 +478,9 @@ const Sidebar = () => {
         </div>
       </div>
 
-      <ExportModal 
-        isOpen={isExportModalOpen} 
-        onClose={() => setIsExportModalOpen(false)} 
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
         onExport={exportToExcel}
         title="تحميل التقارير الشاملة"
       />

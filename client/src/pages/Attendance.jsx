@@ -42,20 +42,20 @@ const Attendance = () => {
 
   const calculateDelay = (checkInDateStr, shiftStartTimeStr) => {
     if (!checkInDateStr || !shiftStartTimeStr) return '---';
-    
+
     const checkInDate = new Date(checkInDateStr);
     const [shiftHours, shiftMinutes] = shiftStartTimeStr.split(':').map(Number);
-    
+
     const shiftStartDate = new Date(checkInDate);
     shiftStartDate.setHours(shiftHours, shiftMinutes, 0, 0);
-    
+
     const diffMs = checkInDate - shiftStartDate;
     if (diffMs <= 0) return 'لا يوجد';
-    
+
     const diffMins = Math.floor(diffMs / 60000);
     const hours = Math.floor(diffMins / 60);
     const mins = diffMins % 60;
-    
+
     if (hours > 0) return `${hours} س ${mins > 0 ? `و ${mins} د` : ''}`;
     return `${mins} دقيقة`;
   };
@@ -75,7 +75,7 @@ const Attendance = () => {
       </header>
 
       <div className="account-content">
-        
+
         {/* Shift Info Section */}
         {myShifts.length > 0 && (
           <div style={{ marginBottom: '3rem' }}>
@@ -89,35 +89,35 @@ const Attendance = () => {
                 return (
                   <div key={shift.id} className="account-card" style={{ padding: '1.5rem 2rem', background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                     <h3 style={{ fontSize: '1.4rem', color: 'var(--text-primary)', margin: 0 }}>{shift.name}</h3>
-                    
+
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', direction: 'ltr' }}>
-                        <Clock size={16} className="text-blue" /> 
-                        {shift.startTime} - {shift.endTime}
+                        <Clock size={16} className="text-blue" />
+                        {shift.endTime} - {shift.startTime}
                       </span>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <Calendar size={16} className="text-blue" /> 
+                        <Calendar size={16} className="text-blue" />
                         {(shift.workingDays || []).map(dId => DAYS_OF_WEEK.find(d => d.id === dId)?.label).join('، ')}
                       </span>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <Users size={16} className="text-blue" /> 
+                        <Users size={16} className="text-blue" />
                         {shiftUsers.length} موظف
                       </span>
                     </div>
 
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem 0.8rem', borderRadius: '6px' }}>
-                        <strong>نظام الإجازات:</strong> 
+                        <strong>نظام الإجازات:</strong>
                         {shift.dayOffType === 'Fixed' ? 'ثابت' : 'متغير'}
                       </span>
                       {shift.dayOffType === 'Fixed' ? (
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem 0.8rem', borderRadius: '6px' }}>
-                          <strong>الأيام:</strong> 
+                          <strong>الأيام:</strong>
                           {(shift.fixedDaysOff || []).map(dId => DAYS_OF_WEEK.find(d => d.id === dId)?.label).join('، ') || 'لا يوجد'}
                         </span>
                       ) : (
                         <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem 0.8rem', borderRadius: '6px' }}>
-                          <strong>الأيام المسموحة شهرياً:</strong> 
+                          <strong>الأيام المسموحة شهرياً:</strong>
                           {shift.variableDaysOffCount || 0} أيام
                         </span>
                       )}
@@ -135,9 +135,9 @@ const Attendance = () => {
         </h2>
 
         {logs.length === 0 ? (
-           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed rgba(255,255,255,0.1)' }}>
-             لا توجد سجلات حضور مسجلة لك حالياً.
-           </div>
+          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+            لا توجد سجلات حضور مسجلة لك حالياً.
+          </div>
         ) : (
           <div style={{ overflowX: 'auto', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '1rem' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', color: 'var(--text-primary)', background: 'rgba(255,255,255,0.02)' }}>

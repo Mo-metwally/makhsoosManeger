@@ -11,6 +11,8 @@ const notificationRoutes = require('./routes/notificationRoutes');
 const shiftRoutes = require('./routes/shiftRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
 const dayOffRoutes = require('./routes/dayOffRoutes');
+const budgetRoutes = require('./routes/budgetRoutes');
+const advanceRoutes = require('./routes/advanceRoutes');
 
 const app = express();
 
@@ -38,6 +40,8 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/shifts', shiftRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/dayoff', dayOffRoutes);
+app.use('/api/budgets', budgetRoutes);
+app.use('/api/advances', advanceRoutes);
 
 const PORT = process.env.PORT || 5000;
 

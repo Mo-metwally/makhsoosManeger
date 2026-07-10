@@ -11,10 +11,12 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await api.get('/auth/me');
       setUser(res.data.user);
-      // We update local storage just for UI syncing (like theme color), 
+      // We update local storage just for UI syncing (like theme color) and utility functions, 
       // but the real source of truth is now the server/context.
-      if (res.data.user.avatar) {
-        localStorage.setItem('userAvatar', res.data.user.avatar);
+      if (res.data.user) {
+        if (res.data.user.avatar) localStorage.setItem('userAvatar', res.data.user.avatar);
+        localStorage.setItem('userName', res.data.user.fullName || res.data.user.username);
+        localStorage.setItem('userRole', res.data.user.role);
       }
     } catch (error) {
       setUser(null);
@@ -36,6 +38,11 @@ export const AuthProvider = ({ children }) => {
   const login = async (username, password) => {
     const res = await api.post('/auth/login', { username, password });
     setUser(res.data.user);
+    if (res.data.user) {
+      if (res.data.user.avatar) localStorage.setItem('userAvatar', res.data.user.avatar);
+      localStorage.setItem('userName', res.data.user.fullName || res.data.user.username);
+      localStorage.setItem('userRole', res.data.user.role);
+    }
     return res.data;
   };
 
@@ -47,6 +54,11 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (data) => {
     const res = await api.put('/auth/profile', data);
     setUser(res.data.user);
+    if (res.data.user) {
+      if (res.data.user.avatar) localStorage.setItem('userAvatar', res.data.user.avatar);
+      localStorage.setItem('userName', res.data.user.fullName || res.data.user.username);
+      localStorage.setItem('userRole', res.data.user.role);
+    }
   };
 
   return (

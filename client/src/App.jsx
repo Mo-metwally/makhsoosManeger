@@ -33,6 +33,9 @@ import CheckInPage from './pages/CheckInPage';
 import CheckoutModal from './components/CheckoutModal';
 import TodayFollowup from './pages/TodayFollowup';
 import PersonalFollowup from './pages/PersonalFollowup';
+import Expenses from './pages/Expenses';
+import ExpensesAdd from './pages/ExpensesAdd';
+import MyAdvances from './pages/MyAdvances';
 import './App.css';
 
 function AppContent() {
@@ -156,6 +159,9 @@ function AppContent() {
           <Route path="/staff-management/:shiftId" element={<ShiftStaffDetails />} />
           <Route path="/today-followup" element={<TodayFollowup />} />
           <Route path="/personal-followup/:employeeId?" element={<PersonalFollowup />} />
+          <Route path="/expenses" element={<Expenses />} />
+          <Route path="/expenses-add" element={<ExpensesAdd />} />
+          <Route path="/my-advances" element={<MyAdvances />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         

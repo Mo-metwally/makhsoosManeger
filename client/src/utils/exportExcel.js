@@ -1,6 +1,8 @@
 import * as XLSX from 'xlsx-js-style';
 import * as zip from '@zip.js/zip.js';
 import { getLogicalDateString, getLogicalDateObj } from './dateHelpers';
+import api from '../services/api';
+import { applyFiltersAndSort, parseArabicDate } from './filterAndSort';
 
 // Helpers
 const formatDuration = (ms) => {
@@ -55,8 +57,8 @@ const getFilteredData = (data, filterType, dateField, startDate, endDate) => {
   });
 };
 
-const getCallsSheet = (filterType, startDate, endDate) => {
-  const allCalls = JSON.parse(localStorage.getItem('call_reports') || '[]');
+const getCallsSheet = (filterType, startDate, endDate, passedData = null) => {
+  const allCalls = passedData || JSON.parse(localStorage.getItem('call_reports') || '[]');
   const filteredCalls = getFilteredData(allCalls, filterType, 'createdAt', startDate, endDate);
   const userName = localStorage.getItem('userName') || 'المشرف';
 
@@ -115,8 +117,8 @@ const getCallsSheet = (filterType, startDate, endDate) => {
   return wsCalls;
 };
 
-const getLogsSheet = (filterType, userName, startDate, endDate) => {
-  const allLogs = JSON.parse(localStorage.getItem('inactivity_logs') || '[]');
+const getLogsSheet = (filterType, userName, startDate, endDate, passedData = null) => {
+  const allLogs = passedData || JSON.parse(localStorage.getItem('inactivity_logs') || '[]');
   const filteredLogs = getFilteredData(allLogs, filterType, 'startTime', startDate, endDate);
 
   const logsData = filteredLogs.map(log => ({
@@ -147,9 +149,10 @@ const getLogsSheet = (filterType, userName, startDate, endDate) => {
   return wsLogs;
 };
 
-const getPerformanceSheet = (filterType, userName, startDate, endDate) => {
-  const allLogs = JSON.parse(localStorage.getItem('performance_logs') || '[]');
-  const filteredLogs = getFilteredData(allLogs, filterType, 'timestamp', startDate, endDate);
+const getPerformanceSheet = (filterType, userName, startDate, endDate, passedData = null) => {
+  const allLogs = passedData || JSON.parse(localStorage.getItem('performance_logs') || '[]');
+  const dateField = (allLogs.length > 0 && allLogs[0].createdAt) ? 'createdAt' : 'timestamp';
+  const filteredLogs = getFilteredData(allLogs, filterType, dateField, startDate, endDate);
 
   const formatDate = (dateStr) => {
     try {
@@ -186,9 +189,26 @@ export const exportToExcel = async (filterType = 'today', startDate, endDate) =>
   const todayStr = getLogicalDateString();
   const userName = localStorage.getItem('userName') || 'المشرف';
 
-  const wsCalls = getCallsSheet(filterType, startDate, endDate);
-  const wsLogs = getLogsSheet(filterType, userName, startDate, endDate);
-  const wsPerf = getPerformanceSheet(filterType, userName, startDate, endDate);
+  let dbCalls = null;
+  let dbLogs = null;
+  let dbPerf = null;
+  
+  try {
+     const [resCalls, resLogs, resPerf] = await Promise.all([
+       api.get('/data/calls'),
+       api.get('/data/inactivity'),
+       api.get('/data/performance-logs')
+     ]);
+     dbCalls = resCalls.data;
+     dbLogs = resLogs.data;
+     dbPerf = resPerf.data;
+  } catch (error) {
+     console.error('Failed to fetch personal data for export, falling back to local storage', error);
+  }
+
+  const wsCalls = getCallsSheet(filterType, startDate, endDate, dbCalls);
+  const wsLogs = getLogsSheet(filterType, userName, startDate, endDate, dbLogs);
+  const wsPerf = getPerformanceSheet(filterType, userName, startDate, endDate, dbPerf);
 
   const wbCalls = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wbCalls, wsCalls, "سجل المكالمات");
@@ -245,7 +265,7 @@ export const getAdminCallsSheet = (filteredData) => {
     'حالة المندوب': call.agentStatus,
     'حالة المكالمة': call.callStatus,
     'التقرير': call.report,
-    'تاريخ التقرير الأصلي': call.originalDateString || '-'
+    'تاريخ التقرير الأصلي': call.originalDateString || (call.createdAt ? new Date(call.createdAt).toLocaleString('ar-EG', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-')
   }));
 
   const wsCalls = XLSX.utils.json_to_sheet(callsData.length ? callsData : [{ 'رسالة': 'لا توجد بيانات' }]);
@@ -289,8 +309,8 @@ export const getAdminCallsSheet = (filteredData) => {
 
 export const getAdminLogsSheet = (filteredData) => {
   const sortedData = [...filteredData].sort((a, b) => {
-    const nameA = a.supervisorName || '';
-    const nameB = b.supervisorName || '';
+    const nameA = (a.User && (a.User.fullName || a.User.username)) || a.supervisorName || '';
+    const nameB = (b.User && (b.User.fullName || b.User.username)) || b.supervisorName || '';
     return nameA.localeCompare(nameB, 'ar');
   });
 
@@ -309,7 +329,7 @@ export const getAdminLogsSheet = (filteredData) => {
   };
 
   sortedData.forEach(log => {
-    const supName = log.supervisorName || 'غير معروف';
+    const supName = (log.User && (log.User.fullName || log.User.username)) || log.supervisorName || 'غير معروف';
 
     if (currentSupervisor !== null && currentSupervisor !== supName) {
       pushTotalRow(currentSupervisor, currentSupervisorTotalMinutes);
@@ -318,18 +338,28 @@ export const getAdminLogsSheet = (filteredData) => {
 
     currentSupervisor = supName;
 
-    const str = log.durationString || '';
-    const hourMatch = str.match(/(\d+)\s*ساعة/);
-    const minMatch = str.match(/(\d+)\s*دقيقة/);
-    if (hourMatch) currentSupervisorTotalMinutes += parseInt(hourMatch[1], 10) * 60;
-    if (minMatch) currentSupervisorTotalMinutes += parseInt(minMatch[1], 10);
+    const startTimeStr = log.startTimeString || (log.startTime ? new Date(log.startTime).toLocaleString('ar-EG', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '');
+    const endTimeStr = log.endTimeString || (log.endTime ? new Date(log.endTime).toLocaleString('ar-EG', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '');
+    const durationStr = log.durationString || (log.durationMs ? formatDuration(log.durationMs) : '');
+
+    let totalMins = 0;
+    if (log.durationMs) {
+      totalMins = Math.floor(log.durationMs / (1000 * 60));
+    } else if (log.durationString) {
+      const hourMatch = log.durationString.match(/(\d+)\s*ساعة/);
+      const minMatch = log.durationString.match(/(\d+)\s*دقيقة/);
+      if (hourMatch) totalMins += parseInt(hourMatch[1], 10) * 60;
+      if (minMatch) totalMins += parseInt(minMatch[1], 10);
+    }
+    
+    currentSupervisorTotalMinutes += totalMins;
 
     logsData.push({
       'المشرف': supName,
       'نوع الفترة': log.type,
-      'وقت البداية': log.startTimeString,
-      'وقت العودة': log.endTimeString,
-      'المدة الإجمالية': log.durationString
+      'وقت البداية': startTimeStr,
+      'وقت العودة': endTimeStr,
+      'المدة الإجمالية': durationStr
     });
   });
 
@@ -337,14 +367,19 @@ export const getAdminLogsSheet = (filteredData) => {
     pushTotalRow(currentSupervisor, currentSupervisorTotalMinutes);
   }
 
-  if (logsData.length > 0 && Array.from(new Set(sortedData.map(l => l.supervisorName))).length > 1) {
+  if (logsData.length > 0 && Array.from(new Set(sortedData.map(l => (l.User && (l.User.fullName || l.User.username)) || l.supervisorName))).length > 1) {
     let grandTotalMinutes = 0;
     sortedData.forEach(log => {
-      const str = log.durationString || '';
-      const hourMatch = str.match(/(\d+)\s*ساعة/);
-      const minMatch = str.match(/(\d+)\s*دقيقة/);
-      if (hourMatch) grandTotalMinutes += parseInt(hourMatch[1], 10) * 60;
-      if (minMatch) grandTotalMinutes += parseInt(minMatch[1], 10);
+      let totalMins = 0;
+      if (log.durationMs) {
+        totalMins = Math.floor(log.durationMs / (1000 * 60));
+      } else if (log.durationString) {
+        const hourMatch = log.durationString.match(/(\d+)\s*ساعة/);
+        const minMatch = log.durationString.match(/(\d+)\s*دقيقة/);
+        if (hourMatch) totalMins += parseInt(hourMatch[1], 10) * 60;
+        if (minMatch) totalMins += parseInt(minMatch[1], 10);
+      }
+      grandTotalMinutes += totalMins;
     });
 
     logsData.push({
@@ -365,7 +400,7 @@ export const getAdminPerformanceSheet = (filteredData) => {
   const perfData = filteredData.map(log => {
     const row = {
       'اسم المشرف': log.supervisorName || '-',
-      'التاريخ': log.date || '-',
+      'التاريخ': log.date || (log.createdAt ? new Date(log.createdAt).toLocaleString('ar-EG', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '-'),
       'عدد المكالمات': log.manualCallsCount || 0,
       'المهمة': log.tasks || 'لا توجد'
     };
@@ -382,9 +417,9 @@ export const getAdminPerformanceSheet = (filteredData) => {
   return wsPerf;
 };
 
-export const exportAdminData = async (exportType, filteredCalls, filteredLogs, filteredPerf) => {
+export const exportAdminData = async (exportType, filteredCalls, filteredLogs, filteredPerf, customFileNameBase) => {
   const todayStr = getLogicalDateString();
-  const fileNameBase = `تقرير_الإدارة_الشامل_${todayStr}`;
+  const fileNameBase = customFileNameBase || `تقرير_الإدارة_الشامل_${todayStr}`;
 
   if (exportType === 'calls_only') {
     const wsCalls = getAdminCallsSheet(filteredCalls);
