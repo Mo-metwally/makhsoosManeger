@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, Calendar, Briefcase, LogIn, LogOut, CheckCircle, Info, Users } from 'lucide-react';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import './Account.css'; // Reuse container styles
 
 const DAYS_OF_WEEK = [
@@ -14,6 +15,7 @@ const DAYS_OF_WEEK = [
 ];
 
 const Attendance = () => {
+  const { user } = useAuth();
   const [logs, setLogs] = useState([]);
   const [myShifts, setMyShifts] = useState([]);
 
@@ -144,6 +146,7 @@ const Attendance = () => {
               <thead>
                 <tr style={{ background: 'rgba(255,255,255,0.05)', textAlign: 'right' }}>
                   <th style={{ padding: '1rem' }}>التاريخ</th>
+                  <th style={{ padding: '1rem' }}>اسم الموظف</th>
                   <th style={{ padding: '1rem' }}>الوردية</th>
                   <th style={{ padding: '1rem' }}>وقت الحضور</th>
                   <th style={{ padding: '1rem' }}>وقت الانصراف</th>
@@ -155,6 +158,7 @@ const Attendance = () => {
                 {logs.map(log => (
                   <tr key={log.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                     <td style={{ padding: '1rem' }}>{formatDate(log.date)}</td>
+                    <td style={{ padding: '1rem', fontWeight: 'bold' }}>{user ? user.fullName : '---'}</td>
                     <td style={{ padding: '1rem' }}>{log.Shift ? log.Shift.name : '---'}</td>
                     <td style={{ padding: '1rem', color: '#10b981' }}><LogIn size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> {formatTime(log.checkInTime)}</td>
                     <td style={{ padding: '1rem', color: log.checkOutTime ? '#ef4444' : 'var(--text-secondary)' }}>

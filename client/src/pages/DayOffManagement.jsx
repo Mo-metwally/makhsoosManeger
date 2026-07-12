@@ -8,11 +8,12 @@ const DayOffManagement = () => {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('Pending');
   const [expandedUserIds, setExpandedUserIds] = useState(new Set());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
 
   const fetchRequests = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/dayoff/all');
+      const res = await api.get(`/dayoff/all?monthKey=${selectedMonth}`);
       setRequests(res.data || []);
     } catch (error) {
       console.error('Error fetching requests:', error);
@@ -25,7 +26,7 @@ const DayOffManagement = () => {
   useEffect(() => {
     document.title = "إدارة الإجازات | مخصوص";
     fetchRequests();
-  }, []);
+  }, [selectedMonth]);
 
   const handleStatusUpdate = async (id, status) => {
     if (!window.confirm(`هل أنت متأكد من ${status === 'Approved' ? 'الموافقة على' : 'رفض'} هذا الطلب؟`)) return;
@@ -42,8 +43,9 @@ const DayOffManagement = () => {
     ? requests 
     : requests.filter(r => r.status === statusFilter);
 
-  const groupedRequests = Object.values(
-    filteredRequests.reduce((acc, req) => {
+  // Group ALL requests by user first
+  const allGrouped = Object.values(
+    requests.reduce((acc, req) => {
       if (!acc[req.userId]) {
         acc[req.userId] = {
           user: req.User,
@@ -54,10 +56,17 @@ const DayOffManagement = () => {
       acc[req.userId].requests.push(req);
       return acc;
     }, {})
-  ).sort((a, b) => {
+  );
+
+  // Then filter groups based on the selected statusFilter
+  const groupedRequests = allGrouped.filter(group => {
+    if (statusFilter === 'All') return true;
+    // Keep the group if the user has at least one request matching the filter
+    return group.requests.some(r => r.status === statusFilter);
+  }).sort((a, b) => {
     // Sort groups by the most recent request in that group
-    const latestA = new Date(a.requests[0].createdAt).getTime();
-    const latestB = new Date(b.requests[0].createdAt).getTime();
+    const latestA = Math.max(...a.requests.map(r => new Date(r.createdAt).getTime()));
+    const latestB = Math.max(...b.requests.map(r => new Date(r.createdAt).getTime()));
     return latestB - latestA;
   });
 
@@ -79,6 +88,15 @@ const DayOffManagement = () => {
             طلبات الإجازات
           </h1>
           <p className="dom-subtitle">مراجعة واعتماد أو رفض طلبات الإجازة للموظفين</p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--glass-bg)', padding: '0.5rem 1rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+          <span style={{ color: 'var(--text-secondary)' }}>تصفية بالشهر:</span>
+          <input 
+            type="month" 
+            value={selectedMonth} 
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            style={{ padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', outline: 'none' }}
+          />
         </div>
         <div className="dom-filters-group">
           <button 
@@ -201,24 +219,56 @@ const DayOffManagement = () => {
                                         </span>
                                       </td>
                                       <td className="dom-actions">
-                                        {r.status === 'Pending' && (
-                                          <>
-                                            <button 
-                                              className="dom-btn dom-btn-approve" 
-                                              title="موافقة"
-                                              onClick={() => handleStatusUpdate(r.id, 'Approved')}
-                                            >
-                                              <CheckCircle size={20} />
-                                            </button>
-                                            <button 
-                                              className="dom-btn dom-btn-reject" 
-                                              title="رفض"
-                                              onClick={() => handleStatusUpdate(r.id, 'Rejected')}
-                                            >
-                                              <XCircle size={20} />
-                                            </button>
-                                          </>
-                                        )}
+                                        {(() => {
+                                          if (!r.date) return null;
+                                          const [rYear, rMonth, rDay] = r.date.split('-').map(Number);
+                                          const reqDate = new Date(rYear, rMonth - 1, rDay);
+                                          const today = new Date();
+                                          today.setHours(0, 0, 0, 0);
+                                          const diffTime = reqDate.getTime() - today.getTime();
+                                          const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+                                          
+                                          return (
+                                            <>
+                                              {r.status === 'Pending' && (
+                                                <>
+                                                  <button 
+                                                    className="dom-btn dom-btn-approve" 
+                                                    title="موافقة"
+                                                    onClick={() => handleStatusUpdate(r.id, 'Approved')}
+                                                  >
+                                                    <CheckCircle size={20} />
+                                                  </button>
+                                                  <button 
+                                                    className="dom-btn dom-btn-reject" 
+                                                    title="رفض"
+                                                    onClick={() => handleStatusUpdate(r.id, 'Rejected')}
+                                                  >
+                                                    <XCircle size={20} />
+                                                  </button>
+                                                </>
+                                              )}
+                                              {r.status === 'Rejected' && diffDays >= 1 && (
+                                                <button 
+                                                  className="dom-btn dom-btn-approve" 
+                                                  title="موافقة"
+                                                  onClick={() => handleStatusUpdate(r.id, 'Approved')}
+                                                >
+                                                  <CheckCircle size={20} />
+                                                </button>
+                                              )}
+                                              {r.status === 'Approved' && diffDays >= 2 && (
+                                                <button 
+                                                  className="dom-btn dom-btn-reject" 
+                                                  title="رفض"
+                                                  onClick={() => handleStatusUpdate(r.id, 'Rejected')}
+                                                >
+                                                  <XCircle size={20} />
+                                                </button>
+                                              )}
+                                            </>
+                                          );
+                                        })()}
                                       </td>
                                     </tr>
                                   ))}

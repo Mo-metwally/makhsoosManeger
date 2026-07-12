@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Search, Trash2, PhoneCall, ListTodo, StickyNote, ChevronDown, ChevronUp } from 'lucide-react';
+import { Activity, Search, Trash2, PhoneCall, ListTodo, StickyNote, ChevronDown, ChevronUp, Clock, FileText } from 'lucide-react';
 import AdminGuard from '../components/AdminGuard';
 import CustomSelect from '../components/CustomSelect';
 import { applyFiltersAndSort, parseArabicDate } from '../utils/filterAndSort';
@@ -33,7 +33,7 @@ const HandleAdminPerformance = () => {
   };
 
   useEffect(() => {
-    document.title = "سجل المراقبة الأداء | مخصوص";
+    document.title = "سجل الحضور الأداء | مخصوص";
     fetchLogs();
   }, []);
 
@@ -53,41 +53,38 @@ const HandleAdminPerformance = () => {
 
   return (
     <AdminGuard>
-      <div className="monitoring-container" style={{ maxWidth: '80%', padding: '1rem', margin: '0 auto' }}>
-        <header className="page-header">
-          <div className="page-title-wrapper">
+      <div className="monitoring-container fade-in" style={{ width: '100%', padding: '1.5rem 2rem', margin: '0' }}>
+        <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
+          <div className="page-title-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--glass-bg)', padding: '1rem 2rem', borderRadius: '16px', border: 'var(--glass-border)' }}>
             <Activity size={28} className="title-icon text-blue" />
-            <h1 className="page-title gradient-title">سجل مراقبة الأداء (إدارة)</h1>
+            <h1 className="page-title gradient-title" style={{ margin: 0 }}>سجل متابعة المهام</h1>
           </div>
-          <div style={{ color: 'var(--text-secondary)', display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <span>إجمالي التقارير: <strong>{filteredLogs.length}</strong></span>
-            <button className="pr-refresh-btn" onClick={fetchLogs} style={{ padding: '0.4rem 0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--theme-color)', border: '1px solid var(--theme-color)', borderRadius: '8px', cursor: 'pointer' }}>
-              <RefreshCw size={16} className={loading ? 'spinning' : ''} />
+          <div style={{ color: 'var(--text-secondary)', display: 'flex', gap: '1.5rem', alignItems: 'center', background: 'var(--glass-bg)', padding: '1rem 2rem', borderRadius: '16px', border: 'var(--glass-border)' }}>
+            <span style={{ fontSize: '1.1rem' }}>إجمالي التقارير: <strong style={{ color: 'var(--theme-color)', fontSize: '1.2rem' }}>{filteredLogs.length}</strong></span>
+            <button className="pr-refresh-btn" onClick={fetchLogs} style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(var(--theme-color-rgb), 0.1)', color: 'var(--theme-color)', border: '1px solid rgba(var(--theme-color-rgb), 0.3)', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.3s' }}>
+              <RefreshCw size={18} className={loading ? 'spinning' : ''} />
               تحديث
             </button>
           </div>
         </header>
 
         <div className="filter-section" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'relative', zIndex: 10 }}>
-          
+
           {/* Time Filters */}
-          <div className="admin-filter-group">
+          <div className="mon-radio-filter-group" style={{ margin: 0, alignSelf: 'flex-start' }}>
             {['all', 'today', 'yesterday', 'week', 'month', 'custom'].map(val => (
-              <div className="admin-filter-radio" key={val}>
-                <label>
-                  <input 
-                    type="radio" 
-                    name="timeFilter" 
-                    value={val} 
-                    checked={timeFilter === val} 
-                    onChange={(e) => setTimeFilter(e.target.value)} 
-                  />
-                  <span>
-                    {val === 'all' ? 'الكل' : val === 'today' ? 'اليوم' : val === 'yesterday' ? 'الأمس' : val === 'week' ? 'آخر 7 أيام' : val === 'month' ? 'هذا الشهر' : 'فترة مخصصة'}
-                  </span>
-                  {timeFilter === val && <div className="radio-bg"></div>}
-                </label>
-              </div>
+              <label className="mon-filter-radio" key={val}>
+                <input
+                  type="radio"
+                  name="timeFilter"
+                  value={val}
+                  checked={timeFilter === val}
+                  onChange={(e) => setTimeFilter(e.target.value)}
+                />
+                <span>
+                  {val === 'all' ? 'الكل' : val === 'today' ? 'اليوم' : val === 'yesterday' ? 'الأمس' : val === 'week' ? 'آخر 7 أيام' : val === 'month' ? 'هذا الشهر' : 'مخصص'}
+                </span>
+              </label>
             ))}
           </div>
 
@@ -117,30 +114,30 @@ const HandleAdminPerformance = () => {
             </div>
 
             {uniqueSupervisors.length > 0 && (
-              <CustomSelect 
+              <CustomSelect
                 options={[
                   { value: 'all', label: 'كل المشرفين (الجميع)' },
                   ...uniqueSupervisors.map(name => ({ value: name, label: name }))
                 ]}
-                value={supervisorFilter} 
+                value={supervisorFilter}
                 onChange={setSupervisorFilter}
                 placeholder="اختر المشرف"
               />
             )}
 
-            <CustomSelect 
+            <CustomSelect
               options={[
                 { value: 'date_desc', label: 'الأحدث أولاً' },
                 { value: 'date_asc', label: 'الأقدم أولاً' },
                 { value: 'supervisor_asc', label: 'المشرف (أ - ي)' },
                 { value: 'supervisor_desc', label: 'المشرف (ي - أ)' }
               ]}
-              value={sortBy} 
+              value={sortBy}
               onChange={setSortBy}
               placeholder="ترتيب حسب"
             />
 
-            <button
+            {/* <button
               className="btn-save"
               onClick={handleClearData}
               title="مسح قاعدة البيانات المجمعة"
@@ -154,15 +151,18 @@ const HandleAdminPerformance = () => {
             >
               <Trash2 size={18} />
               <span>مسح السجل</span>
-            </button>
+            </button> */}
           </div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', marginTop: '2rem' }}>
           {filteredLogs.length === 0 ? (
-            <div className="dashboard-card empty-state" style={{ padding: '3rem', textAlign: 'center' }}>
-              <Activity size={48} className="empty-icon text-secondary" style={{ opacity: 0.3 }} />
-              <p>لا توجد بيانات متاحة وفقاً للفلاتر الحالية.</p>
+            <div className="empty-state glass-panel" style={{ padding: '4rem', textAlign: 'center', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ display: 'inline-flex', padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '50%', marginBottom: '1rem' }}>
+                <Activity size={48} className="text-secondary" style={{ opacity: 0.5 }} />
+              </div>
+              <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--text-primary)' }}>لا توجد سجلات أداء</h3>
+              <p style={{ color: 'var(--text-secondary)' }}>لا توجد بيانات متاحة وفقاً للفلاتر الحالية.</p>
             </div>
           ) : (
             filteredLogs.map((log, index) => {
@@ -170,26 +170,37 @@ const HandleAdminPerformance = () => {
               const validNotes = log.notesList ? log.notesList.filter(n => n.trim() !== '') : [];
 
               return (
-                <div key={index} className="glass-panel" style={{ 
-                  borderLeft: '4px solid var(--theme-color)',
-                  transition: 'all 0.3s',
-                  overflow: 'hidden'
+                <div key={index} className="glass-panel" style={{
+                  borderLeft: isExpanded ? '4px solid var(--theme-color)' : '4px solid rgba(255,255,255,0.1)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  overflow: 'hidden',
+                  padding: 0,
+                  transform: isExpanded ? 'scale(1.01)' : 'scale(1)',
+                  boxShadow: isExpanded ? '0 10px 30px -10px rgba(0,0,0,0.5)' : 'none'
                 }}>
-                  <div 
+                  <div
                     onClick={() => setExpandedIndex(isExpanded ? null : index)}
-                    style={{ 
-                      padding: '1.5rem 2rem', 
-                      display: 'flex', 
-                      alignItems: 'center', 
+                    style={{
+                      padding: '1.5rem 2rem',
+                      display: 'flex',
+                      alignItems: 'center',
                       justifyContent: 'space-between',
                       cursor: 'pointer',
-                      background: isExpanded ? 'rgba(255,255,255,0.02)' : 'transparent',
+                      background: isExpanded ? 'rgba(var(--theme-color-rgb), 0.03)' : 'transparent',
                       flexWrap: 'wrap',
-                      gap: '1rem'
+                      gap: '1rem',
+                      position: 'relative'
                     }}
                   >
+                    {isExpanded && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, var(--theme-color), transparent)', opacity: 0.5 }} />}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                      <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '1rem', borderRadius: '50%', color: 'var(--theme-color)' }}>
+                      <div style={{ 
+                        background: isExpanded ? 'var(--theme-color)' : 'rgba(255, 255, 255, 0.05)', 
+                        padding: '1rem', 
+                        borderRadius: '16px', 
+                        color: isExpanded ? '#fff' : 'var(--text-secondary)',
+                        transition: 'all 0.3s'
+                      }}>
                         <Activity size={24} />
                       </div>
                       <div>
@@ -198,9 +209,9 @@ const HandleAdminPerformance = () => {
                           <span style={{ color: 'var(--text-secondary)', fontSize: '1rem', fontWeight: 'normal' }}>{log.date}</span>
                         </h3>
                         <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', flexWrap: 'wrap' }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><PhoneCall size={14}/> {log.manualCallsCount || 0} مكالمة</span>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><ListTodo size={14}/> مهام مدونة</span>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><StickyNote size={14}/> {validNotes.length} ملاحظات</span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><PhoneCall size={14} /> {log.manualCallsCount || 0} مكالمة</span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><ListTodo size={14} /> مهام مدونة</span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><StickyNote size={14} /> {validNotes.length} ملاحظات</span>
                         </div>
                       </div>
                     </div>
@@ -213,14 +224,14 @@ const HandleAdminPerformance = () => {
 
                   {isExpanded && (
                     <div style={{ padding: '0 2rem 2rem 2rem', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '1rem', paddingTop: '1.5rem' }}>
-                      
+
                       <div style={{ marginBottom: '1.5rem' }}>
                         <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#a855f7', marginBottom: '0.8rem' }}>
                           <ListTodo size={18} /> مهام المتابعة
                         </h4>
-                        <div style={{ 
-                          background: 'rgba(0,0,0,0.2)', 
-                          padding: '1rem 1.5rem', 
+                        <div style={{
+                          background: 'rgba(0,0,0,0.2)',
+                          padding: '1rem 1.5rem',
                           borderRadius: '12px',
                           border: '1px solid rgba(255,255,255,0.05)',
                           color: 'var(--text-primary)',
@@ -238,9 +249,9 @@ const HandleAdminPerformance = () => {
                         {validNotes.length > 0 ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                             {validNotes.map((note, idx) => (
-                              <div key={idx} style={{ 
-                                background: 'rgba(0,0,0,0.2)', 
-                                padding: '1rem 1.5rem', 
+                              <div key={idx} style={{
+                                background: 'rgba(0,0,0,0.2)',
+                                padding: '1rem 1.5rem',
                                 borderRadius: '12px',
                                 border: '1px solid rgba(255,255,255,0.05)',
                                 color: 'var(--text-primary)',

@@ -7,10 +7,11 @@ const AdminNavBar = () => {
   const currentPath = location.pathname;
 
   const links = [
-    { path: '/handleAdminAdd', label: 'رفع التقارير المجمعة', icon: UploadCloud },
+    // { path: '/handleAdminAdd', label: 'رفع التقارير المجمعة', icon: UploadCloud },
     { path: '/allcontacts', label: 'سجل التواصل المجمع', icon: Users },
-    { path: '/handleAdminReports', label: 'سجل المراقبة المجمع', icon: Activity },
-    { path: '/handleAdminPerformance', label: 'سجل مراقبة الأداء', icon: Activity },
+    { path: '/attendancereports', label: 'سجل الحضور المجمع', icon: Activity },
+    { path: '/monitoring', label: 'سجل الإستراحات المجمع', icon: Activity },
+    { path: '/allPerformance', label: 'سجل متابعة المهام', icon: Activity },
     { path: '/handleAdminExport', label: 'تصدير التقارير', icon: DownloadCloud }
   ];
 
@@ -18,9 +19,9 @@ const AdminNavBar = () => {
     <div className="admin-navbar-container">
       <nav className="admin-navbar">
         {links.map(({ path, label, icon: Icon }) => (
-          <Link 
-            key={path} 
-            to={path} 
+          <Link
+            key={path}
+            to={path}
             className={`admin-nav-link ${currentPath === path ? 'active' : ''}`}
           >
             <Icon size={18} />

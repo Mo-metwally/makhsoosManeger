@@ -171,7 +171,7 @@ const getPerformanceSheet = (filterType, userName, startDate, endDate, passedDat
       'المهمة': log.tasks || 'لا توجد',
       'عدد المكالمات': log.manualCallsCount || 0,
     };
-    
+
     if (log.notesList && Array.isArray(log.notesList)) {
       log.notesList.forEach((note, index) => {
         rowData[`ملاحظة ${index + 1}`] = note || 'لا توجد ملاحظة';
@@ -192,18 +192,18 @@ export const exportToExcel = async (filterType = 'today', startDate, endDate) =>
   let dbCalls = null;
   let dbLogs = null;
   let dbPerf = null;
-  
+
   try {
-     const [resCalls, resLogs, resPerf] = await Promise.all([
-       api.get('/data/calls'),
-       api.get('/data/inactivity'),
-       api.get('/data/performance-logs')
-     ]);
-     dbCalls = resCalls.data;
-     dbLogs = resLogs.data;
-     dbPerf = resPerf.data;
+    const [resCalls, resLogs, resPerf] = await Promise.all([
+      api.get('/data/calls'),
+      api.get('/data/inactivity'),
+      api.get('/data/performance-logs')
+    ]);
+    dbCalls = resCalls.data;
+    dbLogs = resLogs.data;
+    dbPerf = resPerf.data;
   } catch (error) {
-     console.error('Failed to fetch personal data for export, falling back to local storage', error);
+    console.error('Failed to fetch personal data for export, falling back to local storage', error);
   }
 
   const wsCalls = getCallsSheet(filterType, startDate, endDate, dbCalls);
@@ -351,7 +351,7 @@ export const getAdminLogsSheet = (filteredData) => {
       if (hourMatch) totalMins += parseInt(hourMatch[1], 10) * 60;
       if (minMatch) totalMins += parseInt(minMatch[1], 10);
     }
-    
+
     currentSupervisorTotalMinutes += totalMins;
 
     logsData.push({
@@ -436,8 +436,8 @@ export const exportAdminData = async (exportType, filteredCalls, filteredLogs, f
   else if (exportType === 'perf_only') {
     const wsPerf = getAdminPerformanceSheet(filteredPerf);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, wsPerf, "سجل الأداء المجمع");
-    XLSX.writeFile(wb, `${fileNameBase}_الأداء.xlsx`);
+    XLSX.utils.book_append_sheet(wb, wsPerf, "سجل المهام المجمع");
+    XLSX.writeFile(wb, `${fileNameBase}_المهام.xlsx`);
   }
   else if (exportType === 'all_zip') {
     const wsCalls = getAdminCallsSheet(filteredCalls);
@@ -451,7 +451,7 @@ export const exportAdminData = async (exportType, filteredCalls, filteredLogs, f
     XLSX.utils.book_append_sheet(wbLogs, wsLogs, "سجل المراقبة المجمع");
 
     const wbPerf = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wbPerf, wsPerf, "سجل الأداء المجمع");
+    XLSX.utils.book_append_sheet(wbPerf, wsPerf, "سجل المهام المجمع");
 
     const callsBuffer = XLSX.write(wbCalls, { bookType: 'xlsx', type: 'array' });
     const logsBuffer = XLSX.write(wbLogs, { bookType: 'xlsx', type: 'array' });

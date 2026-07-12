@@ -335,6 +335,19 @@ exports.getTodayStatus = async (req, res) => {
         todayStatus = activeBreakMap[user.id];
       }
 
+      let lateMinutes = 0;
+      if (checkInTime && user.Shifts.length > 0) {
+        const shift = user.Shifts[0];
+        if (shift.startTime) {
+           const checkInDate = new Date(checkInTime);
+           const [sh, sm] = shift.startTime.split(':').map(Number);
+           const expected = new Date(checkInDate);
+           expected.setHours(sh, sm, 0, 0);
+           const diff = Math.floor((checkInDate - expected) / 60000);
+           if (diff > 0) lateMinutes = diff;
+        }
+      }
+
       return {
         id: user.id,
         fullName: user.fullName,
@@ -345,6 +358,7 @@ exports.getTodayStatus = async (req, res) => {
         todayStatus,
         checkInTime,
         checkOutTime,
+        lateMinutes,
         breakDetails: breakMap[user.id] || { 'بريك صلاة': 0, 'بريك غداء': 0 }
       };
     });

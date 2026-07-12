@@ -1,0 +1,60 @@
+186: 1 | <div className="monitoring-container">
+187: 1 | <header className="page-header">
+188: 2 | <div className="page-title-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%', justifyContent: 'space-between' }}>
+189: 3 | <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+190: 3 | <Activity size={28} className="title-icon text-blue" />
+191: 3 | <h1 className="page-title gradient-title">المتابعة الخمول للاستراحات</h1>
+192: 2 | </div>
+193: 2 | <button
+194: 2 | onClick={fetchLogs}
+195: 2 | disabled={loading}
+196: 2 | style={{
+197: 2 | background: 'rgba(59, 130, 246, 0.1)',
+198: 2 | color: 'var(--blue)',
+199: 2 | border: '1px solid rgba(59, 130, 246, 0.3)',
+200: 2 | borderRadius: '8px',
+201: 2 | padding: '0.4rem 0.8rem',
+202: 2 | cursor: loading ? 'not-allowed' : 'pointer',
+203: 2 | display: 'flex',
+204: 2 | alignItems: 'center',
+205: 2 | gap: '0.4rem',
+206: 2 | transition: 'all 0.3s ease'
+207: 2 | }}
+208: 2 | title="تحديث البيانات"
+209: 2 | >
+210: 2 | <RefreshCw size={18} className={loading ? 'spinner' : ''} />
+211: 2 | <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>تحديث</span>
+212: 2 | </button>
+213: 1 | </div>
+214: 1 | </header>
+215: 1 | 
+216: 1 | {/* Stats Summary */}
+217: 2 | <div className="monitoring-summary">
+218: 3 | <div className="summary-card">
+219: 4 | <div className="summary-icon">
+220: 4 | <Clock size={28} />
+221: 3 | </div>
+222: 4 | <div className="summary-info">
+223: 4 | <h3>إجمالي وقت الخمول ({filter === 'today' ? 'اليوم' : filter === 'yesterday' ? 'أمس' : filter === 'week' ? 'هذا الأسبوع' : filter === 'month' ? 'هذا الشهر' : filter === 'custom' ? 'مخصص' : 'الكل'})</h3>
+224: 5 | <div className="summary-value">
+225: 5 | {totalHours > 0 ? (
+226: 5 | <>
+227: 5 | <span className="number">{totalHours}</span> <span className="label">ساعة</span>
+228: 5 | <span className="number">{remainingMinutes}</span> <span className="label">دقيقة</span>
+229: 5 | </>
+230: 5 | ) : (
+231: 5 | <>
+232: 5 | <span className="number">{totalMinutes}</span> <span className="label">دقيقة</span>
+233: 5 | </>
+234: 5 | )}
+235: 4 | </div>
+236: 4 | <p className="summary-desc">بناءً على فترات الخمول التي تتجاوز 10 دقائق متصلة.</p>
+237: 3 | </div>
+238: 2 | </div>
+239: 1 | </div>
+240: 1 | 
+241: 2 | <div className="filter-section">
+242: 3 | <div className="filter-toolbar">
+243: 4 | <div className="filter-group-container">
+244: 4 | <h3 className="filter-title">تصفية السجل:</h3>
+245: 5 | <div className="mon-radio-filter-group">

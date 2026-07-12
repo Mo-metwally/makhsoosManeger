@@ -1,4 +1,5 @@
 const { DayOffRequest, User, Shift, Notification } = require('../models');
+const { Op } = require('sequelize');
 const { sendDayOffRequestEmail, sendDayOffStatusEmail } = require('../utils/emailService');
 
 // Submit a day off request
@@ -108,7 +109,14 @@ exports.deleteRequest = async (req, res) => {
 // Get all requests for Admin
 exports.getAllRequests = async (req, res) => {
   try {
+    const { monthKey } = req.query;
+    let whereClause = {};
+    if (monthKey) {
+      whereClause.date = { [Op.startsWith]: monthKey };
+    }
+
     const requests = await DayOffRequest.findAll({
+      where: whereClause,
       include: [{ 
         model: User, 
         attributes: ['fullName', 'username', 'email'],

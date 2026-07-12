@@ -5,13 +5,14 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { getLogicalDateString } from '../utils/dateHelpers';
 import CustomSelect from '../components/CustomSelect';
+import AdminNavBar from '../components/AdminNavBar';
 import './Monitoring.css';
 
 const avatarMap = {
   User, Shield, Cat, Crown, Star, Smile, Briefcase, Flame, Zap, Heart, Moon
 };
 
-const Monitoring = () => {
+const Monitoring = ({ isMyMonitoring = false }) => {
   const { user } = useAuth();
   const [logs, setLogs] = useState([]);
   const location = useLocation();
@@ -48,7 +49,7 @@ const Monitoring = () => {
       }
     } catch (err) {
       console.error('Error fetching monitoring logs:', err);
-      setError('حدث خطأ أثناء جلب بيانات المراقبة');
+      setError('حدث خطأ أثناء جلب بيانات المتابعة. يرجى المحاولة مرة أخرى.');
     } finally {
       setLoading(false);
     }
@@ -69,8 +70,10 @@ const Monitoring = () => {
   const getFilteredLogs = () => {
     let filtered = logs;
 
-    if (myStatsOnly && user) {
-      filtered = filtered.filter(log => log.userId === user.id);
+    if (isMyMonitoring || (myStatsOnly && user)) {
+      if (user) {
+        filtered = filtered.filter(log => log.userId === user.id);
+      }
     }
 
     if (searchQuery) {
@@ -182,11 +185,12 @@ const Monitoring = () => {
 
   return (
     <div className="monitoring-container">
+      {!isMyMonitoring && <AdminNavBar />}
       <header className="page-header">
         <div className="page-title-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <Activity size={28} className="title-icon text-blue" />
-            <h1 className="page-title gradient-title">المتابعة الخمول للاستراحات</h1>
+            <h1 className="page-title gradient-title">{isMyMonitoring ? 'متابعة الخمول الخاصة بي' : 'المتابعة الخمول للاستراحات'}</h1>
           </div>
           <button
             onClick={fetchLogs}
@@ -317,43 +321,51 @@ const Monitoring = () => {
           </div>
 
           <div className="filter-actions-container">
-            <button
-              onClick={() => setMyStatsOnly(!myStatsOnly)}
-              className={`my-stats-toggle ${myStatsOnly ? 'active' : ''}`}
-            >
-              <User size={18} />
-              <span>بياناتي</span>
-            </button>
+            {!isMyMonitoring && (
+              <button
+                onClick={() => setMyStatsOnly(!myStatsOnly)}
+                className={`my-stats-toggle ${myStatsOnly ? 'active' : ''}`}
+              >
+                <User size={18} />
+                <span>بياناتي</span>
+              </button>
+            )}
 
-            <div className="search-container">
-              <div className="search-icon-box">
-                <Search size={18} />
+            {!isMyMonitoring && (
+              <div className="search-container">
+                <div className="search-icon-box">
+                  <Search size={18} />
+                </div>
+                <input
+                  type="text"
+                  placeholder="ابحث باسم الموظف..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="employee-search-input"
+                />
               </div>
-              <input
-                type="text"
-                placeholder="ابحث باسم الموظف..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="employee-search-input"
-              />
-            </div>
+            )}
           </div>
         </div>
 
         <div className="advanced-filters-container">
-          <CustomSelect
-            options={employeeOptions}
-            value={selectedSupervisor}
-            onChange={setSelectedSupervisor}
-            icon={<Users size={18} />}
-          />
+          {!isMyMonitoring && (
+            <CustomSelect
+              options={employeeOptions}
+              value={selectedSupervisor}
+              onChange={setSelectedSupervisor}
+              icon={<Users size={18} />}
+            />
+          )}
 
-          <CustomSelect
-            options={sortOptions}
-            value={sortBy}
-            onChange={setSortBy}
-            icon={<ArrowUpDown size={18} />}
-          />
+          {!isMyMonitoring && (
+            <CustomSelect
+              options={sortOptions}
+              value={sortBy}
+              onChange={setSortBy}
+              icon={<ArrowUpDown size={18} />}
+            />
+          )}
         </div>
       </div>
 

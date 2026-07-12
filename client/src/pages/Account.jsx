@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { User, Shield, Cat, Crown, Star, Smile, Briefcase, Check, Save, Flame, Zap, Heart, Moon, TriangleAlert, KeyRound, Eye, EyeOff } from 'lucide-react';
+import { User, Shield, Cat, Crown, Star, Smile, Briefcase, Check, Save, Flame, Zap, Heart, Moon, TriangleAlert, KeyRound, Eye, EyeOff, Loader2, XCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 import './Account.css';
 
 const GithubIcon = ({ size = 24, className = '' }) => (
@@ -75,12 +76,15 @@ const Account = () => {
   
   const [formData, setFormData] = useState({
     fullName: '',
+    username: '',
     email: '',
     phone: '',
     jobTitle: '',
     password: ''
   });
   const [selectedAvatar, setSelectedAvatar] = useState('User');
+  
+  const [usernameStatus, setUsernameStatus] = useState('idle'); // idle, checking, available, taken
   
   const [toast, setToast] = useState({ show: false, message: '' });
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -98,6 +102,7 @@ const Account = () => {
     if (user) {
       setFormData({
         fullName: user.fullName || '',
+        username: user.username || '',
         email: user.email || '',
         phone: user.phone || '',
         jobTitle: user.jobTitle || '',
@@ -116,6 +121,26 @@ const Account = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  useEffect(() => {
+    if (!formData.username) return;
+    if (user && formData.username === user.username) {
+      setUsernameStatus('idle');
+      return;
+    }
+
+    setUsernameStatus('checking');
+    const delayDebounceFn = setTimeout(async () => {
+      try {
+        const res = await api.get(`/auth/check-username?username=${encodeURIComponent(formData.username)}`);
+        setUsernameStatus(res.data.available ? 'available' : 'taken');
+      } catch (err) {
+        setUsernameStatus('idle');
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [formData.username, user]);
+
   const handleAvatarClick = (id) => {
     setSelectedAvatar(id);
     document.documentElement.setAttribute('data-theme', id);
@@ -123,6 +148,11 @@ const Account = () => {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (usernameStatus === 'taken') {
+      setToast({ show: true, message: 'اسم المستخدم مسجل بالفعل، يرجى اختيار اسم آخر.' });
+      setTimeout(() => setToast({ show: false, message: '' }), 3000);
+      return;
+    }
     try {
       const payload = { ...formData, avatar: selectedAvatar };
       if (!payload.password || payload.password.trim() === '') {
@@ -132,7 +162,7 @@ const Account = () => {
       setToast({ show: true, message: 'تم حفظ البيانات بنجاح!' });
       setTimeout(() => setToast({ show: false, message: '' }), 3000);
     } catch (err) {
-      setToast({ show: true, message: 'حدث خطأ أثناء حفظ البيانات' });
+      setToast({ show: true, message: err.response?.data?.error || 'حدث خطأ أثناء حفظ البيانات' });
       setTimeout(() => setToast({ show: false, message: '' }), 3000);
     }
   };
@@ -193,9 +223,25 @@ const Account = () => {
               <h3 className="section-title">المعلومات الأساسية</h3>
 
               <div className="form-row two-cols">
-                <div className="form-group">
+                <div className="form-group" style={{ position: 'relative' }}>
                   <label>اسم المستخدم (للتسجيل)</label>
-                  <input type="text" value={user?.username || ''} disabled style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }} />
+                  <input 
+                    type="text" 
+                    name="username"
+                    value={formData.username} 
+                    onChange={handleChange}
+                    required
+                    style={{ 
+                      borderColor: usernameStatus === 'taken' ? 'var(--danger)' : usernameStatus === 'available' ? 'var(--success)' : ''
+                    }}
+                  />
+                  <div style={{ position: 'absolute', left: '1rem', top: '2.4rem' }}>
+                    {usernameStatus === 'checking' && <Loader2 className="spinning text-secondary" size={18} />}
+                    {usernameStatus === 'available' && <Check color="var(--success)" size={18} />}
+                    {usernameStatus === 'taken' && <XCircle color="var(--danger)" size={18} />}
+                  </div>
+                  {usernameStatus === 'taken' && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: '4px', display: 'block' }}>هذا الاسم مسجل بالفعل</span>}
+                  {usernameStatus === 'available' && <span style={{ color: 'var(--success)', fontSize: '0.8rem', marginTop: '4px', display: 'block' }}>الاسم متاح!</span>}
                 </div>
                 <div className="form-group">
                   <label>الاسم الكامل</label>

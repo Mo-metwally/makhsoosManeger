@@ -23,6 +23,59 @@
   margin: 0;
 }
 
+/* Advanced Radio Filter */
+.advanced-radio-filter {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.5rem 0 2.5rem 0;
+  padding: 0.5rem;
+  background: rgba(15, 20, 35, 0.6);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: fit-content;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
+  flex-wrap: wrap;
+}
+
+.radio-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.8rem 1.5rem;
+  border-radius: 12px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-weight: bold;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.radio-pill input[type="radio"] {
+  display: none;
+}
+
+.radio-pill:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.radio-pill.active {
+  color: #fff;
+  background: linear-gradient(135deg, var(--theme-color) 0%, #1e3c72 100%);
+  box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+}
+
+.radio-pill.active svg {
+  animation: popIn 0.3s ease;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.8); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
 .dayoff-filters {
   display: flex;
   gap: 1rem;
@@ -59,47 +112,49 @@
 }
 
 .dayoff-card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  border: var(--glass-border);
-  border-radius: 20px;
+  background: linear-gradient(145deg, rgba(20, 25, 40, 0.7), rgba(15, 20, 35, 0.4));
+  backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
   padding: 1.8rem;
   display: flex;
   flex-direction: column;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.05);
 }
 
 .dayoff-card::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 5px;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+  top: 0; left: 0; width: 100%; height: 4px;
+  background: linear-gradient(90deg, var(--theme-color), rgba(255,255,255,0.5), var(--theme-color));
+  background-size: 300% 100%;
+  animation: borderGlow 4s linear infinite;
   opacity: 0.8;
+}
+
+@keyframes borderGlow {
+  0% { background-position: 0% 0; }
+  100% { background-position: 100% 0; }
 }
 
 .dayoff-card::after {
   content: '';
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 60%);
+  top: -50%; left: -50%; width: 200%; height: 200%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--theme-color) 15%, transparent) 0%, transparent 50%);
   opacity: 0;
-  transition: 0.5s;
+  transition: opacity 0.5s ease;
   pointer-events: none;
 }
 
 .dayoff-card:hover {
   transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-  border-color: var(--theme-color);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px color-mix(in srgb, var(--theme-color) 20%, transparent);
+  border-color: color-mix(in srgb, var(--theme-color) 30%, transparent);
+  background: linear-gradient(145deg, rgba(25, 30, 45, 0.8), rgba(20, 25, 40, 0.5));
 }
 
 .dayoff-card:hover::after {
@@ -107,19 +162,25 @@
 }
 
 .day-name {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--text-primary);
-  margin-bottom: 0.2rem;
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: 0.3rem;
+  background: linear-gradient(135deg, #fff, #9ca3af);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .day-date {
   color: var(--text-secondary);
   font-size: 0.95rem;
   margin-bottom: 1.5rem;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .stats-container {
@@ -130,23 +191,31 @@
 
 .stat-box {
   flex: 1;
-  background: var(--glass-bg);
-  border-radius: 10px;
-  padding: 0.8rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 14px;
+  padding: 1rem;
   text-align: center;
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+}
+
+.dayoff-card:hover .stat-box {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 .stat-number {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--text-primary);
+  font-size: 1.6rem;
+  font-weight: 900;
   margin-bottom: 0.2rem;
+  text-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
 
 .stat-label {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: var(--text-secondary);
+  font-weight: 600;
 }
 
 .text-green {
@@ -157,7 +226,7 @@
 }
 
 .btn-apply {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, var(--theme-color), #1e3c72);
   color: white;
   border: none;
   padding: 1rem;
@@ -174,8 +243,8 @@
 }
 
 .btn-apply:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+  background: linear-gradient(135deg, #1e3c72, var(--theme-color));
+  box-shadow: 0 4px 15px var(--theme-color);
   transform: translateY(-2px);
 }
 

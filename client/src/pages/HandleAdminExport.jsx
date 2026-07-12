@@ -5,7 +5,7 @@ import { applyFiltersAndSort, parseArabicDate } from '../utils/filterAndSort';
 import AdminGuard from '../components/AdminGuard';
 
 const HandleAdminExport = () => {
-  const [exportType, setExportType] = useState('all_zip'); 
+  const [exportType, setExportType] = useState('all_zip');
   const [timeFilter, setTimeFilter] = useState('all');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
@@ -23,14 +23,14 @@ const HandleAdminExport = () => {
 
   const previewData = useMemo(() => {
     const finalFilters = { timeFilter, customStartDate, customEndDate, supervisorFilter: 'all', searchQuery: '', sortBy: 'date_desc' };
-    
+
     if (timeFilter === 'custom' && (!customStartDate || !customEndDate)) {
       return { callsCount: 0, logsCount: 0, perfCount: 0, filteredCalls: [], filteredLogs: [], filteredPerf: [] };
     }
 
     const filteredCalls = applyFiltersAndSort(allCalls, finalFilters, false);
     const filteredLogs = applyFiltersAndSort(allLogs, finalFilters, true);
-    
+
     const mapDateForPerf = allPerf.map(l => ({ ...l, createdAt: l.createdAt || parseArabicDate(l.date) }));
     const filteredPerf = applyFiltersAndSort(mapDateForPerf, finalFilters, true);
 
@@ -63,12 +63,12 @@ const HandleAdminExport = () => {
         </header>
 
         <div className="dashboard-card" style={{ maxWidth: '1200px', width: '100%', margin: '2rem auto', padding: '3rem 2rem' }}>
-          
+
           <h3 style={{ color: 'var(--text-primary)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>1</span>
             اختر الفترة الزمنية
           </h3>
-          
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
             {['all', 'today', 'yesterday', 'week', 'month', 'custom'].map(type => (
               <button
@@ -103,9 +103,9 @@ const HandleAdminExport = () => {
             <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '2rem', background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', animation: 'fadeIn 0.3s ease-out' }}>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', marginBottom: '0.8rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>من تاريخ:</label>
-                <input 
-                  type="date" 
-                  value={customStartDate} 
+                <input
+                  type="date"
+                  value={customStartDate}
                   onChange={e => setCustomStartDate(e.target.value)}
                   className="search-input"
                   style={{ width: '100%', padding: '1rem', fontSize: '1rem' }}
@@ -113,9 +113,9 @@ const HandleAdminExport = () => {
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', marginBottom: '0.8rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>إلى تاريخ:</label>
-                <input 
-                  type="date" 
-                  value={customEndDate} 
+                <input
+                  type="date"
+                  value={customEndDate}
                   onChange={e => setCustomEndDate(e.target.value)}
                   className="search-input"
                   style={{ width: '100%', padding: '1rem', fontSize: '1rem' }}
@@ -126,8 +126,8 @@ const HandleAdminExport = () => {
 
           {/* Data Preview Banner */}
           <div style={{
-            display: 'flex', gap: '1.5rem', marginBottom: '2.5rem', background: 'rgba(59, 130, 246, 0.08)', 
-            padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(59, 130, 246, 0.2)', 
+            display: 'flex', gap: '1.5rem', marginBottom: '2.5rem', background: 'rgba(59, 130, 246, 0.08)',
+            padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(59, 130, 246, 0.2)',
             alignItems: 'center', flexWrap: 'wrap'
           }}>
             <Info size={32} color="var(--theme-color)" style={{ flexShrink: 0 }} />
@@ -158,7 +158,7 @@ const HandleAdminExport = () => {
           </h3>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginBottom: '3rem' }}>
-            
+
             <label style={{
               display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.5rem',
               border: `2px solid ${exportType === 'all_zip' ? 'var(--theme-color)' : 'rgba(255,255,255,0.1)'}`,
@@ -166,9 +166,9 @@ const HandleAdminExport = () => {
               transform: exportType === 'all_zip' ? 'translateY(-2px)' : 'none',
               boxShadow: exportType === 'all_zip' ? '0 10px 25px -5px rgba(59, 130, 246, 0.2)' : 'none'
             }}>
-              <input 
-                type="radio" 
-                name="adminExportType" 
+              <input
+                type="radio"
+                name="adminExportType"
                 value="all_zip"
                 checked={exportType === 'all_zip'}
                 onChange={() => setExportType('all_zip')}
@@ -190,9 +190,9 @@ const HandleAdminExport = () => {
               transform: exportType === 'calls_only' ? 'translateY(-2px)' : 'none',
               boxShadow: exportType === 'calls_only' ? '0 10px 25px -5px rgba(59, 130, 246, 0.2)' : 'none'
             }}>
-              <input 
-                type="radio" 
-                name="adminExportType" 
+              <input
+                type="radio"
+                name="adminExportType"
                 value="calls_only"
                 checked={exportType === 'calls_only'}
                 onChange={() => setExportType('calls_only')}
@@ -214,9 +214,9 @@ const HandleAdminExport = () => {
               transform: exportType === 'logs_only' ? 'translateY(-2px)' : 'none',
               boxShadow: exportType === 'logs_only' ? '0 10px 25px -5px rgba(59, 130, 246, 0.2)' : 'none'
             }}>
-              <input 
-                type="radio" 
-                name="adminExportType" 
+              <input
+                type="radio"
+                name="adminExportType"
                 value="logs_only"
                 checked={exportType === 'logs_only'}
                 onChange={() => setExportType('logs_only')}
@@ -238,9 +238,9 @@ const HandleAdminExport = () => {
               transform: exportType === 'perf_only' ? 'translateY(-2px)' : 'none',
               boxShadow: exportType === 'perf_only' ? '0 10px 25px -5px rgba(59, 130, 246, 0.2)' : 'none'
             }}>
-              <input 
-                type="radio" 
-                name="adminExportType" 
+              <input
+                type="radio"
+                name="adminExportType"
                 value="perf_only"
                 checked={exportType === 'perf_only'}
                 onChange={() => setExportType('perf_only')}
@@ -250,24 +250,24 @@ const HandleAdminExport = () => {
                 <ClipboardList size={32} color={exportType === 'perf_only' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
               </div>
               <div style={{ flex: 1 }}>
-                <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>سجل الأداء (Excel)</h4>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل تقارير أداء المشرفين المجمعة فقط.</p>
+                <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>سجل المهام (Excel)</h4>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل تقارير مهام المشرفين المجمعة فقط.</p>
               </div>
             </label>
           </div>
 
-          <button 
-            className="btn-save" 
+          <button
+            className="btn-save"
             onClick={handleExport}
             disabled={previewData.callsCount === 0 && previewData.logsCount === 0 && previewData.perfCount === 0}
-            style={{ 
-              width: '100%', 
-              padding: '1.2rem', 
-              display: 'flex', 
-              justifyContent: 'center', 
+            style={{
+              width: '100%',
+              padding: '1.2rem',
+              display: 'flex',
+              justifyContent: 'center',
               alignItems: 'center',
-              gap: '0.8rem', 
-              fontSize: '1.2rem', 
+              gap: '0.8rem',
+              fontSize: '1.2rem',
               fontWeight: 'bold',
               borderRadius: '16px',
               backgroundColor: previewData.callsCount === 0 && previewData.logsCount === 0 && previewData.perfCount === 0 ? 'rgba(255,255,255,0.1)' : '#22c55e',

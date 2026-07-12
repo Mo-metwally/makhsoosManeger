@@ -13,12 +13,12 @@ const PersonalFollowup = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // Chart states
   const [callsChartPeriod, setCallsChartPeriod] = useState('daily');
   const [breaksChartPeriod, setBreaksChartPeriod] = useState('daily');
   const [attendanceChartPeriod, setAttendanceChartPeriod] = useState('daily');
-  
+
   // Filter States
   const [filterType, setFilterType] = useState('today'); // today, week, month, custom
   const [customStart, setCustomStart] = useState('');
@@ -31,7 +31,7 @@ const PersonalFollowup = () => {
       if (start) params.startDate = start;
       if (end) params.endDate = end;
       if (employeeId) params.employeeId = employeeId;
-      
+
       const res = await api.get('/data/personal-stats', { params });
       setStats(res.data);
     } catch (err) {
@@ -112,8 +112,8 @@ const PersonalFollowup = () => {
           <AreaChart data={data[period]} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id={`color${dataKey}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={colorArea} stopOpacity={0.8}/>
-                <stop offset="95%" stopColor={colorArea} stopOpacity={0}/>
+                <stop offset="5%" stopColor={colorArea} stopOpacity={0.8} />
+                <stop offset="95%" stopColor={colorArea} stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
@@ -228,7 +228,7 @@ const PersonalFollowup = () => {
                     <div className="pf-progress-fill" style={{ width: `${stats.attendance.disciplineRate}%`, backgroundColor: stats.attendance.disciplineRate >= 85 ? '#10b981' : '#f59e0b' }}></div>
                   </div>
                 </div>
-                
+
                 <div className="pf-timeline" style={{ marginTop: '1.5rem' }}>
                   <div className="pf-timeline-item">
                     <LogIn size={18} className="text-green" />
@@ -279,18 +279,18 @@ const PersonalFollowup = () => {
 
           {/* Charts Section */}
           {stats.chartData && renderChart(
-            "متابعة الأداء الزمني (المكالمات)", 
-            <BarChart2 size={24} className="text-blue" />, 
-            stats.chartData, 
-            callsChartPeriod, 
-            setCallsChartPeriod, 
-            "Calls", 
-            "عدد المكالمات", 
-            "#3b82f6", 
+            "متابعة الأداء الزمني (المكالمات)",
+            <BarChart2 size={24} className="text-blue" />,
+            stats.chartData,
+            callsChartPeriod,
+            setCallsChartPeriod,
+            "Calls",
+            "عدد المكالمات",
+            "#3b82f6",
             "#f97316",
             (val) => val,
             (user?.role === 'Admin' || user?.role === 'SuperAdmin') ? (
-              <Link 
+              <Link
                 to={`/handleAdmin?employeeName=${encodeURIComponent(stats.user.name)}`}
                 style={{
                   display: 'flex',
@@ -317,18 +317,18 @@ const PersonalFollowup = () => {
           )}
 
           {stats.breaksChartData && renderChart(
-            "متابعة الأداء الزمني (البريكات)", 
-            <Coffee size={24} style={{ color: '#eab308' }} />, 
-            stats.breaksChartData, 
-            breaksChartPeriod, 
-            setBreaksChartPeriod, 
-            "Breaks", 
-            "مدة البريكات (دقائق)", 
-            "#eab308", 
+            "متابعة الأداء الزمني (البريكات)",
+            <Coffee size={24} style={{ color: '#eab308' }} />,
+            stats.breaksChartData,
+            breaksChartPeriod,
+            setBreaksChartPeriod,
+            "Breaks",
+            "مدة البريكات (دقائق)",
+            "#eab308",
             "#f59e0b",
             (val) => `${val} د`,
             (user?.role === 'Admin' || user?.role === 'SuperAdmin') ? (
-              <Link 
+              <Link
                 to={`/monitoring?employeeName=${encodeURIComponent(stats.user.name)}`}
                 style={{
                   display: 'flex',
@@ -355,19 +355,19 @@ const PersonalFollowup = () => {
           )}
 
           {stats.attendanceChartData && renderChart(
-            "متابعة الأداء الزمني (ساعات العمل)", 
-            <Clock size={24} style={{ color: '#10b981' }} />, 
-            stats.attendanceChartData, 
-            attendanceChartPeriod, 
-            setAttendanceChartPeriod, 
-            "Attendance", 
-            "ساعات العمل", 
-            "#10b981", 
+            "متابعة الأداء الزمني (ساعات العمل)",
+            <Clock size={24} style={{ color: '#10b981' }} />,
+            stats.attendanceChartData,
+            attendanceChartPeriod,
+            setAttendanceChartPeriod,
+            "Attendance",
+            "ساعات العمل",
+            "#10b981",
             "#059669",
             (val) => `${val} س`,
             (user?.role === 'Admin' || user?.role === 'SuperAdmin') ? (
-              <Link 
-                to={`/handleAdminReports?employeeName=${encodeURIComponent(stats.user.name)}`}
+              <Link
+                to={`/attendancereports?employeeName=${encodeURIComponent(stats.user.name)}`}
                 style={{
                   display: 'flex',
                   alignItems: 'center',

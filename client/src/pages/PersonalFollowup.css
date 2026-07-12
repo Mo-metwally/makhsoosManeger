@@ -19,15 +19,15 @@
 }
 
 .pf-title-icon {
-  color: var(--primary-color);
-  filter: drop-shadow(0 0 10px rgba(249, 115, 22, 0.5));
+  color: var(--theme-color);
+  filter: drop-shadow(0 0 10px rgba(var(--theme-color-rgb), 0.5));
 }
 
 .pf-gradient-title {
   font-size: 2.5rem;
   font-weight: 800;
   margin: 0;
-  background: linear-gradient(135deg, #fff, #f97316);
+  background: linear-gradient(135deg, #fff, var(--theme-color));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.5px;
@@ -39,7 +39,7 @@
 }
 
 .pf-subtitle span {
-  color: #f97316;
+  color: var(--theme-color);
   font-weight: 600;
 }
 

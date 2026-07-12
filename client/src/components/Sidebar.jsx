@@ -229,14 +229,9 @@ const Sidebar = () => {
           </li>
           <li>
             <NavLink to="/personal-followup" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}>
-          <Activity size={20} />
-          <span>المتابعة الشخصية</span>
-        </NavLink>
-
-        <NavLink to="/my-advances" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}>
-          <Wallet size={20} />
-          <span>سلفياتي</span>
-        </NavLink>
+              <Activity size={20} />
+              <span>المتابعة الشخصية</span>
+            </NavLink>
           </li>
 
 
@@ -255,21 +250,25 @@ const Sidebar = () => {
                   {isHRMenuOpen ? <ChevronUp size={14} className="section-chevron" /> : <ChevronDown size={14} className="section-chevron" />}
                 </div>
                 <div className={`sub-menu ${isHRMenuOpen ? 'open' : ''}`}>
-                  <NavLink to="/permissions" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                  <NavLink to="/staff-management" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <Users size={18} />
-                    <span>إدارة الحسابات</span>
+                    <span>إدارة الموظفين</span>
                   </NavLink>
                   <NavLink to="/shift-management" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <Clock size={18} />
                     <span>تنظيم الورديات</span>
                   </NavLink>
-                  <NavLink to="/dayoff-management" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                  {/* <NavLink to="/attendance" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <Calendar size={18} />
+                    <span>الحضور والانصراف</span>
+                  </NavLink> */}
+                  <NavLink to="/dayoff-management" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Moon size={18} />
                     <span>طلبات الإجازات</span>
                   </NavLink>
-                  <NavLink to="/staff-management" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                    <Users size={18} />
-                    <span>إدارة الموظفين</span>
+                  <NavLink to="/permissions" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Shield size={18} />
+                    <span>إدارة الحسابات</span>
                   </NavLink>
                 </div>
               </li>
@@ -293,15 +292,15 @@ const Sidebar = () => {
                   </NavLink>
                   <NavLink to="/monitoring" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <Activity size={18} />
-                    <span>المتابعة الخمول</span>
+                    <span>سجل الإستراحات المجمع</span>
                   </NavLink>
-                  <NavLink to="/contacts" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                    <Phone size={18} />
-                    <span>سجل التواصل</span>
-                  </NavLink>
-                  <NavLink to="/handleAdminReports" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                  <NavLink to="/attendancereports" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <Folder size={18} />
-                    <span>سجل المراقبة المجمع</span>
+                    <span>سجل الحضور المجمع</span>
+                  </NavLink>
+                  <NavLink to="/allPerformance" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <History size={18} />
+                    <span>سجل المهام المجمع</span>
                   </NavLink>
                   <NavLink to="/allcontacts" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <Database size={18} />
@@ -317,7 +316,7 @@ const Sidebar = () => {
                   title="الأداء والتقارير"
                 >
                   <div className="section-title">
-                    <Activity size={18} className="section-icon" />
+                    <Star size={18} className="section-icon" />
                     <span>الأداء والتقارير</span>
                   </div>
                   {isPerfMenuOpen ? <ChevronUp size={14} className="section-chevron" /> : <ChevronDown size={14} className="section-chevron" />}
@@ -325,11 +324,11 @@ const Sidebar = () => {
                 <div className={`sub-menu ${isPerfMenuOpen ? 'open' : ''}`}>
                   <NavLink to="/summery" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <Summary size={18} />
-                    <span>الملخص</span>
+                    <span>الملخص العام</span>
                   </NavLink>
-                  <NavLink to="/handleAdminPerformance" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                    <History size={18} />
-                    <span>سجل الأداء الشامل</span>
+                  <NavLink to="/performance-log" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <FileText size={18} />
+                    <span>سجل تقييم الأداء</span>
                   </NavLink>
                   <NavLink to="/report-editor" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <FileText size={18} />
@@ -337,7 +336,7 @@ const Sidebar = () => {
                   </NavLink>
                   <NavLink to="/handleAdminExport" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <Download size={18} />
-                    <span>تصدير التقارير</span>
+                    <span>تصدير البيانات</span>
                   </NavLink>
                 </div>
               </li>
@@ -367,7 +366,7 @@ const Sidebar = () => {
                   )}
                   <NavLink to="/general-settings" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <Settings size={18} />
-                    <span>إعدادات عامة</span>
+                    <span>إعدادات النظام</span>
                   </NavLink>
                 </div>
               </li>
@@ -393,7 +392,7 @@ const Sidebar = () => {
                     <Phone size={18} />
                     <span>سجل التواصل</span>
                   </NavLink>
-                  <NavLink to="/monitoring" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                  <NavLink to="/my-monitoring" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <Activity size={18} />
                     <span>المتابعة</span>
                   </NavLink>
@@ -417,10 +416,7 @@ const Sidebar = () => {
                     <Summary size={18} />
                     <span>الملخص</span>
                   </NavLink>
-                  <NavLink to="/performance-log" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                    <History size={18} />
-                    <span>سجل الأداء</span>
-                  </NavLink>
+
                   <NavLink to="/report-editor" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <FileText size={18} />
                     <span>محرر التقارير</span>
@@ -443,6 +439,14 @@ const Sidebar = () => {
               {isPersonalMenuOpen ? <ChevronUp size={14} className="section-chevron" /> : <ChevronDown size={14} className="section-chevron" />}
             </div>
             <div className={`sub-menu ${isPersonalMenuOpen ? 'open' : ''}`}>
+              <NavLink to="/contacts" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                <Phone size={18} />
+                <span>سجل التواصل</span>
+              </NavLink>
+              <NavLink to="/performance-log" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                <History size={18} />
+                <span>سجل المهام</span>
+              </NavLink>
               <NavLink to="/attendance" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                 <Clock size={18} />
                 <span>سجل الحضور</span>
@@ -450,6 +454,10 @@ const Sidebar = () => {
               <NavLink to="/dayoff" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                 <Calendar size={18} />
                 <span>أجازاتي</span>
+              </NavLink>
+              <NavLink to="/my-advances" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                <Wallet size={18} />
+                <span>محفظتي</span>
               </NavLink>
               <NavLink to="/account" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                 <User size={18} />
@@ -471,7 +479,7 @@ const Sidebar = () => {
             <AvatarIcon size={20} color="#ffffff" />
           </div>
           <div className="user-info">
-            <span className="user-name">{profile.name}</span>
+            <span className="user-name">{profile.name ? profile.name.split(' ')[0] : ''}</span>
             <span className="user-role">{profile.role}</span>
           </div>
           <div className="user-status">متصل</div>

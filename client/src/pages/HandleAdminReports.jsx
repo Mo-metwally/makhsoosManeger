@@ -43,20 +43,20 @@ const HandleAdminReports = () => {
 
   const calculateDelay = (checkInDateStr, shiftStartTimeStr) => {
     if (!checkInDateStr || !shiftStartTimeStr) return '---';
-    
+
     const checkInDate = new Date(checkInDateStr);
     const [shiftHours, shiftMinutes] = shiftStartTimeStr.split(':').map(Number);
-    
+
     const shiftStartDate = new Date(checkInDate);
     shiftStartDate.setHours(shiftHours, shiftMinutes, 0, 0);
-    
+
     const diffMs = checkInDate - shiftStartDate;
     if (diffMs <= 0) return 'لا يوجد';
-    
+
     const diffMins = Math.floor(diffMs / 60000);
     const hours = Math.floor(diffMins / 60);
     const mins = diffMins % 60;
-    
+
     if (hours > 0) return `${hours} س ${mins > 0 ? `و ${mins} د` : ''}`;
     return `${mins} دقيقة`;
   };
@@ -113,7 +113,7 @@ const HandleAdminReports = () => {
   // Search Filter
   if (searchQuery.trim() !== '') {
     const lowerQ = searchQuery.toLowerCase();
-    filteredLogs = filteredLogs.filter(log => 
+    filteredLogs = filteredLogs.filter(log =>
       (log.User?.fullName || '').toLowerCase().includes(lowerQ) ||
       (log.Shift?.name || '').toLowerCase().includes(lowerQ)
     );
@@ -147,7 +147,7 @@ const HandleAdminReports = () => {
         <header className="page-header">
           <div className="page-title-wrapper">
             <Users size={28} className="title-icon text-blue" />
-            <h1 className="page-title gradient-title">سجل المراقبة المجمع (إدارة)</h1>
+            <h1 className="page-title gradient-title">سجل الحضور المجمع (إدارة)</h1>
             <div style={{ color: 'var(--text-secondary)' }}>
               إجمالي السجلات: <strong>{attendanceLogs.length}</strong>
             </div>
@@ -155,19 +155,19 @@ const HandleAdminReports = () => {
         </header>
 
         <div className="filter-section" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'relative', zIndex: 10 }}>
-          
+
           {/* Time Filters */}
           <div className="admin-filter-group">
             {['all', 'today', 'yesterday', 'week', 'month', 'custom'].map(val => (
               <div className="admin-filter-radio" key={val}>
                 <label>
-                  <input 
-                    type="radio" 
-                    name="timeFilter" 
-                    value={val} 
-                    checked={timeFilter === val} 
-                    onChange={(e) => setTimeFilter(e.target.value)} 
-                  /> 
+                  <input
+                    type="radio"
+                    name="timeFilter"
+                    value={val}
+                    checked={timeFilter === val}
+                    onChange={(e) => setTimeFilter(e.target.value)}
+                  />
                   <span>{val === 'all' ? 'الكل' : val === 'today' ? 'اليوم' : val === 'yesterday' ? 'أمس' : val === 'week' ? 'الأسبوع' : val === 'month' ? 'الشهر' : 'مخصص'}</span>
                   {timeFilter === val && <div className="radio-bg"></div>}
                 </label>
@@ -199,25 +199,25 @@ const HandleAdminReports = () => {
                 className="search-input"
               />
             </div>
-            
-            <CustomSelect 
+
+            <CustomSelect
               options={[
                 { value: 'all', label: 'كل الموظفين (الجميع)' },
                 ...uniqueEmployees.map(name => ({ value: name, label: name }))
               ]}
-              value={employeeFilter} 
+              value={employeeFilter}
               onChange={setEmployeeFilter}
               placeholder="اختر الموظف"
             />
 
-            <CustomSelect 
+            <CustomSelect
               options={[
                 { value: 'date_desc', label: 'الأحدث أولاً' },
                 { value: 'date_asc', label: 'الأقدم أولاً' },
                 { value: 'supervisor_asc', label: 'الموظف (أ - ي)' },
                 { value: 'supervisor_desc', label: 'الموظف (ي - أ)' }
               ]}
-              value={sortBy} 
+              value={sortBy}
               onChange={setSortBy}
               placeholder="ترتيب حسب"
             />
@@ -226,9 +226,9 @@ const HandleAdminReports = () => {
 
         <div className="table-container">
           {filteredLogs.length === 0 ? (
-             <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)', background: 'var(--glass-bg)', borderRadius: '16px', border: 'var(--glass-border)' }}>
-               لا توجد سجلات حضور مسجلة تطابق بحثك حالياً.
-             </div>
+            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)', background: 'var(--glass-bg)', borderRadius: '16px', border: 'var(--glass-border)' }}>
+              لا توجد سجلات حضور مسجلة تطابق بحثك حالياً.
+            </div>
           ) : (
             <table className="calls-table">
               <thead>
@@ -250,7 +250,7 @@ const HandleAdminReports = () => {
                       <div style={{ fontWeight: 'bold', color: 'var(--theme-color)', fontSize: '1.1rem' }}>{log.User ? log.User.fullName : '---'}</div>
                       <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.2rem', marginBottom: '0.5rem' }}>{log.User ? log.User.jobTitle : ''}</div>
                       {log.userId && (
-                        <Link 
+                        <Link
                           to={`/personal-followup/${log.userId}`}
                           style={{
                             display: 'inline-flex',
@@ -283,7 +283,7 @@ const HandleAdminReports = () => {
                     <td>
                       <div style={{ fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                         {log.breakDetails && log.breakDetails['بريك صلاة'] > 0 && (
-                          <div style={{ color: 'var(--text-secondary)' }}><span style={{marginRight: '4px'}}>🕋</span>صلاة: {(() => {
+                          <div style={{ color: 'var(--text-secondary)' }}><span style={{ marginRight: '4px' }}>🕋</span>صلاة: {(() => {
                             const totalMins = Math.floor(log.breakDetails['بريك صلاة'] / 60000);
                             const hours = Math.floor(totalMins / 60);
                             const mins = totalMins % 60;
@@ -291,7 +291,7 @@ const HandleAdminReports = () => {
                           })()}</div>
                         )}
                         {log.breakDetails && log.breakDetails['بريك غداء'] > 0 && (
-                          <div style={{ color: 'var(--text-secondary)' }}><span style={{marginRight: '4px'}}>🍔</span>غداء: {(() => {
+                          <div style={{ color: 'var(--text-secondary)' }}><span style={{ marginRight: '4px' }}>🍔</span>غداء: {(() => {
                             const totalMins = Math.floor(log.breakDetails['بريك غداء'] / 60000);
                             const hours = Math.floor(totalMins / 60);
                             const mins = totalMins % 60;
@@ -320,21 +320,21 @@ const HandleAdminReports = () => {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="pagination-container">
-              <button 
-                className="pagination-btn" 
+              <button
+                className="pagination-btn"
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
               >
                 <ChevronRight size={18} />
                 <span>السابق</span>
               </button>
-              
+
               <div className="pagination-info">
                 صفحة <span className="current-page">{currentPage}</span> من <span className="total-pages">{totalPages}</span>
               </div>
-              
-              <button 
-                className="pagination-btn" 
+
+              <button
+                className="pagination-btn"
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
               >

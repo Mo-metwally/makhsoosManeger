@@ -95,7 +95,7 @@ const HandleAdmin = () => {
 
   const uniqueSupervisors = Array.from(new Set(calls.map(c => c.supervisorName).filter(Boolean)));
   const filteredCalls = applyFiltersAndSort(calls, { timeFilter, supervisorFilter, searchQuery, sortBy, customStartDate, customEndDate }, false);
-  
+
   const totalPages = Math.ceil(filteredCalls.length / ITEMS_PER_PAGE);
   const currentCalls = filteredCalls.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
@@ -139,19 +139,19 @@ const HandleAdmin = () => {
         </header>
 
         <div className="filter-section" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'relative', zIndex: 10 }}>
-          
+
           {/* Time Filters */}
           <div className="admin-filter-group">
             {['all', 'today', 'yesterday', 'week', 'month', 'custom'].map(val => (
               <div className="admin-filter-radio" key={val}>
                 <label>
-                  <input 
-                    type="radio" 
-                    name="timeFilter" 
-                    value={val} 
-                    checked={timeFilter === val} 
-                    onChange={(e) => setTimeFilter(e.target.value)} 
-                  /> 
+                  <input
+                    type="radio"
+                    name="timeFilter"
+                    value={val}
+                    checked={timeFilter === val}
+                    onChange={(e) => setTimeFilter(e.target.value)}
+                  />
                   <span>{val === 'all' ? 'الكل' : val === 'today' ? 'اليوم' : val === 'yesterday' ? 'أمس' : val === 'week' ? 'الأسبوع' : val === 'month' ? 'الشهر' : 'فترة مخصصة'}</span>
                   {timeFilter === val && <div className="radio-bg"></div>}
                 </label>
@@ -183,30 +183,30 @@ const HandleAdmin = () => {
                 className="search-input"
               />
             </div>
-            
-            <CustomSelect 
+
+            <CustomSelect
               options={[
                 { value: 'all', label: 'كل المشرفين (الجميع)' },
                 ...uniqueSupervisors.map(name => ({ value: name, label: name }))
               ]}
-              value={supervisorFilter} 
+              value={supervisorFilter}
               onChange={setSupervisorFilter}
               placeholder="اختر المشرف"
             />
 
-            <CustomSelect 
+            <CustomSelect
               options={[
                 { value: 'date_desc', label: 'الأحدث أولاً' },
                 { value: 'date_asc', label: 'الأقدم أولاً' },
                 { value: 'supervisor_asc', label: 'المشرف (أ - ي)' },
                 { value: 'supervisor_desc', label: 'المشرف (ي - أ)' }
               ]}
-              value={sortBy} 
+              value={sortBy}
               onChange={setSortBy}
               placeholder="ترتيب حسب"
             />
-            
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+
+            {/* <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
                 className="btn-save"
                 onClick={handleClearData}
@@ -222,7 +222,7 @@ const HandleAdmin = () => {
                 <Trash2 size={18} />
                 <span>مسح السجل</span>
               </button>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -247,7 +247,7 @@ const HandleAdmin = () => {
                   const isExpanded = expandedRows.has(call.id);
                   return (
                     <React.Fragment key={call.id}>
-                      <tr 
+                      <tr
                         className={`expandable-row ${isExpanded ? 'active-row' : ''}`}
                         onClick={() => toggleRow(call.id)}
                       >
@@ -259,8 +259,8 @@ const HandleAdmin = () => {
                         </td>
                         <td><strong style={{ color: 'var(--theme-color)' }}>{call.supervisorName || '-'}</strong></td>
                         <td>{call.agentName}</td>
-                        <td 
-                          dir="ltr" 
+                        <td
+                          dir="ltr"
                           style={{ textAlign: 'right', color: 'var(--theme-color)', cursor: 'pointer', textDecoration: 'underline' }}
                           onClick={(e) => { e.stopPropagation(); openPhoneHistory(call.phone); }}
                         >
@@ -273,12 +273,12 @@ const HandleAdmin = () => {
                           </span>
                         </td>
                         <td className="status-cell">
-                           <span className={`status-badge ${getAgentStatusBadgeClass(call.agentStatus)}`}>
+                          <span className={`status-badge ${getAgentStatusBadgeClass(call.agentStatus)}`}>
                             {call.agentStatus}
                           </span>
                         </td>
                         <td className="status-cell">
-                           <span className={`status-badge ${getStatusBadgeClass(call.callStatus)}`}>
+                          <span className={`status-badge ${getStatusBadgeClass(call.callStatus)}`}>
                             {call.callStatus}
                           </span>
                         </td>
@@ -300,7 +300,7 @@ const HandleAdmin = () => {
                                   {call.report || 'لا يوجد تقرير'}
                                 </div>
                               </div>
-                              
+
                               {call.notes && (
                                 <div className="detail-section full-width">
                                   <div className="detail-section-header" style={{ color: '#f59e0b' }}>
@@ -311,7 +311,7 @@ const HandleAdmin = () => {
                                   </div>
                                 </div>
                               )}
-                              
+
                               {call.profileLink && (
                                 <div className="detail-section full-width" style={{ marginTop: '0.5rem' }}>
                                   <a href={call.profileLink.startsWith('http') ? call.profileLink : `https://${call.profileLink}`} target="_blank" rel="noopener noreferrer" className="detail-link-btn">
@@ -342,21 +342,21 @@ const HandleAdmin = () => {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="pagination-container">
-              <button 
-                className="pagination-btn" 
+              <button
+                className="pagination-btn"
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
               >
                 <ChevronRight size={18} />
                 <span>السابق</span>
               </button>
-              
+
               <div className="pagination-info">
                 صفحة <span className="current-page">{currentPage}</span> من <span className="total-pages">{totalPages}</span>
               </div>
-              
-              <button 
-                className="pagination-btn" 
+
+              <button
+                className="pagination-btn"
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
               >
@@ -405,17 +405,17 @@ const HandleAdmin = () => {
                             {formatDate(histCall.createdAt)}
                           </div>
                         </div>
-                        
+
                         <div className="timeline-badges" style={{ marginBottom: '1rem' }}>
                           <span className={`status-badge ${getCommMethodBadgeClass(histCall.commMethod)}`}>{histCall.commMethod}</span>
                           <span className={`status-badge ${getAgentStatusBadgeClass(histCall.agentStatus)}`}>{histCall.agentStatus}</span>
                           <span className={`status-badge ${getStatusBadgeClass(histCall.callStatus)}`}>{histCall.callStatus}</span>
                         </div>
-                        
+
                         <div className="timeline-body">
                           {histCall.report || 'لا يوجد تفاصيل تقرير.'}
                         </div>
-                        
+
                         <div className="timeline-footer">
                           {histCall.notes && (
                             <div className="timeline-note">

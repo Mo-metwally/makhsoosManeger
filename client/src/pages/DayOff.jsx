@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CalendarDays, Calendar as CalendarIcon, Users, CheckCircle, Clock, XCircle, Send, X } from 'lucide-react';
+import { CalendarDays, Calendar as CalendarIcon, Users, CheckCircle, Clock, XCircle, Send, X, AlertTriangle } from 'lucide-react';
 import api from '../services/api';
 import './DayOff.css';
 
@@ -12,7 +12,9 @@ const DayOff = () => {
   const [selectedDay, setSelectedDay] = useState(null);
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
   const [activeTab, setActiveTab] = useState('apply'); // 'apply' or 'history'
+  const [daysFilter, setDaysFilter] = useState('available'); // 'all' or 'available'
 
   const fetchRequests = async () => {
     try {
@@ -33,31 +35,46 @@ const DayOff = () => {
     fetchRequests();
   }, []);
 
-  const generateDays = (uRequests = [], aRequests = []) => {
+  useEffect(() => {
+    generateDays(userRequests, allRequests, selectedMonth);
+  }, [selectedMonth, userRequests, allRequests]);
+
+  const generateDays = (uRequests = [], aRequests = [], monthStr = selectedMonth) => {
     const arabicDays = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
     const generatedDays = [];
     
-    // Generate days to the end of the current month
-    const today = new Date();
-    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    const daysInMonthLeft = endOfMonth.getDate() - today.getDate() + 1; // including today
+    if (!monthStr) return;
+
+    const [year, month] = monthStr.split('-');
+    const mYear = parseInt(year);
+    const mMonth = parseInt(month) - 1;
+
+    const daysInMonth = new Date(mYear, mMonth + 1, 0).getDate();
     
-    for (let i = 0; i < daysInMonthLeft; i++) {
-      const d = new Date();
-      d.setDate(d.getDate() + i);
-      const dateStr = d.toISOString().split('T')[0];
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    for (let i = 1; i <= daysInMonth; i++) {
+      const d = new Date(mYear, mMonth, i);
+      // To format correctly considering local time
+      const dateStr = [
+        d.getFullYear(),
+        String(d.getMonth() + 1).padStart(2, '0'),
+        String(d.getDate()).padStart(2, '0')
+      ].join('-');
+      
       const dayName = arabicDays[d.getDay()];
       
-      // Check if user requested this day
       const userReq = uRequests.find(r => r.date === dateStr);
       
-      // Count stats
       const dayAllRequests = aRequests.filter(r => r.date === dateStr);
       const totalPending = dayAllRequests.filter(r => r.status === 'Pending').length;
       const totalApproved = dayAllRequests.filter(r => r.status === 'Approved').length;
 
-      // Must be at least 2 days ahead to apply (e.g. today 8th -> earliest apply 10th)
-      const canApply = i >= 2;
+      const diffTime = d.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 3600 * 24));
+      const canApply = diffDays >= 2;
+      const isPast = diffDays < 0;
 
       generatedDays.push({
         date: dateStr,
@@ -65,7 +82,8 @@ const DayOff = () => {
         userRequest: userReq,
         totalPending,
         totalApproved,
-        canApply
+        canApply,
+        isPast
       });
     }
     setDays(generatedDays);
@@ -120,14 +138,24 @@ const DayOff = () => {
     }
   };
 
+  const monthApproved = userRequests.filter(r => r.status === 'Approved' && r.date.startsWith(selectedMonth)).length;
+  const monthPending = userRequests.filter(r => r.status === 'Pending' && r.date.startsWith(selectedMonth)).length;
+  const remaining = Math.max(0, 4 - monthApproved);
+
   return (
     <div className="dayoff-container fade-in">
       <div className="dayoff-header">
         <h1 className="dayoff-title">
-          <CalendarDays size={32} className="text-blue-500" />
+          <CalendarDays size={32} style={{ color: 'var(--theme-color)' }} />
           <span>الإجازات</span>
         </h1>
-        <div className="dayoff-filters">
+        <div className="dayoff-filters" style={{display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap'}}>
+          <input 
+            type="month" 
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            style={{ padding: '0.6rem 1rem', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--glass-bg)', color: 'var(--text-primary)', outline: 'none' }}
+          />
           <button 
             className={`btn-filter ${activeTab === 'apply' ? 'active' : ''}`}
             onClick={() => setActiveTab('apply')}
@@ -143,6 +171,67 @@ const DayOff = () => {
         </div>
       </div>
 
+      <div className="dayoff-summary fade-in" style={{
+        background: 'rgba(255,255,255,0.03)', 
+        padding: '1.5rem', 
+        borderRadius: '16px', 
+        display: 'flex', 
+        gap: '2rem', 
+        marginBottom: '2rem',
+        border: '1px solid rgba(255,255,255,0.08)',
+        boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+      }}>
+                    <>
+              <div style={{ flex: 1, textAlign: 'center' }}>
+                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <CheckCircle size={28} /> {monthApproved}
+                </div>
+                <div style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>إجازات مستهلكة ({selectedMonth})</div>
+              </div>
+              <div style={{ width: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
+              <div style={{ flex: 1, textAlign: 'center' }}>
+                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--orange)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <Clock size={28} /> {monthPending}
+                </div>
+                <div style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>طلبات معلقة</div>
+              </div>
+              <div style={{ width: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
+              <div style={{ flex: 1, textAlign: 'center' }}>
+                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--theme-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <CalendarIcon size={28} /> {remaining}
+                </div>
+                <div style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>الرصيد المتبقي (من 4)</div>
+              </div>
+            </>
+      </div>
+
+      {activeTab === 'apply' && (
+        <div className="advanced-radio-filter fade-in">
+          <label className={`radio-pill ${daysFilter === 'all' ? 'active' : ''}`}>
+            <input 
+              type="radio" 
+              name="daysFilter" 
+              value="all" 
+              checked={daysFilter === 'all'} 
+              onChange={(e) => setDaysFilter(e.target.value)} 
+            />
+            <CalendarDays size={18} />
+            <span>الكل (أيام الشهر بالكامل)</span>
+          </label>
+          <label className={`radio-pill ${daysFilter === 'available' ? 'active' : ''}`}>
+            <input 
+              type="radio" 
+              name="daysFilter" 
+              value="available" 
+              checked={daysFilter === 'available'} 
+              onChange={(e) => setDaysFilter(e.target.value)} 
+            />
+            <CheckCircle size={18} />
+            <span>الأيام المتاحة للتقديم فقط</span>
+          </label>
+        </div>
+      )}
+
       {activeTab === 'apply' && loading ? (
         <div style={{ textAlign: 'center', marginTop: '3rem' }}>
           <div className="spinning" style={{ display: 'inline-block' }}><Clock size={30} /></div>
@@ -150,8 +239,8 @@ const DayOff = () => {
         </div>
       ) : activeTab === 'apply' && (
         <div className="dayoff-grid">
-          {days.map((day, idx) => (
-            <div className="dayoff-card" key={idx}>
+          {days.filter(d => daysFilter === 'all' ? true : d.canApply).map((day, idx) => (
+            <div className={`dayoff-card ${day.isPast ? 'past-day' : ''}`} key={idx} style={{ opacity: day.isPast ? 0.6 : 1 }}>
               <div className="day-name">{day.dayName}</div>
               <div className="day-date">
                 <CalendarIcon size={14} /> {day.date}
@@ -200,10 +289,10 @@ const DayOff = () => {
 
       {activeTab === 'history' && !loading && (
         <div className="dayoff-grid">
-          {userRequests.length === 0 ? (
-            <p style={{ color: 'var(--text-secondary)' }}>ليس لديك أي إجازات سابقة مسجلة.</p>
+          {userRequests.filter(req => req.date.startsWith(selectedMonth)).length === 0 ? (
+            <p style={{ color: 'var(--text-secondary)' }}>ليس لديك أي إجازات مسجلة في هذا الشهر.</p>
           ) : (
-            userRequests.map((req, idx) => (
+            userRequests.filter(req => req.date.startsWith(selectedMonth)).map((req, idx) => (
               <div className="dayoff-card" key={idx}>
                 <div className="day-name">{req.dayName}</div>
                 <div className="day-date">
@@ -243,6 +332,15 @@ const DayOff = () => {
             </div>
             
             <form onSubmit={handleSubmit}>
+              {monthApproved >= 4 && (
+                <div style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(245, 158, 11, 0.3)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <AlertTriangle size={28} style={{ flexShrink: 0 }} />
+                  <div>
+                    <h4 style={{ margin: '0 0 0.3rem 0', fontWeight: 'bold' }}>تنبيه: إجازة غير مدفوعة</h4>
+                    <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: '1.4' }}>أنت على وشك طلب إجازة غير مدفوعة نظراً لاستهلاك كل أيام الإجازات (4/4) لهذا الشهر.</p>
+                  </div>
+                </div>
+              )}
               <div className="do-form-group">
                 <label>تاريخ الإجازة:</label>
                 <div style={{ color: 'var(--text-primary)', padding: '0.8rem', background: 'var(--glass-bg)', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
@@ -260,7 +358,7 @@ const DayOff = () => {
               </div>
 
               <button type="submit" className="btn-submit" disabled={submitting}>
-                {submitting ? 'جاري الإرسال...' : 'تأكيد الطلب'}
+                {submitting ? 'جاري الإرسال...' : (monthApproved >= 4 ? 'تأكيد طلب إجازة غير مدفوعة' : 'تأكيد الطلب')}
               </button>
             </form>
           </div>

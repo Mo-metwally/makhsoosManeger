@@ -29,6 +29,10 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: true
   },
+  cardUses: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   phone: {
     type: DataTypes.STRING,
     allowNull: true

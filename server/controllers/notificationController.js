@@ -29,7 +29,14 @@ const requestActivation = async (req, res) => {
 // Admin gets all notifications
 const getNotifications = async (req, res) => {
   try {
+    const { Op } = require('sequelize');
     const notifications = await Notification.findAll({
+      where: {
+        [Op.or]: [
+          { userId: req.user.id },
+          { message: { [Op.like]: '%تفعيل حسابه%' } } // Fallback for old system notifications
+        ]
+      },
       order: [['createdAt', 'DESC']],
       limit: 50 // Limit to latest 50
     });

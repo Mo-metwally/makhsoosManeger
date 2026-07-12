@@ -155,10 +155,33 @@ const me = (req, res) => {
   });
 };
 
+const checkUsername = async (req, res) => {
+  try {
+    const { username } = req.query;
+    if (!username) return res.status(400).json({ error: 'Username is required' });
+    
+    const existing = await User.findOne({ where: { username } });
+    if (existing) {
+      return res.json({ available: false });
+    }
+    return res.json({ available: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error checking username' });
+  }
+};
+
 const updateProfile = async (req, res) => {
   try {
-    const { name, fullName, email, phone, jobTitle, password, avatar, tasks, notes } = req.body;
+    const { name, fullName, email, phone, jobTitle, password, avatar, tasks, notes, username } = req.body;
     const user = req.user;
+
+    if (username && username !== user.username) {
+      const existingUser = await User.findOne({ where: { username } });
+      if (existingUser) {
+        return res.status(400).json({ error: 'اسم المستخدم مسجل بالفعل.' });
+      }
+      user.username = username;
+    }
 
     if (name) user.name = name;
     if (fullName) user.fullName = fullName;
@@ -359,5 +382,6 @@ module.exports = {
   forgotPassword,
   verifyOtp,
   resetPassword,
-  changePassword
+  changePassword,
+  checkUsername
 };

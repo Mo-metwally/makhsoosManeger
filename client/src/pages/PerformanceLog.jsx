@@ -24,7 +24,7 @@ const PerformanceLog = () => {
   };
 
   useEffect(() => {
-    document.title = "سجل الأداء اليومي | مخصوص";
+    document.title = "سجل المهام اليومي | مخصوص";
     fetchLogs();
   }, []);
 
@@ -39,14 +39,14 @@ const PerformanceLog = () => {
 
   const handleExportExcel = (log) => {
     const userName = localStorage.getItem('userName') || 'المستخدم';
-    
+
     const rowData = {
       'التاريخ': formatDate(log.date),
       'اسم المشرف': userName,
       'المهمة': log.tasks || 'لا توجد',
       'عدد المكالمات': log.manualCallsCount || 0,
     };
-    
+
     if (log.notesList && Array.isArray(log.notesList)) {
       log.notesList.forEach((note, index) => {
         rowData[`ملاحظة ${index + 1}`] = note || 'لا توجد ملاحظة';
@@ -54,25 +54,25 @@ const PerformanceLog = () => {
     }
 
     const ws = XLSX.utils.json_to_sheet([rowData]);
-    
+
     const headerStyle = {
       font: { bold: true, color: { rgb: "FFFFFF" } },
       fill: { fgColor: { rgb: "3B82F6" } },
       alignment: { horizontal: "center", vertical: "center" }
     };
-    
+
     const range = XLSX.utils.decode_range(ws['!ref']);
     for (let C = range.s.c; C <= range.e.c; ++C) {
       const address = XLSX.utils.encode_col(C) + "1";
       if (!ws[address]) continue;
       ws[address].s = headerStyle;
     }
-    
+
     const colWidths = [
-      { wch: 25 }, 
-      { wch: 20 }, 
-      { wch: 50 }, 
-      { wch: 15 }, 
+      { wch: 25 },
+      { wch: 20 },
+      { wch: 50 },
+      { wch: 15 },
     ];
     if (log.notesList) {
       for (let i = 0; i < log.notesList.length; i++) {
@@ -84,7 +84,7 @@ const PerformanceLog = () => {
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "تقرير الأداء");
-    
+
     const safeDate = new Date(log.date).toISOString().split('T')[0];
     XLSX.writeFile(wb, `تقرير_الأداء_${userName}_${safeDate}.xlsx`);
   };
@@ -94,7 +94,7 @@ const PerformanceLog = () => {
       <header className="page-header" style={{ marginBottom: '2rem' }}>
         <div className="title-section">
           <History size={32} className="header-icon" />
-          <h1 className="page-title gradient-title" style={{ fontSize: '2.5rem' }}>سجل الأداء</h1>
+          <h1 className="page-title gradient-title" style={{ fontSize: '2.5rem' }}>سجل المهام</h1>
         </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', fontSize: '1.1rem' }}>سجل بجميع ملخصات الأداء التي قمت بحفظها</p>
@@ -118,17 +118,17 @@ const PerformanceLog = () => {
             const validNotes = log.notesList ? log.notesList.filter(n => n.trim() !== '') : [];
 
             return (
-              <div key={index} className="glass-panel" style={{ 
+              <div key={index} className="glass-panel" style={{
                 borderLeft: '4px solid var(--theme-color)',
                 transition: 'all 0.3s',
                 overflow: 'hidden'
               }}>
-                <div 
+                <div
                   onClick={() => setExpandedIndex(isExpanded ? null : index)}
-                  style={{ 
-                    padding: '1.5rem 2rem', 
-                    display: 'flex', 
-                    alignItems: 'center', 
+                  style={{
+                    padding: '1.5rem 2rem',
+                    display: 'flex',
+                    alignItems: 'center',
                     justifyContent: 'space-between',
                     cursor: 'pointer',
                     background: isExpanded ? 'rgba(255,255,255,0.02)' : 'transparent',
@@ -145,20 +145,20 @@ const PerformanceLog = () => {
                         {formatDate(log.date)}
                       </h3>
                       <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', flexWrap: 'wrap' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><PhoneCall size={14}/> {log.manualCallsCount || 0} مكالمة</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><ListTodo size={14}/> مهام مدونة</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><StickyNote size={14}/> {validNotes.length} ملاحظات</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><PhoneCall size={14} /> {log.manualCallsCount || 0} مكالمة</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><ListTodo size={14} /> مهام مدونة</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><StickyNote size={14} /> {validNotes.length} ملاحظات</span>
                       </div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <button 
+                    <button
                       onClick={(e) => { e.stopPropagation(); handleExportExcel(log); }}
-                      style={{ 
-                        padding: '0.6rem 1.2rem', 
-                        background: 'rgba(59, 130, 246, 0.1)', 
-                        color: 'var(--theme-color)', 
-                        border: '1px solid var(--theme-color)', 
+                      style={{
+                        padding: '0.6rem 1.2rem',
+                        background: 'rgba(59, 130, 246, 0.1)',
+                        color: 'var(--theme-color)',
+                        border: '1px solid var(--theme-color)',
                         borderRadius: '8px',
                         display: 'flex',
                         alignItems: 'center',
@@ -180,14 +180,14 @@ const PerformanceLog = () => {
 
                 {isExpanded && (
                   <div style={{ padding: '0 2rem 2rem 2rem', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '1rem', paddingTop: '1.5rem' }}>
-                    
+
                     <div style={{ marginBottom: '1.5rem' }}>
                       <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#a855f7', marginBottom: '0.8rem' }}>
                         <ListTodo size={18} /> مهام المتابعة
                       </h4>
-                      <div style={{ 
-                        background: 'rgba(0,0,0,0.2)', 
-                        padding: '1rem 1.5rem', 
+                      <div style={{
+                        background: 'rgba(0,0,0,0.2)',
+                        padding: '1rem 1.5rem',
                         borderRadius: '12px',
                         border: '1px solid rgba(255,255,255,0.05)',
                         color: 'var(--text-primary)',
@@ -205,9 +205,9 @@ const PerformanceLog = () => {
                       {validNotes.length > 0 ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                           {validNotes.map((note, idx) => (
-                            <div key={idx} style={{ 
-                              background: 'rgba(0,0,0,0.2)', 
-                              padding: '1rem 1.5rem', 
+                            <div key={idx} style={{
+                              background: 'rgba(0,0,0,0.2)',
+                              padding: '1rem 1.5rem',
                               borderRadius: '12px',
                               border: '1px solid rgba(255,255,255,0.05)',
                               color: 'var(--text-primary)',

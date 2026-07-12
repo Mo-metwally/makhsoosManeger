@@ -58,7 +58,6 @@
   border-radius: 16px;
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  overflow: visible !important;
 }
 
 .pending-section {
@@ -77,7 +76,8 @@
 .text-green-500 { color: #22c55e; }
 
 .pr-table-wrapper {
-  overflow: visible !important;
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 .pr-table {

@@ -8,9 +8,9 @@ const ReportEditor = () => {
     { id: 1, title: 'تقرير الخصومات', icon: <ShieldAlert size={40} />, link: '/report-editor/discounts', color: 'red' },
     { id: 2, title: 'تقرير الجودة اليومي', icon: <CheckCircle size={40} />, link: '/report-editor/quality', color: 'green' },
     { id: 3, title: 'تقرير الصلاحيات', icon: <FileText size={40} />, link: '/report-editor/permissions', color: 'blue' },
-    { id: 4, title: 'تقرير إضافي', icon: <PlusCircle size={40} />, link: '#', color: 'gray' },
+    // { id: 4, title: 'تقرير إضافي', icon: <PlusCircle size={40} />, link: '#', color: 'gray' },
   ];
-useEffect(() => {
+  useEffect(() => {
     document.title = "محرر التقارير | مخصوص";
   }, []);
 

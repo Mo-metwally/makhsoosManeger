@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Users, ArrowRight, Loader, ShieldAlert, CheckCircle, XCircle, Clock, CalendarDays, PhoneCall, AlertTriangle, CalendarRange, Search, Filter, Shield, Cat, Crown, Star, Smile, Briefcase, Flame, Zap, Heart, Moon, User } from 'lucide-react';
+import { Users, ArrowRight, Loader, ShieldAlert, CheckCircle, XCircle, Clock, CalendarDays, PhoneCall, AlertTriangle, CalendarRange, Search, Filter, Shield, Cat, Crown, Star, Smile, Briefcase, Flame, Zap, Heart, Moon, User, Activity, TrendingUp } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import api from '../services/api';
 import './ShiftStaffDetails.css';
 
@@ -14,6 +15,10 @@ const ShiftStaffDetails = () => {
   
   const [shift, setShift] = useState(null);
   const [staff, setStaff] = useState([]);
+  const [aggregatedStats, setAggregatedStats] = useState(null);
+  const [chartData, setChartData] = useState([]);
+  const [timeframe, setTimeframe] = useState('monthly');
+  const [activeMetricTab, setActiveMetricTab] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
@@ -28,13 +33,15 @@ const ShiftStaffDetails = () => {
 
   useEffect(() => {
     fetchStaffStats();
-  }, [shiftId]);
+  }, [shiftId, timeframe]);
 
   const fetchStaffStats = async () => {
     try {
-      const response = await api.get(`/shifts/${shiftId}/staff-stats`);
+      const response = await api.get(`/shifts/${shiftId}/staff-stats?timeframe=${timeframe}`);
       setShift(response.data.shift);
       setStaff(response.data.users);
+      setAggregatedStats(response.data.aggregatedStats);
+      setChartData(response.data.chartData || []);
       setLoading(false);
     } catch (err) {
       console.error('Error fetching staff stats:', err);
@@ -99,6 +106,15 @@ const ShiftStaffDetails = () => {
     ].join(':');
   };
 
+  const formatLateDuration = (minutes) => {
+    if (!minutes || minutes <= 0) return '0 دقيقة';
+    if (minutes < 60) return `${minutes} دقيقة`;
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (m === 0) return `${h} ساعة`;
+    return `${h} ساعة و ${m} دقيقة`;
+  };
+
   const getFilteredAndSortedStaff = () => {
     let result = [...staff];
 
@@ -121,6 +137,8 @@ const ShiftStaffDetails = () => {
           return b.stats.absentDays - a.stats.absentDays;
         case 'late':
           return b.stats.lateDays - a.stats.lateDays;
+        case 'dayoffs':
+          return b.stats.approvedDayOffs - a.stats.approvedDayOffs;
         case 'name':
         default:
           return a.fullName.localeCompare(b.fullName, 'ar');
@@ -128,6 +146,165 @@ const ShiftStaffDetails = () => {
     });
 
     return result;
+  };
+
+  const getPeriodLabel = () => {
+    switch (timeframe) {
+      case 'today': return 'اليوم';
+      case 'yesterday': return 'أمس';
+      case 'weekly': return 'هذا الأسبوع';
+      case 'yearly': return 'هذا العام';
+      case 'monthly':
+      default: return 'هذا الشهر';
+    }
+  };
+
+  const renderDashboard = () => {
+    if (!aggregatedStats) return null;
+
+    const { currentMonth, previousMonth } = aggregatedStats;
+    
+    const currentTotalDays = currentMonth.totalPresent + currentMonth.totalAbsent + currentMonth.totalDayOffs;
+    const currentRatio = currentTotalDays > 0 ? Math.round((currentMonth.totalPresent / currentTotalDays) * 100) : 0;
+    
+    const prevTotalDays = previousMonth.totalPresent + previousMonth.totalAbsent + previousMonth.totalDayOffs;
+    const prevRatio = prevTotalDays > 0 ? Math.round((previousMonth.totalPresent / prevTotalDays) * 100) : 0;
+
+    return (
+      <div className="ssd-dashboard fade-in">
+        <div className="dashboard-header-row">
+          <h2 className="dashboard-title">
+            <Activity size={24} className="text-blue" />
+            الأداء المجمع للوردية (مقارنة زمنية)
+          </h2>
+          <div className="timeframe-filters">
+            <button className={`time-btn ${timeframe === 'today' ? 'active' : ''}`} onClick={() => setTimeframe('today')}>اليوم</button>
+            <button className={`time-btn ${timeframe === 'yesterday' ? 'active' : ''}`} onClick={() => setTimeframe('yesterday')}>أمس</button>
+            <button className={`time-btn ${timeframe === 'weekly' ? 'active' : ''}`} onClick={() => setTimeframe('weekly')}>أسبوعي</button>
+            <button className={`time-btn ${timeframe === 'monthly' ? 'active' : ''}`} onClick={() => setTimeframe('monthly')}>شهري</button>
+            <button className={`time-btn ${timeframe === 'yearly' ? 'active' : ''}`} onClick={() => setTimeframe('yearly')}>سنوي</button>
+          </div>
+        </div>
+        
+        <div className="dashboard-cards">
+          <div className="dash-card">
+            <div className="dash-card-icon"><Clock size={28} /></div>
+            <div className="dash-card-info">
+              <h4>ساعات الدوام ({getPeriodLabel()})</h4>
+              <div className="dash-card-val">{currentMonth.totalHours} <span className="unit">ساعة</span></div>
+            </div>
+          </div>
+          <div className="dash-card">
+            <div className="dash-card-icon"><PhoneCall size={28} /></div>
+            <div className="dash-card-info">
+              <h4>إجمالي المكالمات ({getPeriodLabel()})</h4>
+              <div className="dash-card-val">{currentMonth.totalCalls} <span className="unit">مكالمة</span></div>
+            </div>
+          </div>
+          <div className="dash-card">
+            <div className="dash-card-icon"><TrendingUp size={28} /></div>
+            <div className="dash-card-info">
+              <h4>نسبة الحضور ({getPeriodLabel()})</h4>
+              <div className="dash-card-val" style={{ color: currentRatio >= 85 ? 'var(--success)' : currentRatio >= 70 ? 'var(--warning)' : 'var(--danger)' }}>
+                {currentRatio}%
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="dashboard-chart-wrapper">
+          <div className="chart-header-row">
+            <h3 className="chart-title">مؤشر فرق الأداء الزمني ({getPeriodLabel()} مقابل الفترة السابقة)</h3>
+            <div className="metric-tabs">
+              <button className={`metric-tab ${activeMetricTab === 'all' ? 'active' : ''}`} onClick={() => setActiveMetricTab('all')}>الكل</button>
+              <button className={`metric-tab ${activeMetricTab === 'calls' ? 'active' : ''}`} onClick={() => setActiveMetricTab('calls')}>المكالمات</button>
+              <button className={`metric-tab ${activeMetricTab === 'hours' ? 'active' : ''}`} onClick={() => setActiveMetricTab('hours')}>الساعات</button>
+              <button className={`metric-tab ${activeMetricTab === 'attendance' ? 'active' : ''}`} onClick={() => setActiveMetricTab('attendance')}>الحضور</button>
+            </div>
+          </div>
+          
+          <div className="chart-container" style={{ width: '100%', height: '450px', marginTop: '1rem' }}>
+            <ResponsiveContainer>
+              <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorCallsCurr" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorCallsPrev" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="rgba(255,255,255,0.3)" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="rgba(255,255,255,0.3)" stopOpacity={0}/>
+                  </linearGradient>
+
+                  <linearGradient id="colorHoursCurr" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorHoursPrev" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="rgba(255,255,255,0.3)" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="rgba(255,255,255,0.3)" stopOpacity={0}/>
+                  </linearGradient>
+
+                  <linearGradient id="colorAttCurr" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorAttPrev" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="rgba(255,255,255,0.3)" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="rgba(255,255,255,0.3)" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
+                <XAxis dataKey="name" stroke="var(--text-secondary)" tick={{ fill: 'var(--text-secondary)' }} />
+                <YAxis stroke="var(--text-secondary)" tick={{ fill: 'var(--text-secondary)' }} />
+                <Tooltip 
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '1rem', color: '#fff', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)' }}>
+                          <p style={{ margin: '0 0 0.8rem 0', fontWeight: 'bold', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem', textAlign: 'center', fontSize: '1.1rem' }}>{label}</p>
+                          {payload.map((entry, index) => (
+                            <div key={`item-${index}`} style={{ display: 'flex', justifyContent: 'space-between', gap: '2rem', margin: '0.5rem 0', color: entry.color, fontSize: '0.95rem' }}>
+                              <span>{entry.name}:</span>
+                              <span style={{ fontWeight: 'bold' }}>{entry.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                  cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                />
+                <Legend wrapperStyle={{ paddingTop: '20px' }} />
+
+                {(activeMetricTab === 'all' || activeMetricTab === 'calls') && (
+                  <>
+                    <Area type="monotone" dataKey="المكالمات السابقة" stroke="rgba(255,255,255,0.3)" fillOpacity={1} fill="url(#colorCallsPrev)" strokeWidth={2} />
+                    <Area type="monotone" dataKey="المكالمات الحالية" stroke="#3b82f6" fillOpacity={1} fill="url(#colorCallsCurr)" strokeWidth={3} />
+                  </>
+                )}
+
+                {(activeMetricTab === 'all' || activeMetricTab === 'hours') && (
+                  <>
+                    <Area type="monotone" dataKey="الساعات السابقة" stroke="rgba(255,255,255,0.3)" fillOpacity={1} fill="url(#colorHoursPrev)" strokeWidth={2} />
+                    <Area type="monotone" dataKey="الساعات الحالية" stroke="#10b981" fillOpacity={1} fill="url(#colorHoursCurr)" strokeWidth={3} />
+                  </>
+                )}
+
+                {(activeMetricTab === 'all' || activeMetricTab === 'attendance') && (
+                  <>
+                    <Area type="monotone" dataKey="الحضور السابق" stroke="rgba(255,255,255,0.3)" fillOpacity={1} fill="url(#colorAttPrev)" strokeWidth={2} />
+                    <Area type="monotone" dataKey="الحضور الحالي" stroke="#f59e0b" fillOpacity={1} fill="url(#colorAttCurr)" strokeWidth={3} />
+                  </>
+                )}
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   if (loading) {
@@ -163,10 +340,12 @@ const ShiftStaffDetails = () => {
             موظفي وردية: {shift.name}
           </h1>
           <p className="ssd-subtitle">
-            إحصائيات الشهر الحالي (مكالمات، حضور، وغياب)
+            إحصائيات {getPeriodLabel()} (مكالمات، حضور، وتأخير)
           </p>
         </div>
       </div>
+
+      {renderDashboard()}
 
       <div className="ssd-controls">
         <div className="search-box">
@@ -215,6 +394,13 @@ const ShiftStaffDetails = () => {
             onClick={() => setSortBy('late')}
           >
             الأكثر تأخيراً
+          </button>
+          
+          <button 
+            className={`sort-pill ${sortBy === 'dayoffs' ? 'active orange' : ''}`}
+            onClick={() => setSortBy('dayoffs')}
+          >
+            الأكثر إجازة
           </button>
         </div>
       </div>
@@ -271,8 +457,11 @@ const ShiftStaffDetails = () => {
                       <div className="stat-mini red" title="أيام الغياب">
                         <XCircle size={16} /> {user.stats.absentDays}
                       </div>
-                      <div className="stat-mini yellow" title="أيام التأخير">
-                        <AlertTriangle size={16} /> {user.stats.lateDays}
+                      <div className="stat-mini yellow" title="التأخير المجمع للفترة">
+                        <AlertTriangle size={16} /> {user.stats.lateDays} 
+                        <span style={{ fontSize: '0.75rem', opacity: 0.8, marginRight: '4px' }}>
+                          ({formatLateDuration(user.stats.totalLateMinutes)})
+                        </span>
                       </div>
                     </div>
                   </td>

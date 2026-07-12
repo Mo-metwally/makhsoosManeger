@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Loader, ShieldAlert, CheckCircle, XCircle, Clock, CalendarRange, HelpCircle, Activity, Edit2, Shield, Cat, Crown, Star, Smile, Briefcase, Flame, Zap, Heart, Moon, User, RefreshCw, LogIn, LogOut, UserX, CalendarOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Users, Loader, ShieldAlert, CheckCircle, XCircle, Clock, CalendarRange, HelpCircle, Activity, Edit2, Shield, Cat, Crown, Star, Smile, Briefcase, Flame, Zap, Heart, Moon, User, RefreshCw, LogIn, LogOut, UserX, CalendarOff, AlertTriangle } from 'lucide-react';
 import api from '../services/api';
 import './TodayFollowup.css';
 
@@ -8,13 +9,14 @@ const avatarMap = {
 };
 
 const TodayFollowup = () => {
+  const navigate = useNavigate();
   const [employees, setEmployees] = useState([]);
   const [adminShifts, setAdminShifts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('All'); // All, Present, Absent, DayOff, Pending
   const [shiftFilter, setShiftFilter] = useState('All'); // 'All' or shift name
-  
+
   // Modal states
   const [selectedEmp, setSelectedEmp] = useState(null);
   const [action, setAction] = useState('CheckIn');
@@ -25,12 +27,12 @@ const TodayFollowup = () => {
   useEffect(() => {
     document.title = "متابعة اليوم | مخصوص";
     fetchTodayStatus();
-    
+
     // Refresh every 2 minutes
     const interval = setInterval(() => {
       fetchTodayStatus();
     }, 2 * 60 * 1000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -59,14 +61,14 @@ const TodayFollowup = () => {
 
     if (emp.checkInTime) {
       const ci = new Date(emp.checkInTime);
-      setManualCheckIn(`${ci.getHours().toString().padStart(2,'0')}:${ci.getMinutes().toString().padStart(2,'0')}`);
+      setManualCheckIn(`${ci.getHours().toString().padStart(2, '0')}:${ci.getMinutes().toString().padStart(2, '0')}`);
     } else {
       setManualCheckIn('');
     }
 
     if (emp.checkOutTime) {
       const co = new Date(emp.checkOutTime);
-      setManualCheckOut(`${co.getHours().toString().padStart(2,'0')}:${co.getMinutes().toString().padStart(2,'0')}`);
+      setManualCheckOut(`${co.getHours().toString().padStart(2, '0')}:${co.getMinutes().toString().padStart(2, '0')}`);
     } else {
       setManualCheckOut('');
     }
@@ -132,19 +134,19 @@ const TodayFollowup = () => {
       case 'DayOff':
         return { label: 'إجازة', icon: <CalendarRange size={16} />, className: 'status-dayoff' };
       case 'بريك صلاة':
-        return { label: 'في صلاة', icon: <span style={{fontSize: '14px', marginLeft: '4px'}}>🕋</span>, className: 'status-break-prayer' };
+        return { label: 'في صلاة', icon: <span style={{ fontSize: '14px', marginLeft: '4px' }}>🕋</span>, className: 'status-break-prayer' };
       case 'بريك غداء':
-        return { label: 'في غداء', icon: <span style={{fontSize: '14px', marginLeft: '4px'}}>🍔</span>, className: 'status-break-lunch' };
+        return { label: 'في غداء', icon: <span style={{ fontSize: '14px', marginLeft: '4px' }}>🍔</span>, className: 'status-break-lunch' };
       case 'تدريب':
-        return { label: 'في تدريب', icon: <span style={{fontSize: '14px', marginLeft: '4px'}}>📝</span>, className: 'status-break-training' };
+        return { label: 'في تدريب', icon: <span style={{ fontSize: '14px', marginLeft: '4px' }}>📝</span>, className: 'status-break-training' };
       case 'Pending':
       default:
         return { label: 'لم يحضر بعد', icon: <Clock size={16} />, className: 'status-pending' };
     }
   };
 
-  const filteredByShift = shiftFilter === 'All' 
-    ? employees 
+  const filteredByShift = shiftFilter === 'All'
+    ? employees
     : employees.filter(emp => emp.shifts && emp.shifts.includes(shiftFilter));
 
   const filteredEmployees = filteredByShift.filter(emp => {
@@ -189,8 +191,8 @@ const TodayFollowup = () => {
               <Activity size={32} className="tf-title-icon" />
               متابعة اليوم
             </h1>
-            <button 
-              onClick={fetchTodayStatus} 
+            <button
+              onClick={fetchTodayStatus}
               disabled={loading}
               style={{
                 background: 'rgba(249, 115, 22, 0.1)',
@@ -213,13 +215,13 @@ const TodayFollowup = () => {
           <p className="tf-subtitle" style={{ marginTop: '0.5rem' }}>متابعة حالة الموظفين التابعين لك لليوم الحالي</p>
           {adminShifts.length > 0 && (
             <div className="tf-shifts-info" style={{ marginTop: '1rem', display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
-              <span 
+              <span
                 onClick={() => setShiftFilter('All')}
-                style={{ 
-                  background: shiftFilter === 'All' ? 'var(--primary-color)' : 'rgba(249, 115, 22, 0.1)', 
-                  color: shiftFilter === 'All' ? '#fff' : 'var(--primary-color)', 
-                  padding: '0.4rem 1rem', 
-                  borderRadius: '20px', 
+                style={{
+                  background: shiftFilter === 'All' ? 'var(--primary-color)' : 'rgba(249, 115, 22, 0.1)',
+                  color: shiftFilter === 'All' ? '#fff' : 'var(--primary-color)',
+                  padding: '0.4rem 1rem',
+                  borderRadius: '20px',
                   fontSize: '0.9rem',
                   border: '1px solid rgba(249, 115, 22, 0.3)',
                   display: 'inline-flex',
@@ -232,14 +234,14 @@ const TodayFollowup = () => {
                 جميع الورديات
               </span>
               {adminShifts.map((shift, idx) => (
-                <span 
-                  key={idx} 
+                <span
+                  key={idx}
                   onClick={() => setShiftFilter(shift.name)}
-                  style={{ 
-                    background: shiftFilter === shift.name ? 'var(--primary-color)' : 'rgba(249, 115, 22, 0.1)', 
-                    color: shiftFilter === shift.name ? '#fff' : 'var(--primary-color)', 
-                    padding: '0.4rem 1rem', 
-                    borderRadius: '20px', 
+                  style={{
+                    background: shiftFilter === shift.name ? 'var(--primary-color)' : 'rgba(249, 115, 22, 0.1)',
+                    color: shiftFilter === shift.name ? '#fff' : 'var(--primary-color)',
+                    padding: '0.4rem 1rem',
+                    borderRadius: '20px',
                     fontSize: '0.9rem',
                     border: '1px solid rgba(249, 115, 22, 0.3)',
                     display: 'inline-flex',
@@ -330,10 +332,35 @@ const TodayFollowup = () => {
                         </div>
                       </td>
                       <td>{emp.jobTitle || 'موظف'}</td>
-                      <td>
-                        {emp.shifts && emp.shifts.length > 0 
-                          ? emp.shifts.join('، ') 
+                      <td style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                        {emp.shifts && emp.shifts.length > 0
+                          ? emp.shifts.join('، ')
                           : <span className="text-secondary">غير محدد</span>}
+                        {emp.lateMinutes > 0 && (
+                          <div style={{
+                            background: 'rgba(245, 158, 11, 0.15)',
+                            color: '#f59e0b',
+                            border: '1px solid rgba(245, 158, 11, 0.3)',
+                            borderRadius: '12px',
+                            padding: '2px 8px',
+                            fontSize: '0.75rem',
+                            marginTop: '6px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontWeight: 'bold'
+                          }}>
+                            <br />
+                            <AlertTriangle size={14} />
+                            تأخير: {(() => {
+                              const mins = emp.lateMinutes;
+                              if (mins < 60) return `${mins} دقيقة`;
+                              const h = Math.floor(mins / 60);
+                              const m = mins % 60;
+                              return m === 0 ? `${h} ساعة` : `${h} س و ${m} د`;
+                            })()}
+                          </div>
+                        )}
                       </td>
                       <td>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -343,8 +370,8 @@ const TodayFollowup = () => {
                           </span>
                           {(emp.checkInTime || emp.checkOutTime) && (
                             <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                              {emp.checkInTime && <div><span style={{color: 'var(--green)'}}>↑</span> حضور: {new Date(emp.checkInTime).toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'})}</div>}
-                              {emp.checkOutTime && <div><span style={{color: 'var(--orange)'}}>↓</span> إنصراف: {new Date(emp.checkOutTime).toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'})}</div>}
+                              {emp.checkInTime && <div><span style={{ color: 'var(--green)' }}>↑</span> حضور: {new Date(emp.checkInTime).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</div>}
+                              {emp.checkOutTime && <div><span style={{ color: 'var(--orange)' }}>↓</span> إنصراف: {new Date(emp.checkOutTime).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</div>}
                             </div>
                           )}
                         </div>
@@ -352,7 +379,7 @@ const TodayFollowup = () => {
                       <td>
                         <div style={{ fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                           {emp.breakDetails && emp.breakDetails['بريك صلاة'] > 0 && (
-                            <div style={{ color: 'var(--text-secondary)' }}><span style={{marginRight: '4px'}}>🕋</span>صلاة: {(() => {
+                            <div style={{ color: 'var(--text-secondary)' }}><span style={{ marginRight: '4px' }}>🕋</span>صلاة: {(() => {
                               const totalMins = Math.floor(emp.breakDetails['بريك صلاة'] / 60000);
                               const hours = Math.floor(totalMins / 60);
                               const mins = totalMins % 60;
@@ -360,7 +387,7 @@ const TodayFollowup = () => {
                             })()}</div>
                           )}
                           {emp.breakDetails && emp.breakDetails['بريك غداء'] > 0 && (
-                            <div style={{ color: 'var(--text-secondary)' }}><span style={{marginRight: '4px'}}>🍔</span>غداء: {(() => {
+                            <div style={{ color: 'var(--text-secondary)' }}><span style={{ marginRight: '4px' }}>🍔</span>غداء: {(() => {
                               const totalMins = Math.floor(emp.breakDetails['بريك غداء'] / 60000);
                               const hours = Math.floor(totalMins / 60);
                               const mins = totalMins % 60;
@@ -373,14 +400,35 @@ const TodayFollowup = () => {
                         </div>
                       </td>
                       <td>
-                        <button 
-                          className="tf-edit-btn"
-                          onClick={() => openModal(emp)}
-                          title="تعديل الحالة"
-                        >
-                          <Edit2 size={16} />
-                          تعديل
-                        </button>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', justifyContent: 'center' }}>
+                          <button
+                            className="tf-edit-btn"
+                            onClick={() => openModal(emp)}
+                            title="تعديل الحالة"
+                            style={{ padding: '0.4rem 0.6rem', flex: 1 }}
+                          >
+                            <Edit2 size={16} />
+                            تعديل
+                          </button>
+                          <button
+                            onClick={() => navigate(`/personal-followup/${emp.id}`)}
+                            title="ملف الموظف"
+                            style={{
+                              background: 'rgba(59, 130, 246, 0.1)',
+                              color: 'var(--blue)',
+                              border: '1px solid rgba(59, 130, 246, 0.3)',
+                              borderRadius: '8px',
+                              padding: '0.4rem',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'all 0.3s ease'
+                            }}
+                          >
+                            <User size={18} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -399,7 +447,7 @@ const TodayFollowup = () => {
               <h2>تحديث حالة الموظف</h2>
               <button className="tf-close-btn" onClick={closeModal}><XCircle size={24} /></button>
             </div>
-            
+
             <div className="tf-modal-body">
               <div className="tf-emp-summary">
                 <div className="tf-avatar-modal">
@@ -473,7 +521,7 @@ const TodayFollowup = () => {
                       ملاحظة
                       {isEarlyCheckout && action === 'CheckOut' && <span className="required-asterisk">*</span>}
                     </label>
-                    <textarea 
+                    <textarea
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       className="tf-textarea"

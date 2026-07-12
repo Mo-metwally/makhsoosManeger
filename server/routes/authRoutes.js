@@ -11,6 +11,8 @@ router.post('/forgot-password', authController.forgotPassword);
 router.post('/verify-otp', authController.verifyOtp);
 router.post('/reset-password', authController.resetPassword);
 
+router.get('/check-username', authController.checkUsername);
+
 router.get('/me', authMiddleware, deviceLock, authController.me);
 router.put('/profile', authMiddleware, deviceLock, authController.updateProfile);
 router.put('/change-password', authMiddleware, deviceLock, authController.changePassword);

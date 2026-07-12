@@ -9,7 +9,7 @@ import Home from './pages/Home';
 import Calls from './pages/Calls';
 import Account from './pages/Account';
 import Monitoring from './pages/Monitoring';
-import HandleAdminAdd from './pages/HandleAdminAdd';
+// import HandleAdminAdd from './pages/HandleAdminAdd';
 import HandleAdmin from './pages/HandleAdmin';
 import HandleAdminReports from './pages/HandleAdminReports';
 import HandleAdminPerformance from './pages/HandleAdminPerformance';
@@ -20,6 +20,7 @@ import ReportEditor from './pages/ReportEditor';
 import QualityReport from './pages/QualityReport';
 import DiscountsReport from './pages/DiscountsReport';
 import PermissionsReport from './pages/PermissionsReport';
+import ReportEditorPermissions from './pages/ReportEditorPermissions';
 import ShiftManagement from './pages/ShiftManagement';
 import Attendance from './pages/Attendance';
 import DayOff from './pages/DayOff';
@@ -36,11 +37,12 @@ import PersonalFollowup from './pages/PersonalFollowup';
 import Expenses from './pages/Expenses';
 import ExpensesAdd from './pages/ExpensesAdd';
 import MyAdvances from './pages/MyAdvances';
+import ComingSoon from './pages/ComingSoon';
 import './App.css';
 
 function AppContent() {
   const { user, loading } = useAuth();
-  
+
 
   // Attendance State
   const [attendanceChecked, setAttendanceChecked] = useState(false);
@@ -51,25 +53,25 @@ function AppContent() {
   useEffect(() => {
     if (user && user.status === 'Active') {
       api.get('/attendance/status').then(res => {
-         if (res.data.hasShiftToday && !res.data.hasCheckedIn) {
-            setTodayShift(res.data.shift);
-            setNeedsCheckIn(true);
-            
-            // Calculate isEarlyForShift synchronously to prevent UI flicker
-            if (res.data.shift && res.data.shift.startTime) {
-              const [startHour, startMinute] = res.data.shift.startTime.split(':').map(Number);
-              const startTimeDate = new Date();
-              startTimeDate.setHours(startHour, startMinute, 0, 0);
-              const diffMs = new Date().getTime() - startTimeDate.getTime();
-              setIsEarlyForShift(diffMs < -300000);
-            }
-         } else {
-            setNeedsCheckIn(false);
-         }
-         setAttendanceChecked(true);
+        if (res.data.hasShiftToday && !res.data.hasCheckedIn) {
+          setTodayShift(res.data.shift);
+          setNeedsCheckIn(true);
+
+          // Calculate isEarlyForShift synchronously to prevent UI flicker
+          if (res.data.shift && res.data.shift.startTime) {
+            const [startHour, startMinute] = res.data.shift.startTime.split(':').map(Number);
+            const startTimeDate = new Date();
+            startTimeDate.setHours(startHour, startMinute, 0, 0);
+            const diffMs = new Date().getTime() - startTimeDate.getTime();
+            setIsEarlyForShift(diffMs < -300000);
+          }
+        } else {
+          setNeedsCheckIn(false);
+        }
+        setAttendanceChecked(true);
       }).catch(err => {
-         console.error('Error checking attendance status:', err);
-         setAttendanceChecked(true); // Proceed on error to avoid blocking
+        console.error('Error checking attendance status:', err);
+        setAttendanceChecked(true); // Proceed on error to avoid blocking
       });
     } else {
       setAttendanceChecked(true);
@@ -83,12 +85,12 @@ function AppContent() {
         const [startHour, startMinute] = todayShift.startTime.split(':').map(Number);
         const startTimeDate = new Date();
         startTimeDate.setHours(startHour, startMinute, 0, 0);
-        
+
         const diffMs = new Date().getTime() - startTimeDate.getTime();
         // If diffMs < -300000 (more than 5 mins early), it is early
         setIsEarlyForShift(diffMs < -300000);
       };
-      
+
       checkEarly();
       const timer = setInterval(checkEarly, 10000); // Check every 10 seconds
       return () => clearInterval(timer);
@@ -96,7 +98,7 @@ function AppContent() {
       setIsEarlyForShift(false);
     }
   }, [needsCheckIn, todayShift]);
-  
+
 
   useEffect(() => {
     const applyTheme = () => {
@@ -104,7 +106,7 @@ function AppContent() {
       document.documentElement.setAttribute('data-theme', avatar);
     };
 
-    applyTheme(); 
+    applyTheme();
     window.addEventListener('profileUpdated', applyTheme);
 
     return () => {
@@ -138,12 +140,15 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/contacts" element={<Calls />} />
-          <Route path="/monitoring" element={<Monitoring />} />
+          {(user?.role === 'Admin' || user?.role === 'SuperAdmin') && (
+            <Route path="/monitoring" element={<Monitoring />} />
+          )}
+          <Route path="/my-monitoring" element={<Monitoring isMyMonitoring={true} />} />
           <Route path="/account" element={<Account />} />
-          <Route path="/handleAdminAdd" element={<HandleAdminAdd />} />
+          {/* <Route path="/handleAdminAdd" element={<HandleAdminAdd />} /> */}
           <Route path="/allcontacts" element={<HandleAdmin />} />
-          <Route path="/handleAdminReports" element={<HandleAdminReports />} />
-          <Route path="/handleAdminPerformance" element={<HandleAdminPerformance />} />
+          <Route path="/attendancereports" element={<HandleAdminReports />} />
+          <Route path="/allPerformance" element={<HandleAdminPerformance />} />
           <Route path="/handleAdminExport" element={<HandleAdminExport />} />
           <Route path="/summery" element={<Summary />} />
           <Route path="/performance-log" element={<PerformanceLog />} />
@@ -162,9 +167,11 @@ function AppContent() {
           <Route path="/expenses" element={<Expenses />} />
           <Route path="/expenses-add" element={<ExpensesAdd />} />
           <Route path="/my-advances" element={<MyAdvances />} />
+          <Route path="/general-settings" element={<ComingSoon title="إعدادات عامة - قريباً" />} />
+          <Route path="/report-editor/permissions" element={<ReportEditorPermissions />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-        
+
         <footer className="global-footer">
           <p>جميع الحقوق محفوظة &copy; {new Date().getFullYear()}</p>
           <a href="https://mohammed-metwally-classic.web.app/" target="_blank" rel="noopener noreferrer" className="footer-link">

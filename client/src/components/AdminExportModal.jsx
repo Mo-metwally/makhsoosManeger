@@ -20,12 +20,12 @@ const AdminExportModal = ({ isOpen, onClose, filters }) => {
     const allCalls = JSON.parse(localStorage.getItem('admin_aggregated_calls') || '[]');
     const allLogs = JSON.parse(localStorage.getItem('admin_aggregated_logs') || '[]');
     const allPerf = JSON.parse(localStorage.getItem('admin_aggregated_performance') || '[]');
-    
+
     const finalFilters = { ...filters, timeFilter, customStartDate, customEndDate };
 
     const exportCalls = applyFiltersAndSort(allCalls, finalFilters, false);
     const exportLogs = applyFiltersAndSort(allLogs, finalFilters, true);
-    
+
     const mapDateForPerf = allPerf.map(l => ({ ...l, createdAt: l.createdAt || parseArabicDate(l.date) }));
     const exportPerf = applyFiltersAndSort(mapDateForPerf, finalFilters, true);
 
@@ -39,7 +39,7 @@ const AdminExportModal = ({ isOpen, onClose, filters }) => {
         <button className="modal-close" onClick={onClose}>
           <X size={24} />
         </button>
-        
+
         <h2 style={{ marginBottom: '1.5rem', color: 'var(--text-primary)', textAlign: 'center' }}>
           تحميل تقرير شامل
         </h2>
@@ -79,9 +79,9 @@ const AdminExportModal = ({ isOpen, onClose, filters }) => {
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '12px' }}>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>من:</label>
-                <input 
-                  type="date" 
-                  value={customStartDate} 
+                <input
+                  type="date"
+                  value={customStartDate}
                   onChange={e => setCustomStartDate(e.target.value)}
                   className="search-input"
                   style={{ width: '100%' }}
@@ -89,9 +89,9 @@ const AdminExportModal = ({ isOpen, onClose, filters }) => {
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>إلى:</label>
-                <input 
-                  type="date" 
-                  value={customEndDate} 
+                <input
+                  type="date"
+                  value={customEndDate}
                   onChange={e => setCustomEndDate(e.target.value)}
                   className="search-input"
                   style={{ width: '100%' }}
@@ -103,15 +103,15 @@ const AdminExportModal = ({ isOpen, onClose, filters }) => {
 
         <h4 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>اختر نوع الملف:</h4>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '2rem' }}>
-          
+
           <label style={{
             display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem',
             border: `2px solid ${exportType === 'all_zip' ? 'var(--theme-color)' : 'rgba(255,255,255,0.1)'}`,
             borderRadius: '12px', cursor: 'pointer', background: 'rgba(0,0,0,0.2)', transition: 'all 0.3s'
           }}>
-            <input 
-              type="radio" 
-              name="adminExportType" 
+            <input
+              type="radio"
+              name="adminExportType"
               value="all_zip"
               checked={exportType === 'all_zip'}
               onChange={() => setExportType('all_zip')}
@@ -129,9 +129,9 @@ const AdminExportModal = ({ isOpen, onClose, filters }) => {
             border: `2px solid ${exportType === 'calls_only' ? 'var(--theme-color)' : 'rgba(255,255,255,0.1)'}`,
             borderRadius: '12px', cursor: 'pointer', background: 'rgba(0,0,0,0.2)', transition: 'all 0.3s'
           }}>
-            <input 
-              type="radio" 
-              name="adminExportType" 
+            <input
+              type="radio"
+              name="adminExportType"
               value="calls_only"
               checked={exportType === 'calls_only'}
               onChange={() => setExportType('calls_only')}
@@ -149,9 +149,9 @@ const AdminExportModal = ({ isOpen, onClose, filters }) => {
             border: `2px solid ${exportType === 'logs_only' ? 'var(--theme-color)' : 'rgba(255,255,255,0.1)'}`,
             borderRadius: '12px', cursor: 'pointer', background: 'rgba(0,0,0,0.2)', transition: 'all 0.3s'
           }}>
-            <input 
-              type="radio" 
-              name="adminExportType" 
+            <input
+              type="radio"
+              name="adminExportType"
               value="logs_only"
               checked={exportType === 'logs_only'}
               onChange={() => setExportType('logs_only')}
@@ -169,9 +169,9 @@ const AdminExportModal = ({ isOpen, onClose, filters }) => {
             border: `2px solid ${exportType === 'perf_only' ? 'var(--theme-color)' : 'rgba(255,255,255,0.1)'}`,
             borderRadius: '12px', cursor: 'pointer', background: 'rgba(0,0,0,0.2)', transition: 'all 0.3s'
           }}>
-            <input 
-              type="radio" 
-              name="adminExportType" 
+            <input
+              type="radio"
+              name="adminExportType"
               value="perf_only"
               checked={exportType === 'perf_only'}
               onChange={() => setExportType('perf_only')}
@@ -179,14 +179,14 @@ const AdminExportModal = ({ isOpen, onClose, filters }) => {
             />
             <ClipboardList size={24} color={exportType === 'perf_only' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
             <div style={{ flex: 1 }}>
-              <h4 style={{ color: 'var(--text-primary)', margin: 0 }}>سجل الأداء (Excel)</h4>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '4px 0 0 0' }}>تحميل تقارير أداء المشرفين المجمعة فقط.</p>
+              <h4 style={{ color: 'var(--text-primary)', margin: 0 }}>سجل المهام (Excel)</h4>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '4px 0 0 0' }}>تحميل تقارير مهام المشرفين المجمعة فقط.</p>
             </div>
           </label>
         </div>
 
-        <button 
-          className="btn-save" 
+        <button
+          className="btn-save"
           onClick={handleExport}
           style={{ width: '100%', padding: '1.2rem', display: 'flex', justifyContent: 'center', gap: '0.5rem', fontSize: '1.2rem', fontWeight: 'bold' }}
         >
