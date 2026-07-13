@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
@@ -13,6 +14,7 @@ const attendanceRoutes = require('./routes/attendanceRoutes');
 const dayOffRoutes = require('./routes/dayOffRoutes');
 const budgetRoutes = require('./routes/budgetRoutes');
 const advanceRoutes = require('./routes/advanceRoutes');
+const settingRoutes = require('./routes/settingRoutes');
 
 const app = express();
 
@@ -42,6 +44,14 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/dayoff', dayOffRoutes);
 app.use('/api/budgets', budgetRoutes);
 app.use('/api/advances', advanceRoutes);
+app.use('/api/settings', settingRoutes);
+
+// Serve frontend client
+app.use(express.static(path.join(__dirname, 'public', 'dist')));
+
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'dist', 'index.html'));
+});
 
 const PORT = process.env.PORT || 5000;
 

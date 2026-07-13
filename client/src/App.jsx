@@ -38,6 +38,8 @@ import Expenses from './pages/Expenses';
 import ExpensesAdd from './pages/ExpensesAdd';
 import MyAdvances from './pages/MyAdvances';
 import ComingSoon from './pages/ComingSoon';
+import GeneralSettings from './pages/GeneralSettings';
+import { ToastProvider } from './contexts/ToastContext';
 import './App.css';
 
 function AppContent() {
@@ -49,6 +51,9 @@ function AppContent() {
   const [needsCheckIn, setNeedsCheckIn] = useState(false);
   const [todayShift, setTodayShift] = useState(null);
   const [isEarlyForShift, setIsEarlyForShift] = useState(false);
+
+  const [showSummaryReminder, setShowSummaryReminder] = useState(false);
+  const [activeWorkShift, setActiveWorkShift] = useState(null);
 
   useEffect(() => {
     if (user && user.status === 'Active') {
@@ -65,6 +70,10 @@ function AppContent() {
             const diffMs = new Date().getTime() - startTimeDate.getTime();
             setIsEarlyForShift(diffMs < -300000);
           }
+        } else if (res.data.hasCheckedIn && res.data.log && !res.data.log.checkOutTime) {
+          // User is currently checked in
+          setActiveWorkShift(res.data.log.Shift || res.data.shift);
+          setNeedsCheckIn(false);
         } else {
           setNeedsCheckIn(false);
         }
@@ -99,18 +108,49 @@ function AppContent() {
     }
   }, [needsCheckIn, todayShift]);
 
+  // Check if it's 30 mins before shift ends to show Summary reminder
+  useEffect(() => {
+    if (!activeWorkShift || !activeWorkShift.endTime) return;
+
+    const checkReminder = () => {
+      const now = new Date();
+      const todayStr = now.toDateString();
+      if (localStorage.getItem('summaryReminderDate') === todayStr) return;
+
+      const [endHour, endMinute] = activeWorkShift.endTime.split(':').map(Number);
+      const endTimeDate = new Date();
+      endTimeDate.setHours(endHour, endMinute, 0, 0);
+
+      const diffMs = endTimeDate.getTime() - now.getTime();
+      const diffMins = diffMs / 60000;
+
+      // If within 30 minutes before end time, or even past it but still checked in
+      if (diffMins <= 30 && diffMins > -120) {
+        setShowSummaryReminder(true);
+      }
+    };
+
+    checkReminder();
+    const timer = setInterval(checkReminder, 60000); // Check every minute
+    return () => clearInterval(timer);
+  }, [activeWorkShift]);
 
   useEffect(() => {
     const applyTheme = () => {
       const avatar = user?.avatar || localStorage.getItem('userAvatar') || 'User';
       document.documentElement.setAttribute('data-theme', avatar);
+      
+      const appMode = localStorage.getItem('app-mode') || 'dark';
+      document.documentElement.setAttribute('data-mode', appMode);
     };
 
     applyTheme();
     window.addEventListener('profileUpdated', applyTheme);
+    window.addEventListener('modeUpdated', applyTheme);
 
     return () => {
       window.removeEventListener('profileUpdated', applyTheme);
+      window.removeEventListener('modeUpdated', applyTheme);
     };
   }, [user]);
 
@@ -167,7 +207,7 @@ function AppContent() {
           <Route path="/expenses" element={<Expenses />} />
           <Route path="/expenses-add" element={<ExpensesAdd />} />
           <Route path="/my-advances" element={<MyAdvances />} />
-          <Route path="/general-settings" element={<ComingSoon title="إعدادات عامة - قريباً" />} />
+          <Route path="/general-settings" element={<GeneralSettings />} />
           <Route path="/report-editor/permissions" element={<ReportEditorPermissions />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
@@ -182,6 +222,41 @@ function AppContent() {
 
       <CheckoutModal />
 
+      {/* Summary Reminder Modal */}
+      {showSummaryReminder && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
+          <div className="fade-in" style={{ background: 'var(--bg-main)', padding: '2.5rem', borderRadius: '16px', maxWidth: '450px', width: '90%', textAlign: 'center', border: '1px solid var(--theme-color)', boxShadow: '0 10px 40px rgba(var(--theme-color-rgb, 16,185,129), 0.3)' }}>
+            <div style={{ color: 'var(--theme-color)', marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+              <Info size={64} />
+            </div>
+            <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem', fontSize: '1.8rem' }}>تذكير هام!</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '1.1rem', lineHeight: '1.6' }}>
+              شارفت ورديتك على الانتهاء (أقل من 30 دقيقة). يرجى التأكد من كتابة <strong>ملخص المهام اليومية</strong> قبل الانصراف.
+            </p>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button 
+                onClick={() => {
+                  setShowSummaryReminder(false);
+                  localStorage.setItem('summaryReminderDate', new Date().toDateString());
+                  window.location.href = '/summery';
+                }}
+                style={{ flex: 1, background: 'var(--theme-color)', color: 'white', padding: '1rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem' }}
+              >
+                الذهاب للملخص
+              </button>
+              <button 
+                onClick={() => {
+                  setShowSummaryReminder(false);
+                  localStorage.setItem('summaryReminderDate', new Date().toDateString());
+                }}
+                style={{ flex: 1, background: 'rgba(255,255,255,0.1)', color: 'var(--text-primary)', padding: '1rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem' }}
+              >
+                تخطي
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
@@ -190,7 +265,9 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
     </AuthProvider>
   );
 }

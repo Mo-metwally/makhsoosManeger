@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
+import { useToast } from '../contexts/ToastContext';
 
 const ExportModal = ({ isOpen, onClose, onExport, title }) => {
+  const { showToast } = useToast();
   const [filterType, setFilterType] = useState('today');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -11,7 +13,7 @@ const ExportModal = ({ isOpen, onClose, onExport, title }) => {
   const handleExport = () => {
     if (filterType === 'custom') {
       if (!startDate || !endDate) {
-        alert("يرجى اختيار تاريخ البداية والنهاية");
+        showToast("يرجى اختيار تاريخ البداية والنهاية", "error");
         return;
       }
       onExport(filterType, startDate, endDate);

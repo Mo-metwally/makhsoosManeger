@@ -1,79 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { User, Shield, Cat, Crown, Star, Smile, Briefcase, Check, Save, Flame, Zap, Heart, Moon, TriangleAlert, KeyRound, Eye, EyeOff, Loader2, XCircle } from 'lucide-react';
+import { User, Shield, Cat, Crown, Star, Smile, Briefcase, Check, Save, Flame, Zap, Heart, Moon, Sun, TriangleAlert, KeyRound, Loader2, XCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import api from '../services/api';
 import './Account.css';
 
-const GithubIcon = ({ size = 24, className = '' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.2c3-.3 6-1.5 6-6.5a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 5 3 6.2 6 6.5a4.8 4.8 0 0 0-1 3.2v4"></path>
-  </svg>
-);
-
-const ReactIcon = ({ size = 24, className = '' }) => (
-  <svg width={size} height={size} viewBox="-10.5 -9.45 21 18.9" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <circle cx="0" cy="0" r="2" fill="currentColor"></circle>
-    <g stroke="currentColor" strokeWidth="1" fill="none">
-      <ellipse rx="10" ry="4.5"></ellipse>
-      <ellipse rx="10" ry="4.5" transform="rotate(60)"></ellipse>
-      <ellipse rx="10" ry="4.5" transform="rotate(120)"></ellipse>
-    </g>
-  </svg>
-);
-
-const ViteIcon = ({ size = 24, className = '' }) => (
-  <svg width={size} height={size} viewBox="0 0 410 404" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <path d="M399.641 43.1539L214.288 393.188C210.155 400.99 198.814 400.99 194.681 393.188L9.32832 43.1539C4.84378 34.6841 12.9231 25.4055 21.6663 28.9882L198.718 101.52C202.43 103.041 206.539 103.041 210.251 101.52L387.303 28.9882C396.046 25.4055 404.125 34.6841 399.641 43.1539Z" fill="url(#vite-grad)" />
-    <path d="M293.411 1.76185L208.627 122.188C206.565 125.118 202.404 125.118 200.342 122.188L115.558 1.76185C111.455 -4.06227 102.399 0.0818292 104.053 7.03965L149.332 197.433C150.312 201.554 154.512 203.955 158.423 202.668L199.191 189.261C202.646 188.125 206.323 188.125 209.778 189.261L250.546 202.668C254.457 203.955 258.657 201.554 259.637 197.433L304.916 7.03965C306.57 0.0818292 297.514 -4.06227 293.411 1.76185Z" fill="url(#vite-grad-2)" />
-    <defs>
-      <linearGradient id="vite-grad" x1="204.485" y1="389.273" x2="204.485" y2="44.2543" gradientUnits="userSpaceOnUse">
-        <stop stopColor="currentColor" stopOpacity="1" />
-        <stop offset="1" stopColor="currentColor" stopOpacity="0.5" />
-      </linearGradient>
-      <linearGradient id="vite-grad-2" x1="204.485" y1="195.457" x2="204.485" y2="2.75628" gradientUnits="userSpaceOnUse">
-        <stop stopColor="currentColor" stopOpacity="1" />
-        <stop offset="1" stopColor="currentColor" stopOpacity="0.3" />
-      </linearGradient>
-    </defs>
-  </svg>
-);
-
-const NextIcon = ({ size = 24, className = '' }) => (
-  <svg width={size} height={size} viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <path fillRule="evenodd" clipRule="evenodd" d="M90 180C139.706 180 180 139.706 180 90C180 40.2944 139.706 0 90 0C40.2944 0 0 40.2944 0 90C0 139.706 40.2944 180 90 180ZM65.8694 65V124H76.2804L121.737 57.0674L113.626 51.579L65.8694 65ZM111.458 114.372L74.8878 65H65.8694V115H74.8878V76.8406L104.912 120.25L111.458 114.372Z" fill="currentColor" />
-    <path fillRule="evenodd" clipRule="evenodd" d="M115 65H124.018V115H115V65Z" fill="currentColor" />
-  </svg>
-);
-
-const VueIcon = ({ size = 24, className = '' }) => (
-  <svg width={size} height={size} viewBox="0 0 256 221" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <path d="M204.8 0H256L128 220.8L0 0H51.2L128 132.48L204.8 0Z" fill="currentColor" />
-    <path d="M204.8 0H153.6L128 44.16L102.4 0H51.2L128 132.48L204.8 0Z" fill="rgba(255,255,255,0.4)" />
-  </svg>
-);
-
-const avatarOptions = [
-  { id: 'User', icon: User },
-  { id: 'Shield', icon: Shield },
-  { id: 'Cat', icon: Cat },
-  { id: 'Crown', icon: Crown },
-  { id: 'Star', icon: Star },
-  { id: 'Smile', icon: Smile },
-  { id: 'Briefcase', icon: Briefcase },
-  { id: 'React', icon: ReactIcon },
-  { id: 'Github', icon: GithubIcon },
-  { id: 'Vite', icon: ViteIcon },
-  { id: 'Next', icon: NextIcon },
-  { id: 'Vue', icon: VueIcon },
-  { id: 'Flame', icon: Flame },
-  { id: 'Zap', icon: Zap },
-  { id: 'Heart', icon: Heart },
-  { id: 'Moon', icon: Moon }
-];
+import AvatarIcon, { avatarOptions } from '../components/AvatarIcon';
 
 const Account = () => {
   const { user, updateProfile, logout } = useAuth();
-  
+  const { showToast } = useToast();
+
   const [formData, setFormData] = useState({
     fullName: '',
     username: '',
@@ -83,19 +20,25 @@ const Account = () => {
     password: ''
   });
   const [selectedAvatar, setSelectedAvatar] = useState('User');
-  
+
   const [usernameStatus, setUsernameStatus] = useState('idle'); // idle, checking, available, taken
-  
-  const [toast, setToast] = useState({ show: false, message: '' });
+
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [isPwdModalOpen, setIsPwdModalOpen] = useState(false);
   const [pwdForm, setPwdForm] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
   const [pwdStatus, setPwdStatus] = useState('');
   const [pwdError, setPwdError] = useState('');
-  
   const [showOldPwd, setShowOldPwd] = useState(false);
   const [showNewPwd, setShowNewPwd] = useState(false);
   const [showConfirmPwd, setShowConfirmPwd] = useState(false);
+  const [appMode, setAppMode] = useState(localStorage.getItem('app-mode') || 'dark');
+
+  const handleModeChange = (mode) => {
+    setAppMode(mode);
+    localStorage.setItem('app-mode', mode);
+    document.documentElement.setAttribute('data-mode', mode);
+    window.dispatchEvent(new Event('modeUpdated'));
+  };
 
   useEffect(() => {
     document.title = "إعدادات الحساب | مخصوص";
@@ -118,11 +61,18 @@ const Account = () => {
   }, [user]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    let val = e.target.value;
+    if (e.target.name === 'username') {
+      val = val.replace(/\s/g, '');
+    }
+    setFormData({ ...formData, [e.target.name]: val });
   };
 
   useEffect(() => {
-    if (!formData.username) return;
+    if (!formData.username) {
+      setUsernameStatus('empty');
+      return;
+    }
     if (user && formData.username === user.username) {
       setUsernameStatus('idle');
       return;
@@ -149,8 +99,7 @@ const Account = () => {
   const handleSave = async (e) => {
     e.preventDefault();
     if (usernameStatus === 'taken') {
-      setToast({ show: true, message: 'اسم المستخدم مسجل بالفعل، يرجى اختيار اسم آخر.' });
-      setTimeout(() => setToast({ show: false, message: '' }), 3000);
+      showToast('اسم المستخدم مسجل بالفعل، يرجى اختيار اسم آخر.', 'error');
       return;
     }
     try {
@@ -159,11 +108,9 @@ const Account = () => {
         delete payload.password;
       }
       await updateProfile(payload);
-      setToast({ show: true, message: 'تم حفظ البيانات بنجاح!' });
-      setTimeout(() => setToast({ show: false, message: '' }), 3000);
+      showToast('تم حفظ البيانات بنجاح!', 'success');
     } catch (err) {
-      setToast({ show: true, message: err.response?.data?.error || 'حدث خطأ أثناء حفظ البيانات' });
-      setTimeout(() => setToast({ show: false, message: '' }), 3000);
+      showToast(err.response?.data?.error || 'حدث خطأ أثناء حفظ البيانات', 'error');
     }
   };
 
@@ -225,23 +172,27 @@ const Account = () => {
               <div className="form-row two-cols">
                 <div className="form-group" style={{ position: 'relative' }}>
                   <label>اسم المستخدم (للتسجيل)</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     name="username"
-                    value={formData.username} 
+                    value={formData.username}
                     onChange={handleChange}
                     required
-                    style={{ 
-                      borderColor: usernameStatus === 'taken' ? 'var(--danger)' : usernameStatus === 'available' ? 'var(--success)' : ''
+                    style={{
+                      borderColor: (usernameStatus === 'taken' || usernameStatus === 'empty') ? '#ef4444' : usernameStatus === 'available' ? '#22c55e' : '',
+                      borderWidth: (usernameStatus === 'taken' || usernameStatus === 'available' || usernameStatus === 'empty') ? '2px' : '',
+                      outlineColor: (usernameStatus === 'taken' || usernameStatus === 'empty') ? '#ef4444' : usernameStatus === 'available' ? '#22c55e' : '',
+                      backgroundColor: (usernameStatus === 'taken' || usernameStatus === 'empty') ? 'rgba(239, 68, 68, 0.05)' : usernameStatus === 'available' ? 'rgba(34, 197, 94, 0.05)' : ''
                     }}
                   />
-                  <div style={{ position: 'absolute', left: '1rem', top: '2.4rem' }}>
-                    {usernameStatus === 'checking' && <Loader2 className="spinning text-secondary" size={18} />}
-                    {usernameStatus === 'available' && <Check color="var(--success)" size={18} />}
-                    {usernameStatus === 'taken' && <XCircle color="var(--danger)" size={18} />}
+                  <div style={{ position: 'absolute', left: '1rem', top: '45%', transform: 'translateY(-50%)' }}>
+                    {usernameStatus === 'checking' && <Loader2 className="spinning text-secondary" size={18} style={{ position: 'absolute', left: '0.1rem', top: '85%', transform: 'translateY(-5%)' }} />}
+                    {usernameStatus === 'available' && <Check color="#22c55e" size={18} />}
+                    {usernameStatus === 'taken' && <XCircle color="#ef4444" size={18} />}
                   </div>
-                  {usernameStatus === 'taken' && <span style={{ color: 'var(--danger)', fontSize: '0.8rem', marginTop: '4px', display: 'block' }}>هذا الاسم مسجل بالفعل</span>}
-                  {usernameStatus === 'available' && <span style={{ color: 'var(--success)', fontSize: '0.8rem', marginTop: '4px', display: 'block' }}>الاسم متاح!</span>}
+                  {usernameStatus === 'empty' && <span style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '6px', display: 'block', fontWeight: 'bold' }}>اسم المستخدم مطلوب ولا يمكن أن يكون فارغاً أو يحتوي على مسافات.</span>}
+                  {usernameStatus === 'taken' && <span style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '6px', display: 'block', fontWeight: 'bold' }}>هذا الاسم مسجل بالفعل! يرجى اختيار اسم آخر.</span>}
+                  {usernameStatus === 'available' && <span style={{ color: '#22c55e', fontSize: '0.85rem', marginTop: '6px', display: 'block', fontWeight: 'bold' }}>الاسم متاح! يمكنك استخدامه.</span>}
                 </div>
                 <div className="form-group">
                   <label>الاسم الكامل</label>
@@ -292,8 +243,8 @@ const Account = () => {
                 </div>
                 <div className="form-group">
                   <label>تأمين الحساب</label>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => setIsPwdModalOpen(true)}
                     style={{
                       background: 'rgba(59, 130, 246, 0.1)',
@@ -327,6 +278,54 @@ const Account = () => {
             </div>
 
             <div className="form-section">
+              <h3 className="section-title">مظهر التطبيق (الوضع النهاري/الليلي)</h3>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <button
+                  type="button"
+                  onClick={() => handleModeChange('dark')}
+                  style={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    padding: '1rem',
+                    borderRadius: '12px',
+                    border: `2px solid ${appMode === 'dark' ? 'var(--theme-color)' : 'var(--border-color)'}`,
+                    backgroundColor: appMode === 'dark' ? 'rgba(var(--theme-color-rgb, 59, 130, 246), 0.1)' : 'transparent',
+                    color: appMode === 'dark' ? 'var(--theme-color)' : 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s'
+                  }}
+                >
+                  <Moon size={20} />
+                  <span style={{ fontWeight: appMode === 'dark' ? 'bold' : 'normal' }}>الوضع الداكن</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleModeChange('light')}
+                  style={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    padding: '1rem',
+                    borderRadius: '12px',
+                    border: `2px solid ${appMode === 'light' ? 'var(--theme-color)' : 'var(--border-color)'}`,
+                    backgroundColor: appMode === 'light' ? 'rgba(var(--theme-color-rgb, 59, 130, 246), 0.1)' : 'transparent',
+                    color: appMode === 'light' ? 'var(--theme-color)' : 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s'
+                  }}
+                >
+                  <Sun size={20} />
+                  <span style={{ fontWeight: appMode === 'light' ? 'bold' : 'normal' }}>الوضع الفاتح</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="form-section">
               <h3 className="section-title">اختيار الأفاتار (الأيقونة)</h3>
               <div className="avatar-grid">
                 {avatarOptions.map((opt) => {
@@ -334,15 +333,23 @@ const Account = () => {
                   return (
                     <div
                       key={opt.id}
-                      className={`avatar-option ${selectedAvatar === opt.id ? 'selected' : ''}`}
-                      onClick={() => handleAvatarClick(opt.id)}
+                      className="avatar-item-container"
+                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}
                     >
-                      <IconComponent size={32} />
-                      {selectedAvatar === opt.id && (
-                        <div className="avatar-check">
-                          <Check size={14} strokeWidth={3} />
-                        </div>
-                      )}
+                      <div
+                        className={`avatar-option ${selectedAvatar === opt.id ? 'selected' : ''}`}
+                        onClick={() => handleAvatarClick(opt.id)}
+                      >
+                        <IconComponent size={32} />
+                        {selectedAvatar === opt.id && (
+                          <div className="avatar-check">
+                            <Check size={14} strokeWidth={3} />
+                          </div>
+                        )}
+                      </div>
+                      <span style={{ fontSize: '0.8rem', fontWeight: '600', color: selectedAvatar === opt.id ? 'var(--theme-color)' : 'var(--text-secondary)' }}>
+                        {opt.id}
+                      </span>
                     </div>
                   );
                 })}
@@ -357,15 +364,15 @@ const Account = () => {
             </div>
           </form>
 
-          <div className="form-section" style={{ marginTop: '3rem', border: '1px solid rgba(239, 68, 68, 0.3)', backgroundColor: 'rgba(239, 68, 68, 0.05)' }}>
+          {/* <div className="form-section" style={{ marginTop: '3rem', border: '1px solid rgba(239, 68, 68, 0.3)', backgroundColor: 'rgba(239, 68, 68, 0.05)' }}>
             <h3 className="section-title" style={{ color: '#ef4444', borderBottomColor: 'rgba(239, 68, 68, 0.2)' }}>إحترس (إعادة تعيين)</h3>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem', lineHeight: '1.5' }}>
               سيؤدي هذا الإجراء إلى مسح <strong>جميع بيانات الموقع</strong> نهائياً، بما في ذلك سجل المكالمات، أوقات الخمول، والإعدادات المحفوظة. سيعود الموقع لحالته الأولى كأنه جديد. <strong>هذا الإجراء لا يمكن التراجع عنه.</strong>
             </p>
-            <button 
-              type="button" 
-              onClick={handleResetClick} 
-              style={{ 
+            <button
+              type="button"
+              onClick={handleResetClick}
+              style={{
                 backgroundColor: 'rgba(239, 68, 68, 0.1)',
                 color: '#ef4444',
                 border: '1px solid #ef4444',
@@ -392,7 +399,7 @@ const Account = () => {
               <TriangleAlert size={18} />
               <span>إعادة تعيين الموقع وحذف كل شيء</span>
             </button>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -408,15 +415,15 @@ const Account = () => {
             </div>
             <p style={{ marginBottom: '2rem', fontSize: '1.1rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
               أنت على وشك مسح <strong>جميع بيانات الموقع نهائياً</strong>، بما في ذلك سجلات المكالمات وكل الإعدادات التي قمت بها.
-              <br/><br/>
+              <br /><br />
               هل أنت متأكد من رغبتك في الاستمرار؟ <strong>هذا الإجراء لا يمكن التراجع عنه.</strong>
             </p>
             <div className="form-actions">
               <button type="button" className="btn-cancel" onClick={() => setIsResetModalOpen(false)}>إلغاء</button>
-              <button 
-                type="button" 
-                className="btn-save" 
-                style={{ backgroundColor: '#ef4444', color: 'white', border: 'none' }} 
+              <button
+                type="button"
+                className="btn-save"
+                style={{ backgroundColor: '#ef4444', color: 'white', border: 'none' }}
                 onClick={confirmReset}
               >
                 نعم، احذف كل شيء
@@ -479,13 +486,6 @@ const Account = () => {
               </form>
             </div>
           </div>
-        </div>
-      )}
-
-      {toast.show && (
-        <div className="toast-notification toast-success">
-          <Check size={20} />
-          <span>{toast.message}</span>
         </div>
       )}
     </div>

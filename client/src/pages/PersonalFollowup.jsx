@@ -1,18 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, PhoneCall, TrendingUp, TrendingDown, Clock, LogIn, Coffee, CalendarHeart, AlertCircle, BarChart2, Calendar as CalendarIcon, Filter, Star } from 'lucide-react';
+import { Activity, PhoneCall, TrendingUp, TrendingDown, Clock, LogIn, LogOut, Coffee, CalendarHeart, AlertCircle, BarChart2, Calendar as CalendarIcon, Filter, Star, CheckCircle } from 'lucide-react';
 import { useParams, Link } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { getLogicalDateString } from '../utils/dateHelpers';
 import './PersonalFollowup.css';
+import { useToast } from '../contexts/ToastContext';
 
 const PersonalFollowup = () => {
+  const { showToast } = useToast();
   const { employeeId } = useParams();
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [attendanceStatus, setAttendanceStatus] = useState(null);
+  const [hasSummaryToday, setHasSummaryToday] = useState(false);
+  const [loadingStatus, setLoadingStatus] = useState(true);
+  const [showEarlyCheckoutModal, setShowEarlyCheckoutModal] = useState(false);
 
   // Chart states
   const [callsChartPeriod, setCallsChartPeriod] = useState('daily');
@@ -42,11 +49,84 @@ const PersonalFollowup = () => {
     }
   };
 
+  const processCheckout = async () => {
+    try {
+      await api.post('/attendance/checkout');
+      showToast('تم تسجيل الانصراف بنجاح!', 'success');
+      window.dispatchEvent(new Event('userStatusChanged'));
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (error) {
+      showToast(error.response?.data?.error || 'حدث خطأ أثناء الانصراف', 'error');
+    }
+  };
+
+  const handleCheckoutClick = () => {
+    if (!hasSummaryToday) {
+      showToast('يجب تسجيل ملخص المهام للدوام قبل تسجيل الانصراف!', 'error');
+      setTimeout(() => window.location.href = '/summery', 1500);
+      return;
+    }
+
+    // Check for early checkout (at least 5 minutes early)
+    const activeShift = attendanceStatus?.log?.Shift || attendanceStatus?.shift;
+    if (activeShift?.endTime) {
+      const now = new Date();
+      const [endHour, endMinute] = activeShift.endTime.split(':').map(Number);
+
+      let endTimeDate = new Date();
+      if (attendanceStatus?.log?.date) {
+        endTimeDate = new Date(attendanceStatus.log.date);
+      }
+      endTimeDate.setHours(endHour, endMinute, 0, 0);
+
+      if (activeShift.startTime) {
+        const [startHour] = activeShift.startTime.split(':').map(Number);
+        if (endHour < startHour) {
+          endTimeDate.setDate(endTimeDate.getDate() + 1);
+        }
+      }
+
+      const diffMs = endTimeDate.getTime() - now.getTime();
+      const diffMins = diffMs / 60000;
+
+      if (diffMins >= 5) {
+        setShowEarlyCheckoutModal(true);
+        return;
+      }
+    }
+
+    processCheckout();
+  };
+
   useEffect(() => {
     document.title = "المتابعة الشخصية | مخصوص";
     handleFilterChange('today');
+
+    if (!employeeId) {
+      const fetchStatus = async () => {
+        try {
+          const [attRes, perfRes] = await Promise.all([
+            api.get('/attendance/status'),
+            api.get('/data/performance-logs')
+          ]);
+          setAttendanceStatus(attRes.data);
+
+          const today = getLogicalDateString(new Date());
+          const logs = perfRes.data || [];
+          const summaryToday = logs.some(l => l.date === today);
+          setHasSummaryToday(summaryToday);
+        } catch (error) {
+          console.error("Error fetching statuses:", error);
+        } finally {
+          setLoadingStatus(false);
+        }
+      };
+      fetchStatus();
+    } else {
+      setLoadingStatus(false);
+    }
     // eslint-disable-next-line
-  }, []);
+  }, [employeeId]);
 
   const handleFilterChange = (type) => {
     setFilterType(type);
@@ -180,6 +260,86 @@ const PersonalFollowup = () => {
       </header>
 
       {renderFilterBar()}
+
+      {!employeeId && !loadingStatus && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+
+          {/* Summary Status Card */}
+          <div className="pf-stat-card fade-in" style={{ animationDelay: '0.1s', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ padding: '12px', borderRadius: '12px', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
+                  <Star size={24} />
+                </div>
+                <div>
+                  <h3 style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.2rem' }}>حالة ملخص المهام لليوم</h3>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: hasSummaryToday ? '#10b981' : '#ef4444' }}>
+                    {hasSummaryToday ? 'مسجل' : 'غير مسجل'}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {!hasSummaryToday ? (
+              <Link to="/summery" style={{ background: 'var(--theme-color)', color: 'white', padding: '0.8rem', borderRadius: '8px', textAlign: 'center', textDecoration: 'none', fontWeight: 'bold', display: 'block', transition: '0.3s' }}>
+                تسجيل الملخص الآن
+              </Link>
+            ) : (
+
+              <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.2)', color: '#22c55e', padding: '0.8rem', borderRadius: '8px', textAlign: 'center', fontWeight: 'bold' }}>
+                تم تسجيل الملخص لليوم
+              </div>
+            )}
+          </div>
+
+          {/* Checkout Card */}
+          {attendanceStatus?.hasCheckedIn && (
+            <div className="pf-stat-card fade-in" style={{ animationDelay: '0.2s', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ padding: '12px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
+                    <LogOut size={24} />
+                  </div>
+                  <div>
+                    <h3 style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.2rem' }}>الوردية الحالية</h3>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                      ينتهي: {(attendanceStatus?.log?.Shift || attendanceStatus?.shift)?.endTime || 'غير محدد'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {!attendanceStatus?.log?.checkOutTime ? (
+                <button
+                  onClick={handleCheckoutClick}
+                  style={{
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                    color: '#ef4444',
+                    padding: '0.8rem',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    transition: '0.3s'
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = 'white'; }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#ef4444'; }}
+                >
+                  <LogOut size={18} />
+                  تسجيل الانصراف
+                </button>
+              ) : (
+                <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.2)', color: '#22c55e', padding: '0.8rem', borderRadius: '8px', textAlign: 'center', fontWeight: 'bold' }}>
+                  <CheckCircle size={18} style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '0.5rem' }} />
+                  تم تسجيل الانصراف
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {loading && stats && (
         <div className="pf-reloading-overlay">
@@ -393,6 +553,42 @@ const PersonalFollowup = () => {
           )}
         </>
       )}
+      {/* Early Checkout Modal */}
+      {showEarlyCheckoutModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
+          <div className="fade-in" style={{ background: 'var(--bg-main)', padding: '2.5rem', borderRadius: '16px', maxWidth: '450px', width: '90%', textAlign: 'center', border: '1px solid #ef4444', boxShadow: '0 10px 40px rgba(239, 68, 68, 0.3)' }}>
+            <div style={{ color: '#ef4444', margin: '0 auto 1.5rem auto', display: 'flex', justifyContent: 'center' }}>
+              <AlertCircle size={64} />
+            </div>
+            <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem', fontSize: '1.8rem' }}>انصراف مبكر!</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '1.1rem', lineHeight: '1.6' }}>
+              سيتم تسجيل انصراف مبكر وتطبيق خصم على الساعات المتبقية من الوردية. هل أنت متأكد من الاستمرار؟
+            </p>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button
+                onClick={() => {
+                  setShowEarlyCheckoutModal(false);
+                  processCheckout();
+                }}
+                style={{ flex: 1, background: '#ef4444', color: 'white', padding: '1rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem', transition: '0.3s' }}
+                onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'}
+                onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+              >
+                نعم، تسجيل الانصراف
+              </button>
+              <button
+                onClick={() => setShowEarlyCheckoutModal(false)}
+                style={{ flex: 1, background: 'rgba(255,255,255,0.1)', color: 'var(--text-primary)', padding: '1rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem', transition: '0.3s' }}
+                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+              >
+                تراجع
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

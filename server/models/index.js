@@ -10,6 +10,7 @@ const DayOffRequest = require('./DayOffRequest');
 const Budget = require('./Budget')(sequelize);
 const Expense = require('./Expense')(sequelize);
 const AdvanceRequest = require('./AdvanceRequest')(sequelize);
+const Setting = require('./Setting');
 
 // Relationships
 User.hasMany(Notification, { foreignKey: 'userId', onDelete: 'CASCADE' });
@@ -63,5 +64,6 @@ module.exports = {
   DayOffRequest,
   Budget,
   Expense,
-  AdvanceRequest
+  AdvanceRequest,
+  Setting
 };

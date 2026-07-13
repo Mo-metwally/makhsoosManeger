@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, Loader, ShieldAlert, CheckCircle, XCircle, Clock, CalendarRange, HelpCircle, Activity, Edit2, Shield, Cat, Crown, Star, Smile, Briefcase, Flame, Zap, Heart, Moon, User, RefreshCw, LogIn, LogOut, UserX, CalendarOff, AlertTriangle } from 'lucide-react';
 import api from '../services/api';
+import AvatarIcon from '../components/AvatarIcon';
 import './TodayFollowup.css';
-
-const avatarMap = {
-  User, Shield, Cat, Crown, Star, Smile, Briefcase, Flame, Zap, Heart, Moon
-};
+import { useToast } from '../contexts/ToastContext';
+import { useAuth } from '../context/AuthContext';
 
 const TodayFollowup = () => {
+  const { user } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const [employees, setEmployees] = useState([]);
   const [adminShifts, setAdminShifts] = useState([]);
@@ -100,7 +101,7 @@ const TodayFollowup = () => {
   const handleUpdateStatus = async (e) => {
     e.preventDefault();
     if (isEarlyCheckout && action === 'CheckOut' && !notes.trim()) {
-      alert('يجب كتابة ملاحظة لتوثيق سبب الانصراف المبكر.');
+      showToast('يجب كتابة ملاحظة لتوثيق سبب الانصراف المبكر.', 'error');
       return;
     }
 
@@ -113,12 +114,12 @@ const TodayFollowup = () => {
         manualCheckInTime: manualCheckIn,
         manualCheckOutTime: manualCheckOut
       });
-      alert('تم تحديث حالة الموظف بنجاح');
+      showToast('تم تحديث حالة الموظف بنجاح', 'success');
       closeModal();
       fetchTodayStatus();
     } catch (err) {
       console.error('Error updating status:', err);
-      alert(err.response?.data?.error || 'حدث خطأ أثناء التحديث');
+      showToast(err.response?.data?.error || 'حدث خطأ أثناء التحديث', 'error');
     } finally {
       setUpdating(false);
     }
@@ -139,6 +140,9 @@ const TodayFollowup = () => {
         return { label: 'في غداء', icon: <span style={{ fontSize: '14px', marginLeft: '4px' }}>🍔</span>, className: 'status-break-lunch' };
       case 'تدريب':
         return { label: 'في تدريب', icon: <span style={{ fontSize: '14px', marginLeft: '4px' }}>📝</span>, className: 'status-break-training' };
+      case 'انصراف':
+      case 'CheckedOut':
+        return { label: 'انصراف', icon: <LogOut size={16} />, className: 'status-checkedout' };
       case 'Pending':
       default:
         return { label: 'لم يحضر بعد', icon: <Clock size={16} />, className: 'status-pending' };
@@ -150,17 +154,30 @@ const TodayFollowup = () => {
     : employees.filter(emp => emp.shifts && emp.shifts.includes(shiftFilter));
 
   const filteredEmployees = filteredByShift.filter(emp => {
-    if (filter === 'All') return true;
-    if (filter === 'Present' && (emp.todayStatus === 'Present' || emp.todayStatus === 'Late')) return true;
+    if (filter === 'All') return emp.role === 'Supervisor';
+    if (filter === 'Admins') return emp.role === 'Admin' || emp.role === 'SuperAdmin';
+    
+    if (!emp.shifts || emp.shifts.length === 0) return false;
+
+    if (filter === 'Present') return ['Present', 'Late', 'بريك غداء', 'بريك صلاة', 'تدريب', 'CheckedOut', 'انصراف'].includes(emp.todayStatus);
     return emp.todayStatus === filter;
   });
 
+  const sortedEmployees = [...filteredEmployees].sort((a, b) => {
+    const isAAdmin = a.role === 'Admin' || a.role === 'SuperAdmin';
+    const isBAdmin = b.role === 'Admin' || b.role === 'SuperAdmin';
+    if (isAAdmin && !isBAdmin) return -1;
+    if (!isAAdmin && isBAdmin) return 1;
+    return 0;
+  });
+
   const stats = {
-    total: filteredByShift.length,
-    active: filteredByShift.filter(e => e.todayStatus === 'Present' || e.todayStatus === 'Late').length,
-    absent: filteredByShift.filter(e => e.todayStatus === 'Absent').length,
-    dayoff: filteredByShift.filter(e => e.todayStatus === 'DayOff').length,
-    pending: filteredByShift.filter(e => e.todayStatus === 'Pending').length
+    total: filteredByShift.filter(e => e.role === 'Supervisor').length,
+    active: filteredByShift.filter(e => e.shifts && e.shifts.length > 0 && ['Present', 'Late', 'بريك غداء', 'بريك صلاة', 'تدريب', 'CheckedOut', 'انصراف'].includes(e.todayStatus)).length,
+    absent: filteredByShift.filter(e => e.shifts && e.shifts.length > 0 && e.todayStatus === 'Absent').length,
+    dayoff: filteredByShift.filter(e => e.shifts && e.shifts.length > 0 && e.todayStatus === 'DayOff').length,
+    pending: filteredByShift.filter(e => e.shifts && e.shifts.length > 0 && e.todayStatus === 'Pending').length,
+    admins: filteredByShift.filter(e => e.role === 'Admin' || e.role === 'SuperAdmin').length
   };
 
   if (loading) {
@@ -296,7 +313,37 @@ const TodayFollowup = () => {
             <p>{stats.pending}</p>
           </div>
         </div>
+        {(user?.role === 'Admin' || user?.role === 'SuperAdmin') && (
+          <div className={`tf-stat-card ${filter === 'Admins' ? 'active' : ''}`} onClick={() => setFilter('Admins')} style={{ borderColor: filter === 'Admins' ? 'var(--primary-color)' : '' }}>
+            <div className="tf-stat-icon" style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6' }}><ShieldAlert size={24} /></div>
+            <div className="tf-stat-info">
+              <h3>المديرين</h3>
+              <p>{stats.admins}</p>
+            </div>
+          </div>
+        )}
       </div>
+
+      {shiftFilter !== 'All' && (user?.role === 'Admin' || user?.role === 'SuperAdmin') && (
+        <div style={{
+          marginTop: '1.5rem',
+          padding: '1rem 1.5rem',
+          background: 'rgba(249, 115, 22, 0.08)',
+          border: '1px solid rgba(249, 115, 22, 0.3)',
+          borderRadius: '12px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1rem',
+          color: 'var(--primary-color)',
+          fontWeight: '500'
+        }}>
+          <ShieldAlert size={22} />
+          <span>
+            <strong>مسؤول وردية ({shiftFilter}): </strong> 
+            {adminShifts.find(s => s.name === shiftFilter)?.admins || 'لا يوجد مسؤول محدد'}
+          </span>
+        </div>
+      )}
 
       <div className="tf-content">
         {filteredEmployees.length === 0 ? (
@@ -315,15 +362,16 @@ const TodayFollowup = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredEmployees.map(emp => {
+                {sortedEmployees.map(emp => {
                   const status = getStatusDetails(emp.todayStatus);
-                  const AvatarIcon = avatarMap[emp.avatar] || User;
+                  const userAvatar = emp.avatar || 'User';
+                  const isAdmin = emp.role === 'Admin' || emp.role === 'SuperAdmin';
                   return (
-                    <tr key={emp.id}>
+                    <tr key={emp.id} className={isAdmin ? 'tf-admin-row' : ''}>
                       <td>
                         <div className="tf-user-info-table">
                           <div className="tf-avatar">
-                            <AvatarIcon size={24} className="tf-avatar-icon" />
+                            <AvatarIcon name={userAvatar} size={24} className="tf-avatar-icon" />
                           </div>
                           <div>
                             <h4>{emp.fullName}</h4>
@@ -331,36 +379,45 @@ const TodayFollowup = () => {
                           </div>
                         </div>
                       </td>
-                      <td>{emp.jobTitle || 'موظف'}</td>
-                      <td style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                        {emp.shifts && emp.shifts.length > 0
-                          ? emp.shifts.join('، ')
-                          : <span className="text-secondary">غير محدد</span>}
-                        {emp.lateMinutes > 0 && (
-                          <div style={{
-                            background: 'rgba(245, 158, 11, 0.15)',
-                            color: '#f59e0b',
-                            border: '1px solid rgba(245, 158, 11, 0.3)',
-                            borderRadius: '12px',
-                            padding: '2px 8px',
-                            fontSize: '0.75rem',
-                            marginTop: '6px',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            fontWeight: 'bold'
-                          }}>
-                            <br />
-                            <AlertTriangle size={14} />
-                            تأخير: {(() => {
-                              const mins = emp.lateMinutes;
-                              if (mins < 60) return `${mins} دقيقة`;
-                              const h = Math.floor(mins / 60);
-                              const m = mins % 60;
-                              return m === 0 ? `${h} ساعة` : `${h} س و ${m} د`;
-                            })()}
-                          </div>
-                        )}
+                      <td>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                          <span style={{ fontSize: '0.95rem' }}>{emp.jobTitle || 'موظف'}</span>
+                          <span style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.2rem', color: emp.hasSummary ? '#10b981' : '#ef4444' }}>
+                            {emp.hasSummary ? <CheckCircle size={12} /> : <XCircle size={12} />}
+                            {emp.hasSummary ? 'سجل الملخص' : 'لم يسجل الملخص'}
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', alignItems: 'center' }}>
+                          {emp.shifts && emp.shifts.length > 0
+                            ? emp.shifts.join('، ')
+                            : <span className="text-secondary">غير محدد</span>}
+                          {emp.lateMinutes > 0 && (
+                            <div style={{
+                              background: 'rgba(245, 158, 11, 0.15)',
+                              color: '#f59e0b',
+                              border: '1px solid rgba(245, 158, 11, 0.3)',
+                              borderRadius: '12px',
+                              padding: '2px 8px',
+                              fontSize: '0.75rem',
+                              marginTop: '6px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              fontWeight: 'bold'
+                            }}>
+                              <AlertTriangle size={14} />
+                              تأخير: {(() => {
+                                const mins = emp.lateMinutes;
+                                if (mins < 60) return `${mins} دقيقة`;
+                                const h = Math.floor(mins / 60);
+                                const m = mins % 60;
+                                return m === 0 ? `${h} ساعة` : `${h} س و ${m} د`;
+                              })()}
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -451,7 +508,7 @@ const TodayFollowup = () => {
             <div className="tf-modal-body">
               <div className="tf-emp-summary">
                 <div className="tf-avatar-modal">
-                  {React.createElement(avatarMap[selectedEmp.avatar] || User, { size: 30 })}
+                  <AvatarIcon name={selectedEmp.avatar} size={30} />
                 </div>
                 <div>
                   <h4>{selectedEmp.fullName}</h4>
@@ -487,6 +544,11 @@ const TodayFollowup = () => {
                       <input type="radio" value="DayOff" checked={action === 'DayOff'} onChange={(e) => setAction(e.target.value)} />
                       <CalendarOff size={20} className="radio-icon" />
                       <span>تسجيل إجازة</span>
+                    </label>
+                    <label className={`tf-adv-radio-label ${action === 'ResetCheckout' ? 'active checkin' : ''}`}>
+                      <input type="radio" value="ResetCheckout" checked={action === 'ResetCheckout'} onChange={(e) => setAction(e.target.value)} />
+                      <RefreshCw size={20} className="radio-icon" />
+                      <span>إلغاء الانصراف</span>
                     </label>
                   </div>
                 </div>

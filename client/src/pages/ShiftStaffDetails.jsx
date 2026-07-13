@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Users, ArrowRight, Loader, ShieldAlert, CheckCircle, XCircle, Clock, CalendarDays, PhoneCall, AlertTriangle, CalendarRange, Search, Filter, Shield, Cat, Crown, Star, Smile, Briefcase, Flame, Zap, Heart, Moon, User, Activity, TrendingUp } from 'lucide-react';
+import { Users, ArrowRight, Loader, ShieldAlert, CheckCircle, XCircle, Clock, CalendarDays, PhoneCall, AlertTriangle, CalendarRange, Search, Filter, Activity, TrendingUp } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import api from '../services/api';
+import AvatarIcon from '../components/AvatarIcon';
 import './ShiftStaffDetails.css';
-
-const avatarMap = {
-  User, Shield, Cat, Crown, Star, Smile, Briefcase, Flame, Zap, Heart, Moon
-};
+import { useToast } from '../contexts/ToastContext';
 
 const ShiftStaffDetails = () => {
+  const { showToast } = useToast();
   const { shiftId } = useParams();
   const navigate = useNavigate();
   
@@ -83,10 +82,10 @@ const ShiftStaffDetails = () => {
       // Refresh data
       await fetchStaffStats();
       closeModal();
-      alert('تم تنفيذ الإجراء بنجاح!');
+      showToast('تم تنفيذ الإجراء بنجاح!', 'success');
     } catch (err) {
       console.error('Action error:', err);
-      alert(err.response?.data?.error || 'حدث خطأ أثناء تنفيذ الإجراء');
+      showToast(err.response?.data?.error || 'حدث خطأ أثناء تنفيذ الإجراء', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -423,13 +422,13 @@ const ShiftStaffDetails = () => {
               </tr>
             ) : (
               getFilteredAndSortedStaff().map(user => {
-                const AvatarIcon = avatarMap[user.avatar] || User;
+                const userAvatar = user.avatar || 'User';
                 return (
                   <tr key={user.id}>
                     <td>
                       <div className="staff-user-info">
                         <div className="staff-avatar">
-                          <AvatarIcon size={24} className="staff-avatar-icon" />
+                          <AvatarIcon name={userAvatar} size={24} className="staff-avatar-icon" />
                         </div>
                         <div>
                           <h4>{user.fullName}</h4>

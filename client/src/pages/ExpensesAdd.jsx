@@ -3,10 +3,12 @@ import { CreditCard, Wallet, Filter, TrendingUp, X, Edit2, User as UserIcon, Clo
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { useToast } from '../contexts/ToastContext';
 import './Expenses.css'; // Reuse styles
 
 const ExpensesAdd = () => {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   // Protect route
@@ -82,7 +84,7 @@ const ExpensesAdd = () => {
       setAdmins(admins.map(a => a.id === activeUsesAdminId ? { ...a, cardUses: usesInput } : a));
       setShowUsesModal(false);
     } catch (err) {
-      alert('خطأ في حفظ استخدامات البطاقة');
+      showToast('خطأ في حفظ استخدامات البطاقة', 'error');
     }
   };
 
@@ -206,7 +208,7 @@ const ExpensesAdd = () => {
       XLSX.writeFile(wb, `مصاريف_${cardName}_${shiftName}_${selectedMonth}.xlsx`);
     } catch (error) {
       console.error('Error exporting excel:', error);
-      alert('حدث خطأ أثناء تصدير الملف.');
+      showToast('حدث خطأ أثناء تصدير الملف.', 'error');
     }
   };
 

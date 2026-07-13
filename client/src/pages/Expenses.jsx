@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CreditCard, Wallet, Filter, TrendingUp, X, Edit2, User, Clock, Calendar, Search, Users, ShoppingBag, FileText, ChevronDown, CheckCircle, DollarSign, PenTool, Trash2, Download } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import api from '../services/api';
 import './Expenses.css';
 
 const Expenses = () => {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const userName = user ? (user.fullName || user.username) : 'غير معروف';
 
   const formatTime12Hour = (timeStr) => {
@@ -104,7 +106,7 @@ const Expenses = () => {
         }
       })
       .catch(err => {
-        alert(err.response?.data?.error || 'حدث خطأ أثناء تحديث حالة الطلب');
+        showToast(err.response?.data?.error || 'حدث خطأ أثناء تحديث حالة الطلب', 'error');
         console.error('Error updating status:', err);
       });
   };
@@ -216,7 +218,7 @@ const Expenses = () => {
           setExpenses(expenses.filter(exp => exp.id !== id));
         })
         .catch(err => {
-          alert('حدث خطأ أثناء الحذف');
+          showToast('حدث خطأ أثناء الحذف', 'error');
           console.error(err);
         });
     }
@@ -314,7 +316,7 @@ const Expenses = () => {
       XLSX.writeFile(wb, `مصاريف_${cardName}_${sName}_${selectedMonth}.xlsx`);
     } catch (error) {
       console.error('Error exporting excel:', error);
-      alert('حدث خطأ أثناء تصدير الملف.');
+      showToast('حدث خطأ أثناء تصدير الملف.', 'error');
     }
   };
 

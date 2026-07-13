@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { LogOut, Clock, X } from 'lucide-react';
 import api from '../services/api';
+import { useToast } from '../contexts/ToastContext';
 
 const CheckoutModal = () => {
+  const { showToast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [shiftData, setShiftData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -65,7 +67,7 @@ const CheckoutModal = () => {
       window.location.reload();
     } catch (err) {
       console.error(err);
-      alert('حدث خطأ أثناء تسجيل الانصراف');
+      showToast(err.response?.data?.error || 'حدث خطأ أثناء تسجيل الانصراف', 'error');
     } finally {
       setLoading(false);
     }

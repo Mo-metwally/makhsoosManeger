@@ -1,6 +1,6 @@
 const { Op, Sequelize } = require('sequelize');
 const { getLogicalDate } = require('../utils/dateUtils');
-const { CallReport, InactivityLog, PerformanceLog, User, AttendanceLog, DayOffRequest } = require('../models');
+const { CallReport, InactivityLog, PerformanceLog, User, AttendanceLog, DayOffRequest, Expense } = require('../models');
 
 // CALL REPORTS
 const getCallReports = async (req, res) => {
@@ -146,8 +146,12 @@ const getAllData = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
     const performance = await PerformanceLog.findAll();
+    const expenses = await Expense.findAll({
+      include: [{ model: User, attributes: ['id', 'fullName', 'username'] }],
+      order: [['createdAt', 'DESC']]
+    });
 
-    res.json({ calls, inactivity, performance });
+    res.json({ calls, inactivity, performance, expenses });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch all data' });
   }

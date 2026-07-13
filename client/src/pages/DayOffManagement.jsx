@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { CalendarDays, CheckCircle, XCircle, Clock, ShieldAlert, Users, ChevronDown, ChevronLeft, Calendar } from 'lucide-react';
 import api from '../services/api';
 import './DayOffManagement.css';
+import { useToast } from '../contexts/ToastContext';
 
 const DayOffManagement = () => {
+  const { showToast } = useToast();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('Pending');
@@ -17,7 +19,7 @@ const DayOffManagement = () => {
       setRequests(res.data || []);
     } catch (error) {
       console.error('Error fetching requests:', error);
-      alert('حدث خطأ أثناء جلب بيانات الإجازات');
+      showToast('حدث خطأ أثناء جلب بيانات الإجازات', 'error');
     } finally {
       setLoading(false);
     }
@@ -34,8 +36,10 @@ const DayOffManagement = () => {
     try {
       await api.put(`/dayoff/${id}/status`, { status });
       fetchRequests();
+      showToast('تم تحديث حالة الطلب بنجاح', 'success');
     } catch (error) {
-      alert('حدث خطأ أثناء تحديث حالة الطلب');
+      console.error(error);
+      showToast('حدث خطأ أثناء تحديث حالة الطلب', 'error');
     }
   };
 

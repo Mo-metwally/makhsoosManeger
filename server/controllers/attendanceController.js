@@ -1,4 +1,4 @@
-const { AttendanceLog, Shift, User, DayOffRequest, InactivityLog } = require('../models');
+const { AttendanceLog, Shift, User, DayOffRequest, InactivityLog, PerformanceLog } = require('../models');
 const { getLogicalDate } = require('../utils/dateUtils');
 const { Op } = require('sequelize');
 
@@ -107,6 +107,15 @@ exports.checkOut = async (req, res) => {
     
     if (log.checkOutTime) {
       return res.status(400).json({ error: 'لقد قمت بتسجيل الانصراف مسبقاً' });
+    }
+
+    // Verify if PerformanceLog exists for today
+    const hasSummary = await PerformanceLog.findOne({
+      where: { userId, date: today }
+    });
+
+    if (!hasSummary) {
+      return res.status(400).json({ error: 'يجب تسجيل ملخص المهام للدوام قبل تسجيل الانصراف' });
     }
 
     log.checkOutTime = new Date();
@@ -229,11 +238,28 @@ exports.getTodayStatus = async (req, res) => {
     });
 
     let adminShifts = [];
-    if (adminUser && adminUser.Shifts) {
+    if (req.user.role === 'SuperAdmin') {
+      const allShifts = await Shift.findAll({
+        include: [{ 
+          model: User, 
+          through: { attributes: [] },
+          where: { role: ['Admin', 'SuperAdmin'] },
+          attributes: ['fullName'],
+          required: false
+        }]
+      });
+      adminShifts = allShifts.map(s => ({
+        name: s.name,
+        startTime: s.startTime,
+        endTime: s.endTime,
+        admins: s.Users && s.Users.length > 0 ? s.Users.map(u => u.fullName).join(' و ') : 'لا يوجد مسؤول'
+      }));
+    } else if (adminUser && adminUser.Shifts) {
       adminShifts = adminUser.Shifts.map(s => ({
         name: s.name,
         startTime: s.startTime,
-        endTime: s.endTime
+        endTime: s.endTime,
+        admins: adminUser.fullName
       }));
     }
 
@@ -247,9 +273,9 @@ exports.getTodayStatus = async (req, res) => {
       ],
       where: {
         status: 'Active',
-        role: ['Admin', 'Supervisor']
+        role: ['SuperAdmin', 'Admin', 'Supervisor']
       },
-      attributes: ['id', 'fullName', 'username', 'avatar', 'jobTitle']
+      attributes: ['id', 'fullName', 'username', 'avatar', 'jobTitle', 'role']
     });
 
     if (usersInShifts.length === 0) {
@@ -277,10 +303,18 @@ exports.getTodayStatus = async (req, res) => {
       }
     });
 
+    // Get today's performance logs (summaries)
+    const { PerformanceLog } = require('../models');
+    const performanceLogs = await PerformanceLog.findAll({
+      where: { date: today }
+    });
+    const summaryMap = {};
+    performanceLogs.forEach(p => summaryMap[p.userId] = true);
+
     const attendanceMap = {};
     attendances.forEach(a => {
       attendanceMap[a.userId] = {
-        status: a.status || (a.checkOutTime ? 'Present' : 'Present'),
+        status: a.status || (a.checkOutTime ? 'CheckedOut' : 'Present'),
         checkInTime: a.checkInTime,
         checkOutTime: a.checkOutTime
       };
@@ -304,7 +338,7 @@ exports.getTodayStatus = async (req, res) => {
 
     inactiveLogs.forEach(log => {
       // Check if this log is an active break (no endTime)
-      if (!log.endTime) {
+      if (!log.endTime || log.endTime === 'null' || log.endTime === '') {
         activeBreakMap[log.userId] = log.type;
       }
 
@@ -323,7 +357,10 @@ exports.getTodayStatus = async (req, res) => {
       let checkOutTime = null;
       
       if (attendanceMap[user.id]) {
-        todayStatus = attendanceMap[user.id].status; // Present, Absent, Late
+        todayStatus = attendanceMap[user.id].status || 'Present';
+        if (attendanceMap[user.id].checkOutTime) {
+          todayStatus = 'CheckedOut';
+        }
         checkInTime = attendanceMap[user.id].checkInTime;
         checkOutTime = attendanceMap[user.id].checkOutTime;
       } else if (dayoffMap[user.id]) {
@@ -354,12 +391,14 @@ exports.getTodayStatus = async (req, res) => {
         username: user.username,
         avatar: user.avatar,
         jobTitle: user.jobTitle,
+        role: user.role,
         shifts: user.Shifts.map(s => s.name),
         todayStatus,
         checkInTime,
         checkOutTime,
         lateMinutes,
-        breakDetails: breakMap[user.id] || { 'بريك صلاة': 0, 'بريك غداء': 0 }
+        breakDetails: breakMap[user.id] || { 'بريك صلاة': 0, 'بريك غداء': 0 },
+        hasSummary: !!summaryMap[user.id]
       };
     });
 
@@ -467,6 +506,15 @@ exports.adminUpdateStatus = async (req, res) => {
         }
         break;
 
+      case 'ResetCheckout':
+        if (!attendance) {
+           return res.status(404).json({ error: 'لم يتم العثور على سجل حضور لليوم' });
+        }
+        attendance.checkOutTime = null;
+        if (notes) attendance.notes = (attendance.notes ? attendance.notes + '\\n' + notes : notes);
+        await attendance.save();
+        break;
+
       default:
         return res.status(400).json({ error: 'إجراء غير صالح' });
     }
@@ -475,5 +523,36 @@ exports.adminUpdateStatus = async (req, res) => {
   } catch (error) {
     console.error('Error in adminUpdateStatus:', error);
     res.status(500).json({ error: 'حدث خطأ في الخادم' });
+  }
+};
+
+exports.updateLogTime = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { checkInTime, checkOutTime } = req.body;
+
+    const log = await AttendanceLog.findByPk(id);
+    if (!log) {
+      return res.status(404).json({ error: 'لم يتم العثور على السجل' });
+    }
+
+    const getValidDate = (timeString, baseDateString) => {
+      if (!timeString) return null;
+      return new Date(`${baseDateString}T${timeString}:00`);
+    };
+
+    if (checkInTime !== undefined) {
+      log.checkInTime = getValidDate(checkInTime, log.date);
+    }
+    
+    if (checkOutTime !== undefined) {
+      log.checkOutTime = getValidDate(checkOutTime, log.date);
+    }
+
+    await log.save();
+    res.json({ message: 'تم تحديث أوقات السجل بنجاح', log });
+  } catch (error) {
+    console.error('Error in updateLogTime:', error);
+    res.status(500).json({ error: 'حدث خطأ أثناء تحديث السجل' });
   }
 };

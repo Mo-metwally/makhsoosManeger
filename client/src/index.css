@@ -1,6 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap');
 
 :root {
+  --base-bg: #0b0f19;
   --text-primary: #ffffff;
   --text-secondary: #94a3b8;
 
@@ -25,189 +26,358 @@
 
 /* 1. User - Default Blue Dark */
 :root[data-theme="User"] {
-  --bg-main: #0b0f19;
-  --glass-bg: rgba(20, 25, 40, 0.5);
-  --glass-bg-hover: rgba(25, 35, 55, 0.6);
-  --bg-active-menu: rgba(59, 130, 246, 0.15);
-  --border-color: rgba(59, 130, 246, 0.2);
-  --theme-color: #3b82f6;
-  --theme-glow: rgba(59, 130, 246, 0.4);
+  --bg-main: rgba(37, 99, 235, 0.05);
+  --glass-bg: rgba(37, 99, 235, 0.1);
+  --glass-bg-hover: rgba(37, 99, 235, 0.15);
+  --bg-active-menu: rgba(37, 99, 235, 0.15);
+  --border-color: rgba(37, 99, 235, 0.3);
+  --theme-color: #2563eb;
+  --theme-glow: rgba(37, 99, 235, 0.4);
 }
 
 /* 2. Shield - Crimson / Dark Red */
 :root[data-theme="Shield"] {
-  --bg-main: #140808;
-  --glass-bg: rgba(40, 15, 15, 0.5);
-  --glass-bg-hover: rgba(55, 20, 20, 0.6);
-  --bg-active-menu: rgba(239, 68, 68, 0.15);
-  --border-color: rgba(239, 68, 68, 0.2);
-  --theme-color: #ef4444;
-  --theme-glow: rgba(239, 68, 68, 0.4);
+  --bg-main: rgba(220, 38, 38, 0.05);
+  --glass-bg: rgba(220, 38, 38, 0.1);
+  --glass-bg-hover: rgba(220, 38, 38, 0.15);
+  --bg-active-menu: rgba(220, 38, 38, 0.15);
+  --border-color: rgba(220, 38, 38, 0.3);
+  --theme-color: #dc2626;
+  --theme-glow: rgba(220, 38, 38, 0.4);
 }
 
 /* 3. Cat - Deep Purple */
 :root[data-theme="Cat"] {
-  --bg-main: #110918;
-  --glass-bg: rgba(30, 15, 45, 0.5);
-  --glass-bg-hover: rgba(45, 20, 65, 0.6);
-  --bg-active-menu: rgba(168, 85, 247, 0.15);
-  --border-color: rgba(168, 85, 247, 0.2);
-  --theme-color: #a855f7;
-  --theme-glow: rgba(168, 85, 247, 0.4);
+  --bg-main: rgba(139, 92, 246, 0.05);
+  --glass-bg: rgba(139, 92, 246, 0.1);
+  --glass-bg-hover: rgba(139, 92, 246, 0.15);
+  --bg-active-menu: rgba(139, 92, 246, 0.15);
+  --border-color: rgba(139, 92, 246, 0.3);
+  --theme-color: #8b5cf6;
+  --theme-glow: rgba(139, 92, 246, 0.4);
 }
 
 /* 4. Crown - Deep Gold/Orange */
 :root[data-theme="Crown"] {
-  --bg-main: #171108;
-  --glass-bg: rgba(40, 25, 10, 0.5);
-  --glass-bg-hover: rgba(55, 35, 15, 0.6);
-  --bg-active-menu: rgba(245, 158, 11, 0.15);
-  --border-color: rgba(245, 158, 11, 0.2);
-  --theme-color: #f59e0b;
-  --theme-glow: rgba(245, 158, 11, 0.4);
+  --bg-main: rgba(217, 119, 6, 0.05);
+  --glass-bg: rgba(217, 119, 6, 0.1);
+  --glass-bg-hover: rgba(217, 119, 6, 0.15);
+  --bg-active-menu: rgba(217, 119, 6, 0.15);
+  --border-color: rgba(217, 119, 6, 0.3);
+  --theme-color: #d97706;
+  --theme-glow: rgba(217, 119, 6, 0.4);
 }
 
 /* 5. Star - Ocean Teal */
 :root[data-theme="Star"] {
-  --bg-main: #061417;
-  --glass-bg: rgba(10, 35, 40, 0.5);
-  --glass-bg-hover: rgba(15, 50, 55, 0.6);
-  --bg-active-menu: rgba(6, 182, 212, 0.15);
-  --border-color: rgba(6, 182, 212, 0.2);
-  --theme-color: #06b6d4;
-  --theme-glow: rgba(6, 182, 212, 0.4);
+  --bg-main: rgba(13, 148, 136, 0.05);
+  --glass-bg: rgba(13, 148, 136, 0.1);
+  --glass-bg-hover: rgba(13, 148, 136, 0.15);
+  --bg-active-menu: rgba(13, 148, 136, 0.15);
+  --border-color: rgba(13, 148, 136, 0.3);
+  --theme-color: #0d9488;
+  --theme-glow: rgba(13, 148, 136, 0.4);
 }
 
 /* 6. Smile - Dark Forest Green */
 :root[data-theme="Smile"] {
-  --bg-main: #06140b;
-  --glass-bg: rgba(10, 35, 20, 0.5);
-  --glass-bg-hover: rgba(15, 50, 30, 0.6);
-  --bg-active-menu: rgba(34, 197, 94, 0.15);
-  --border-color: rgba(34, 197, 94, 0.2);
-  --theme-color: #22c55e;
-  --theme-glow: rgba(34, 197, 94, 0.4);
+  --bg-main: rgba(22, 163, 74, 0.05);
+  --glass-bg: rgba(22, 163, 74, 0.1);
+  --glass-bg-hover: rgba(22, 163, 74, 0.15);
+  --bg-active-menu: rgba(22, 163, 74, 0.15);
+  --border-color: rgba(22, 163, 74, 0.3);
+  --theme-color: #16a34a;
+  --theme-glow: rgba(22, 163, 74, 0.4);
 }
 
 /* 7. Briefcase - Slate Professional */
 :root[data-theme="Briefcase"] {
-  --bg-main: #0d1117;
-  --glass-bg: rgba(25, 30, 40, 0.5);
-  --glass-bg-hover: rgba(35, 45, 55, 0.6);
-  --bg-active-menu: rgba(100, 116, 139, 0.15);
-  --border-color: rgba(100, 116, 139, 0.2);
-  --theme-color: #64748b;
-  --theme-glow: rgba(100, 116, 139, 0.4);
+  --bg-main: rgba(71, 85, 105, 0.05);
+  --glass-bg: rgba(71, 85, 105, 0.1);
+  --glass-bg-hover: rgba(71, 85, 105, 0.15);
+  --bg-active-menu: rgba(71, 85, 105, 0.15);
+  --border-color: rgba(71, 85, 105, 0.3);
+  --theme-color: #475569;
+  --theme-glow: rgba(71, 85, 105, 0.4);
 }
 
 /* 8. React - Cyan */
 :root[data-theme="React"] {
-  --bg-main: #0a1922;
-  --glass-bg: rgba(15, 30, 45, 0.5);
-  --glass-bg-hover: rgba(25, 45, 65, 0.6);
-  --bg-active-menu: rgba(97, 218, 251, 0.15);
-  --border-color: rgba(97, 218, 251, 0.2);
-  --theme-color: #61dafb;
-  --theme-glow: rgba(97, 218, 251, 0.4);
-  --btn-text-color: #000000;
+  --bg-main: rgba(34, 211, 238, 0.05);
+  --glass-bg: rgba(34, 211, 238, 0.1);
+  --glass-bg-hover: rgba(34, 211, 238, 0.15);
+  --bg-active-menu: rgba(34, 211, 238, 0.15);
+  --border-color: rgba(34, 211, 238, 0.3);
+  --theme-color: #22d3ee;
+  --theme-glow: rgba(34, 211, 238, 0.4);
 }
 
-/* 9. Github - Gray/White */
+/* 9. Github - Lime Green */
 :root[data-theme="Github"] {
-  --bg-main: #0d1117;
-  --glass-bg: rgba(25, 30, 35, 0.5);
-  --glass-bg-hover: rgba(40, 45, 50, 0.6);
-  --bg-active-menu: rgba(230, 237, 243, 0.15);
-  --border-color: rgba(230, 237, 243, 0.2);
-  --theme-color: #e6edf3;
-  --theme-glow: rgba(230, 237, 243, 0.4);
-  --btn-text-color: #000000;
+  --bg-main: rgba(132, 204, 22, 0.05);
+  --glass-bg: rgba(132, 204, 22, 0.1);
+  --glass-bg-hover: rgba(132, 204, 22, 0.15);
+  --bg-active-menu: rgba(132, 204, 22, 0.15);
+  --border-color: rgba(132, 204, 22, 0.3);
+  --theme-color: #84cc16;
+  --theme-glow: rgba(132, 204, 22, 0.4);
 }
 
 /* 10. Vite - Purple/Gradient */
 :root[data-theme="Vite"] {
-  --bg-main: #140d1f;
-  --glass-bg: rgba(35, 20, 55, 0.5);
-  --glass-bg-hover: rgba(50, 30, 75, 0.6);
-  --bg-active-menu: rgba(189, 52, 254, 0.15);
-  --border-color: rgba(189, 52, 254, 0.2);
-  --theme-color: #bd34fe;
-  --theme-glow: rgba(189, 52, 254, 0.4);
+  --bg-main: rgba(217, 70, 239, 0.05);
+  --glass-bg: rgba(217, 70, 239, 0.1);
+  --bg-main: rgba(100, 108, 255, 0.05);
+  --glass-bg: rgba(100, 108, 255, 0.1);
+  --glass-bg-hover: rgba(100, 108, 255, 0.15);
+  --bg-active-menu: rgba(100, 108, 255, 0.15);
+  --border-color: rgba(100, 108, 255, 0.3);
+  --theme-color: #646cff;
+  --theme-glow: rgba(100, 108, 255, 0.4);
 }
 
-/* 11. Next - White/Dark */
+/* 11. Next - Dark Slate */
 :root[data-theme="Next"] {
-  --bg-main: #000000;
-  --glass-bg: rgba(20, 20, 20, 0.5);
-  --glass-bg-hover: rgba(40, 40, 40, 0.6);
-  --bg-active-menu: rgba(255, 255, 255, 0.15);
-  --border-color: rgba(255, 255, 255, 0.2);
-  --theme-color: #ffffff;
-  --theme-glow: rgba(255, 255, 255, 0.4);
-  --btn-text-color: #000000;
+  --bg-main: rgba(115, 115, 115, 0.05);
+  --glass-bg: rgba(115, 115, 115, 0.1);
+  --glass-bg-hover: rgba(115, 115, 115, 0.15);
+  --bg-active-menu: rgba(115, 115, 115, 0.15);
+  --border-color: rgba(115, 115, 115, 0.3);
+  --theme-color: #737373;
+  --theme-glow: rgba(115, 115, 115, 0.4);
 }
 
-/* 12. Vue - Emerald Green */
+/* 12. Vue - Emerald */
 :root[data-theme="Vue"] {
-  --bg-main: #0a1a12;
-  --glass-bg: rgba(15, 35, 25, 0.5);
-  --glass-bg-hover: rgba(25, 50, 35, 0.6);
-  --bg-active-menu: rgba(66, 184, 131, 0.15);
-  --border-color: rgba(66, 184, 131, 0.2);
-  --theme-color: #42b883;
-  --theme-glow: rgba(66, 184, 131, 0.4);
+  --bg-main: rgba(16, 185, 129, 0.05);
+  --glass-bg: rgba(16, 185, 129, 0.1);
+  --glass-bg-hover: rgba(16, 185, 129, 0.15);
+  --bg-active-menu: rgba(16, 185, 129, 0.15);
+  --border-color: rgba(16, 185, 129, 0.3);
+  --theme-color: #10b981;
+  --theme-glow: rgba(16, 185, 129, 0.4);
 }
 
-/* 13. Flame - Neon Pink */
+/* 13. Flame - Orange */
 :root[data-theme="Flame"] {
-  --bg-main: #18050e;
-  --glass-bg: rgba(45, 15, 25, 0.5);
-  --glass-bg-hover: rgba(65, 20, 35, 0.6);
-  --bg-active-menu: rgba(236, 72, 153, 0.15);
-  --border-color: rgba(236, 72, 153, 0.2);
-  --theme-color: #ec4899;
-  --theme-glow: rgba(236, 72, 153, 0.4);
+  --bg-main: rgba(249, 115, 22, 0.05);
+  --glass-bg: rgba(249, 115, 22, 0.1);
+  --glass-bg-hover: rgba(249, 115, 22, 0.15);
+  --bg-active-menu: rgba(249, 115, 22, 0.15);
+  --border-color: rgba(249, 115, 22, 0.3);
+  --theme-color: #f97316;
+  --theme-glow: rgba(249, 115, 22, 0.4);
 }
 
-/* 14. Zap - Electric Yellow */
+/* 14. Zap - Yellow */
 :root[data-theme="Zap"] {
-  --bg-main: #171500;
-  --glass-bg: rgba(40, 35, 10, 0.5);
-  --glass-bg-hover: rgba(55, 50, 15, 0.6);
+  --bg-main: rgba(234, 179, 8, 0.05);
+  --glass-bg: rgba(234, 179, 8, 0.1);
+  --glass-bg-hover: rgba(234, 179, 8, 0.15);
   --bg-active-menu: rgba(234, 179, 8, 0.15);
-  --border-color: rgba(234, 179, 8, 0.2);
+  --border-color: rgba(234, 179, 8, 0.3);
   --theme-color: #eab308;
   --theme-glow: rgba(234, 179, 8, 0.4);
-  --btn-text-color: #000000;
 }
 
-/* 15. Heart - Rose Red */
+/* 15. Heart - Rose */
 :root[data-theme="Heart"] {
-  --bg-main: #180408;
-  --glass-bg: rgba(45, 10, 15, 0.5);
-  --glass-bg-hover: rgba(65, 15, 25, 0.6);
+  --bg-main: rgba(244, 63, 94, 0.05);
+  --glass-bg: rgba(244, 63, 94, 0.1);
+  --glass-bg-hover: rgba(244, 63, 94, 0.15);
   --bg-active-menu: rgba(244, 63, 94, 0.15);
-  --border-color: rgba(244, 63, 94, 0.2);
+  --border-color: rgba(244, 63, 94, 0.3);
   --theme-color: #f43f5e;
   --theme-glow: rgba(244, 63, 94, 0.4);
 }
 
 /* 16. Moon - Indigo */
 :root[data-theme="Moon"] {
-  --bg-main: #070617;
-  --glass-bg: rgba(15, 10, 45, 0.5);
-  --glass-bg-hover: rgba(25, 15, 65, 0.6);
-  --bg-active-menu: rgba(79, 70, 229, 0.15);
-  --border-color: rgba(79, 70, 229, 0.2);
-  --theme-color: #4f46e5;
-  --theme-glow: rgba(79, 70, 229, 0.4);
+  --bg-main: rgba(99, 102, 241, 0.05);
+  --glass-bg: rgba(99, 102, 241, 0.1);
+  --glass-bg-hover: rgba(99, 102, 241, 0.15);
+  --bg-active-menu: rgba(99, 102, 241, 0.15);
+  --border-color: rgba(99, 102, 241, 0.3);
+  --theme-color: #6366f1;
+  --theme-glow: rgba(99, 102, 241, 0.4);
 }
 
+/* 17. Versace - Metallic Gold */
+:root[data-theme="Versace"] {
+  --bg-main: rgba(212, 175, 55, 0.05);
+  --glass-bg: rgba(212, 175, 55, 0.1);
+  --glass-bg-hover: rgba(212, 175, 55, 0.15);
+  --bg-active-menu: rgba(212, 175, 55, 0.15);
+  --border-color: rgba(212, 175, 55, 0.3);
+  --theme-color: #d4af37;
+  --theme-glow: rgba(212, 175, 55, 0.4);
+}
+
+/* 18. Armani - Royal Blue */
+:root[data-theme="Armani"] {
+  --bg-main: rgba(65, 105, 225, 0.05);
+  --glass-bg: rgba(65, 105, 225, 0.1);
+  --glass-bg-hover: rgba(65, 105, 225, 0.15);
+  --bg-active-menu: rgba(65, 105, 225, 0.15);
+  --border-color: rgba(65, 105, 225, 0.3);
+  --theme-color: #4169e1;
+  --theme-glow: rgba(65, 105, 225, 0.4);
+}
+
+/* 19. Apple - Zinc */
+:root[data-theme="Apple"] {
+  --bg-main: rgba(161, 161, 170, 0.05);
+  --glass-bg: rgba(161, 161, 170, 0.1);
+  --glass-bg-hover: rgba(161, 161, 170, 0.15);
+  --bg-active-menu: rgba(161, 161, 170, 0.15);
+  --border-color: rgba(161, 161, 170, 0.3);
+  --theme-color: #a1a1aa;
+  --theme-glow: rgba(161, 161, 170, 0.4);
+}
+
+/* 20. Nike - Orange Red */
+:root[data-theme="Nike"] {
+  --bg-main: rgba(255, 69, 0, 0.05);
+  --glass-bg: rgba(255, 69, 0, 0.1);
+  --glass-bg-hover: rgba(255, 69, 0, 0.15);
+  --bg-active-menu: rgba(255, 69, 0, 0.15);
+  --border-color: rgba(255, 69, 0, 0.3);
+  --theme-color: #ff4500;
+  --theme-glow: rgba(255, 69, 0, 0.4);
+}
+
+/* 21. Adidas - Deep Sky Blue */
+:root[data-theme="Adidas"] {
+  --bg-main: rgba(0, 191, 255, 0.05);
+  --glass-bg: rgba(0, 191, 255, 0.1);
+  --glass-bg-hover: rgba(0, 191, 255, 0.15);
+  --bg-active-menu: rgba(0, 191, 255, 0.15);
+  --border-color: rgba(0, 191, 255, 0.3);
+  --theme-color: #00bfff;
+  --theme-glow: rgba(0, 191, 255, 0.4);
+}
+
+/* 22. Mercedes - Teal 400 */
+:root[data-theme="Mercedes"] {
+  --bg-main: rgba(45, 212, 191, 0.05);
+  --glass-bg: rgba(45, 212, 191, 0.1);
+  --glass-bg-hover: rgba(45, 212, 191, 0.15);
+  --bg-active-menu: rgba(45, 212, 191, 0.15);
+  --border-color: rgba(45, 212, 191, 0.3);
+  --theme-color: #2dd4bf;
+  --theme-glow: rgba(45, 212, 191, 0.4);
+}
+
+/* 23. BMW - Sky 600 */
+:root[data-theme="BMW"] {
+  --bg-main: rgba(2, 132, 199, 0.05);
+  --glass-bg: rgba(2, 132, 199, 0.1);
+  --glass-bg-hover: rgba(2, 132, 199, 0.15);
+  --bg-active-menu: rgba(2, 132, 199, 0.15);
+  --border-color: rgba(2, 132, 199, 0.3);
+  --theme-color: #0284c7;
+  --theme-glow: rgba(2, 132, 199, 0.4);
+}
+
+/* 24. Audi - Rose 600 */
+:root[data-theme="Audi"] {
+  --bg-main: rgba(225, 29, 72, 0.05);
+  --glass-bg: rgba(225, 29, 72, 0.1);
+  --glass-bg-hover: rgba(225, 29, 72, 0.15);
+  --bg-active-menu: rgba(225, 29, 72, 0.15);
+  --border-color: rgba(225, 29, 72, 0.3);
+  --theme-color: #e11d48;
+  --theme-glow: rgba(225, 29, 72, 0.4);
+}
+
+/* 25. Rolex - Emerald 600 */
+:root[data-theme="Rolex"] {
+  --bg-main: rgba(5, 150, 105, 0.05);
+  --glass-bg: rgba(5, 150, 105, 0.1);
+  --glass-bg-hover: rgba(5, 150, 105, 0.15);
+  --bg-active-menu: rgba(5, 150, 105, 0.15);
+  --border-color: rgba(5, 150, 105, 0.3);
+  --theme-color: #059669;
+  --theme-glow: rgba(5, 150, 105, 0.4);
+}
+
+/* 26. Chanel - Pink 500 */
+:root[data-theme="Chanel"] {
+  --bg-main: rgba(236, 72, 153, 0.05);
+  --glass-bg: rgba(236, 72, 153, 0.1);
+  --glass-bg-hover: rgba(236, 72, 153, 0.15);
+  --bg-active-menu: rgba(236, 72, 153, 0.15);
+  --border-color: rgba(236, 72, 153, 0.3);
+  --theme-color: #ec4899;
+  --theme-glow: rgba(236, 72, 153, 0.4);
+}
+
+/* 27. Gucci - Lime 600 */
+:root[data-theme="Gucci"] {
+  --bg-main: rgba(101, 163, 13, 0.05);
+  --glass-bg: rgba(101, 163, 13, 0.1);
+  --glass-bg-hover: rgba(101, 163, 13, 0.15);
+  --bg-active-menu: rgba(101, 163, 13, 0.15);
+  --border-color: rgba(101, 163, 13, 0.3);
+  --theme-color: #65a30d;
+  --theme-glow: rgba(101, 163, 13, 0.4);
+}
+
+/* --- LIGHT MODE OVERRIDES --- */
+:root[data-mode="light"] {
+  --base-bg: #f8fafc;
+  --bg-main: #f8fafc;
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-bg-hover: rgba(255, 255, 255, 0.9);
+  --bg-active-menu: rgba(0, 0, 0, 0.05);
+  --border-color: rgba(0, 0, 0, 0.1);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --glass-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  --glass-border: 1px solid rgba(0, 0, 0, 0.1);
+  --btn-text-color: #ffffff;
+}
+
+/* Light Mode Global Form Inputs & Selectors */
+:root[data-mode="light"] input:not([type="submit"]):not([type="button"]):not([type="radio"]):not([type="checkbox"]),
+:root[data-mode="light"] select,
+:root[data-mode="light"] textarea,
+:root[data-mode="light"] .custom-select-trigger,
+:root[data-mode="light"] .custom-select-dropdown {
+  background-color: #ffffff !important;
+  color: var(--text-primary) !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
+}
+
+:root[data-mode="light"] input:not([type="submit"]):not([type="button"]):not([type="radio"]):not([type="checkbox"]):focus,
+:root[data-mode="light"] select:focus,
+:root[data-mode="light"] textarea:focus,
+:root[data-mode="light"] .custom-select-trigger:hover,
+:root[data-mode="light"] .custom-select-trigger.open {
+  background-color: #f8fafc !important;
+  border-color: var(--theme-color) !important;
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.05) !important;
+}
+
+:root[data-mode="light"] .custom-select-option:hover {
+  background-color: rgba(0,0,0,0.05) !important;
+  color: var(--text-primary) !important;
+}
+
+:root[data-mode="light"] input::placeholder,
+:root[data-mode="light"] textarea::placeholder {
+  color: var(--text-secondary) !important;
+}
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+html {
+  background-color: var(--base-bg);
+  transition: background-color 0.5s ease;
 }
 
 body {

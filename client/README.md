@@ -1,16 +1,71 @@
-# React + Vite
+# توثيق واجهة المستخدم (Client Readme)
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+هذا الملف يحتوي على تفاصيل واجهة المستخدم (Frontend) الخاصة بنظام "مخصوص"، بما في ذلك المكتبات المستخدمة وهيكلة الصفحات (الراوتس) ووظيفة كل صفحة.
 
-Currently, two official plugins are available:
+## 🛠️ المكتبات والتقنيات المستخدمة
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+تم بناء واجهة المستخدم باستخدام **React (Vite)** لضمان سرعة التطوير والأداء العالي.
 
-## React Compiler
+1. **React & React DOM (v19)**: الإطار الأساسي لبناء واجهات المستخدم التفاعلية.
+2. **Vite**: أداة بناء سريعة جداً كبديل لـ Webpack لتقديم تجربة تطوير سريعة (Dev Server).
+3. **React Router DOM**: مكتبة إدارة التوجيه (Routing) للتنقل بين صفحات التطبيق دون إعادة تحميل الصفحة.
+4. **Axios**: مكتبة لعمل الطلبات البرمجية (HTTP Requests) للواجهة الخلفية (Backend) لمعالجة البيانات.
+5. **Lucide React**: مكتبة الأيقونات المستخدمة في جميع أنحاء النظام (أيقونات واضحة وحديثة).
+6. **Recharts**: مكتبة لإنشاء الرسوم البيانية التفاعلية (تُستخدم في شاشات المراقبة والإحصائيات وتفاصيل الأداء).
+7. **XLSX-js-style & @zip.js/zip.js**: مكتبات متخصصة في تصدير البيانات إلى ملفات Excel منسقة (مثل تقارير الحضور والمصروفات).
+8. **Firebase**: متضمنة في المشروع (غالباً لدعم إشعارات الويب مستقبلاً أو خدمات أخرى تابعة لجوجل).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the Oxlint configuration
+## 🗺️ مسارات التطبيق (Routes) ووظائف الصفحات
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+يحتوي النظام على العديد من الصفحات المصممة لخدمة الموظفين، المشرفين، والمديرين:
+
+### 🏠 المسارات العامة والأساسية
+- `/` **(Home)**: لوحة التحكم الرئيسية (Dashboard)، تعرض نظرة عامة سريعة حسب صلاحيات المستخدم.
+- `/login` **(Login)**: شاشة تسجيل الدخول للنظام.
+- `/account` **(Account)**: صفحة الإعدادات الشخصية للمستخدم (تغيير كلمة المرور، اختيار الأفاتار/الثيم، إلخ).
+- `/*` **(NotFound)**: شاشة الخطأ التي تظهر عند محاولة الدخول لمسار غير موجود.
+
+### 📞 المتابعة والمهام اليومية
+- `/contacts` **(Calls)**: صفحة المتابعة وإدارة المكالمات للموظفين.
+- `/summery` **(Summary)**: صفحة مخصصة للموظف لكتابة ملخص مهامه اليومية قبل نهاية الوردية (يوجد تنبيه يظهر قبل نهاية الوردية بـ 30 دقيقة لملئها).
+- `/performance-log` **(PerformanceLog)**: سجل الأداء اليومي والشخصي للموظف.
+
+### ⏱️ الحضور والغياب والإجازات (للموظف)
+- `/attendance` **(Attendance)**: سجل الحضور والانصراف الخاص بالموظف نفسه وتاريخه.
+- `/dayoff` **(DayOff)**: شاشة مخصصة للموظف لتقديم طلبات الإجازات أو الأذونات والمغادرات المبكرة.
+- `/my-advances` **(MyAdvances)**: متابعة السلفيات والخصومات الخاصة بالموظف نفسه.
+
+### 👁️ شاشات المراقبة والمتابعة المباشرة (للمديرين والمشرفين)
+- `/monitoring` **(Monitoring)**: شاشة المراقبة اللحظية (توضح حالة جميع الموظفين المتواجدين الآن وحالتهم الحالية كـ "في مكالمة" أو "استراحة").
+- `/my-monitoring` **(Monitoring isMyMonitoring)**: شاشة مراقبة مصغرة للموظف لرؤية حالته الحالية.
+- `/today-followup` **(TodayFollowup)**: المتابعة اليومية للموظفين لمعرفة من حضر ومن غاب في اليوم الحالي بناءً على وردياتهم.
+- `/personal-followup/:employeeId` **(PersonalFollowup)**: شاشة مخصصة لمتابعة أداء وتفاصيل موظف معين بالاسم.
+
+### ⚙️ إدارة النظام والورديات (للمديرين)
+- `/shift-management` **(ShiftManagement)**: لوحة لإدارة الورديات (إضافة/تعديل ورديات) وتعيين الموظفين لكل وردية.
+- `/staff-management` **(StaffManagement)**: الإدارة الشاملة لطاقم العمل والموظفين.
+- `/staff-management/:shiftId` **(ShiftStaffDetails)**: تفاصيل طاقم العمل لوردية محددة وعرض إحصائياتهم والرسوم البيانية لأدائهم.
+- `/dayoff-management` **(DayOffManagement)**: إدارة طلبات الإجازات (الموافقة عليها أو رفضها من قِبل المشرفين/المديرين).
+- `/general-settings` **(GeneralSettings)**: الإعدادات العامة للنظام للتحكم في خصائصه.
+
+### 📊 التقارير والإدارة المتقدمة
+- `/allcontacts` **(HandleAdmin)**: إدارة كاملة لجهات الاتصال والعملاء من قِبل المشرف.
+- `/attendancereports` **(HandleAdminReports)**: تقارير شاملة للحضور والانصراف على مستوى الشركة.
+- `/allPerformance` **(HandleAdminPerformance)**: تقارير الأداء الشاملة لجميع الموظفين.
+- `/handleAdminExport` **(HandleAdminExport)**: شاشة مخصصة لتصدير التقارير وسجلات النظام إلى ملفات Excel.
+- `/report-editor` **(ReportEditor)**: التعديل على التقارير المدخلة وإدارتها.
+- `/report-editor/quality` **(QualityReport)**: إدارة تقارير الجودة والمكالمات.
+- `/report-editor/discounts` **(DiscountsReport)**: إدارة تقارير الخصومات المالية للموظفين.
+- `/permissions` و `/report-editor/permissions`: شاشات إدارة ومراجعة تقارير الأذونات والمغادرات.
+
+### 💰 المالية
+- `/expenses` **(Expenses)**: عرض ومتابعة مصروفات الشركة أو الفرع.
+- `/expenses-add` **(ExpensesAdd)**: تسجيل وإضافة مصروفات جديدة للنظام.
+
+---
+
+## 🎨 الثيمات والألوان
+يحتوي النظام على ميزة ثيمات متقدمة مبنية على CSS Variables. 
+يتم تغيير ثيم النظام (الألوان الرئيسية) بناءً على "الأفاتار / اللوجو" الذي يختاره المستخدم من صفحة الحساب (مثال: ثيم Versace، ثيم Armani، وغيرها)، ويتم تطبيقه بشكل ديناميكي من خلال `App.jsx`.

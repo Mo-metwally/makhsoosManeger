@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { CalendarDays, Calendar as CalendarIcon, Users, CheckCircle, Clock, XCircle, Send, X, AlertTriangle } from 'lucide-react';
 import api from '../services/api';
 import './DayOff.css';
+import { useToast } from '../contexts/ToastContext';
 
 const DayOff = () => {
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [userRequests, setUserRequests] = useState([]);
   const [allRequests, setAllRequests] = useState([]);
@@ -107,9 +109,10 @@ const DayOff = () => {
         reason
       });
       setModalOpen(false);
-      fetchRequests(); // Refresh
+      fetchRequests();
+      showToast('تم تقديم طلب الإجازة بنجاح', 'success');
     } catch (error) {
-      alert(error.response?.data?.error || 'حدث خطأ أثناء التقديم');
+      showToast(error.response?.data?.error || 'حدث خطأ أثناء التقديم', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -120,8 +123,9 @@ const DayOff = () => {
     try {
       await api.delete(`/dayoff/${requestId}`);
       fetchRequests();
+      showToast('تم إلغاء الطلب بنجاح', 'success');
     } catch (error) {
-      alert(error.response?.data?.error || 'حدث خطأ أثناء الإلغاء');
+      showToast(error.response?.data?.error || 'حدث خطأ أثناء الإلغاء', 'error');
     }
   };
 

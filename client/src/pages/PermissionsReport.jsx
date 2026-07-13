@@ -4,6 +4,7 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import './PermissionsReport.css';
 import CustomSelect from '../components/CustomSelect';
+import { useToast } from '../contexts/ToastContext';
 
 const RoleSelector = ({ currentRole, currentUserRole, userId, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -67,6 +68,7 @@ const RoleSelector = ({ currentRole, currentUserRole, userId, onChange }) => {
 const UserRow = ({ user, currentUser, onRefresh, handleRoleChange, handleAction }) => {
   const [expanded, setExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     fullName: user.fullName || '',
     username: user.username || '',
@@ -86,8 +88,9 @@ const UserRow = ({ user, currentUser, onRefresh, handleRoleChange, handleAction 
       await api.put(`/admin/users/${user.id}`, formData);
       setIsEditing(false);
       onRefresh();
+      showToast('تم تحديث بيانات المستخدم بنجاح', 'success');
     } catch (error) {
-      alert('حدث خطأ أثناء الحفظ');
+      showToast('حدث خطأ أثناء الحفظ', 'error');
     }
   };
 
@@ -96,8 +99,9 @@ const UserRow = ({ user, currentUser, onRefresh, handleRoleChange, handleAction 
       try {
         await api.put(`/admin/users/${user.id}/unlock-device`);
         onRefresh();
+        showToast('تم فك ارتباط الجهاز بنجاح', 'success');
       } catch (error) {
-        alert('حدث خطأ أثناء فك الارتباط');
+        showToast('حدث خطأ أثناء فك الارتباط', 'error');
       }
     }
   };
@@ -107,8 +111,9 @@ const UserRow = ({ user, currentUser, onRefresh, handleRoleChange, handleAction 
       try {
         await api.delete(`/admin/users/${user.id}`);
         onRefresh();
+        showToast('تم حذف المستخدم بنجاح', 'success');
       } catch (error) {
-        alert(error.response?.data?.error || 'حدث خطأ أثناء الحذف');
+        showToast(error.response?.data?.error || 'حدث خطأ أثناء الحذف', 'error');
       }
     }
   };
@@ -233,6 +238,7 @@ const UserRow = ({ user, currentUser, onRefresh, handleRoleChange, handleAction 
 
 const PermissionsReport = () => {
   const { user: currentUser } = useAuth();
+  const { showToast } = useToast();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -266,8 +272,9 @@ const PermissionsReport = () => {
         await api.put(`/admin/users/${id}/suspend`);
       }
       fetchUsers();
+      showToast('تم تنفيذ الإجراء بنجاح', 'success');
     } catch (error) {
-      alert('حدث خطأ أثناء تنفيذ الإجراء');
+      showToast('حدث خطأ أثناء تنفيذ الإجراء', 'error');
     }
   };
 
@@ -281,9 +288,10 @@ const PermissionsReport = () => {
         try {
           await api.put(`/admin/users/${id}/role`, { role: newRole });
           fetchUsers();
+          showToast('تم تحديث الصلاحية بنجاح', 'success');
         } catch (error) {
-          alert(error.response?.data?.error || 'حدث خطأ أثناء تغيير الصلاحية');
-          fetchUsers(); // Reset UI on error
+          showToast(error.response?.data?.error || 'حدث خطأ أثناء تغيير الصلاحية', 'error');
+          fetchUsers();
         } finally {
           setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: null, isLoading: false });
         }

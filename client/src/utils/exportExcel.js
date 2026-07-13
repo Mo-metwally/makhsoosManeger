@@ -185,6 +185,33 @@ const getPerformanceSheet = (filterType, userName, startDate, endDate, passedDat
   return wsPerf;
 };
 
+const getAdvancesSheet = (filterType, userName, startDate, endDate, passedData = null) => {
+  const allAdvances = passedData || [];
+  const filteredAdvances = getFilteredData(allAdvances, filterType, 'createdAt', startDate, endDate);
+
+  const getStatusArabic = (status) => {
+    switch (status) {
+      case 'pending': return 'قيد المراجعة';
+      case 'approved': return 'مقبول (دين)';
+      case 'rejected': return 'مرفوض';
+      case 'settled': return 'تم السداد';
+      default: return status || 'غير محدد';
+    }
+  };
+
+  const advancesData = filteredAdvances.map(adv => ({
+    'التاريخ': new Date(adv.createdAt).toLocaleString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+    'الشهر': adv.monthKey || 'غير محدد',
+    'المبلغ': `${adv.amount} ج.م`,
+    'السبب': adv.reason || 'لا يوجد',
+    'الحالة': getStatusArabic(adv.status)
+  }));
+
+  const wsAdv = XLSX.utils.json_to_sheet(advancesData.length ? advancesData : [{ 'رسالة': 'لا توجد سلف مسجلة' }]);
+  wsAdv['!dir'] = 'rtl';
+  return wsAdv;
+};
+
 export const exportToExcel = async (filterType = 'today', startDate, endDate) => {
   const todayStr = getLogicalDateString();
   const userName = localStorage.getItem('userName') || 'المشرف';
@@ -192,16 +219,19 @@ export const exportToExcel = async (filterType = 'today', startDate, endDate) =>
   let dbCalls = null;
   let dbLogs = null;
   let dbPerf = null;
+  let dbAdvances = null;
 
   try {
-    const [resCalls, resLogs, resPerf] = await Promise.all([
+    const [resCalls, resLogs, resPerf, resAdvances] = await Promise.all([
       api.get('/data/calls'),
       api.get('/data/inactivity'),
-      api.get('/data/performance-logs')
+      api.get('/data/performance-logs'),
+      api.get('/advances/me')
     ]);
     dbCalls = resCalls.data;
     dbLogs = resLogs.data;
     dbPerf = resPerf.data;
+    dbAdvances = resAdvances.data;
   } catch (error) {
     console.error('Failed to fetch personal data for export, falling back to local storage', error);
   }
@@ -209,6 +239,7 @@ export const exportToExcel = async (filterType = 'today', startDate, endDate) =>
   const wsCalls = getCallsSheet(filterType, startDate, endDate, dbCalls);
   const wsLogs = getLogsSheet(filterType, userName, startDate, endDate, dbLogs);
   const wsPerf = getPerformanceSheet(filterType, userName, startDate, endDate, dbPerf);
+  const wsAdv = getAdvancesSheet(filterType, userName, startDate, endDate, dbAdvances);
 
   const wbCalls = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wbCalls, wsCalls, "سجل المكالمات");
@@ -219,16 +250,21 @@ export const exportToExcel = async (filterType = 'today', startDate, endDate) =>
   const wbPerf = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wbPerf, wsPerf, "تقرير الأداء");
 
+  const wbAdv = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wbAdv, wsAdv, "سلف الحساب");
+
   const callsBuffer = XLSX.write(wbCalls, { bookType: 'xlsx', type: 'array' });
   const logsBuffer = XLSX.write(wbLogs, { bookType: 'xlsx', type: 'array' });
   const perfBuffer = XLSX.write(wbPerf, { bookType: 'xlsx', type: 'array' });
+  const advBuffer = XLSX.write(wbAdv, { bookType: 'xlsx', type: 'array' });
 
   const blobWriter = new zip.BlobWriter("application/zip");
-  const zipWriter = new zip.ZipWriter(blobWriter, { password: "65410" });
+  const zipWriter = new zip.ZipWriter(blobWriter);
 
   await zipWriter.add("سجل_المكالمات.xlsx", new zip.Uint8ArrayReader(new Uint8Array(callsBuffer)));
   await zipWriter.add("فترات_الخمول_والراحة.xlsx", new zip.Uint8ArrayReader(new Uint8Array(logsBuffer)));
   await zipWriter.add("تقرير_الأداء.xlsx", new zip.Uint8ArrayReader(new Uint8Array(perfBuffer)));
+  await zipWriter.add("سلف_الحساب.xlsx", new zip.Uint8ArrayReader(new Uint8Array(advBuffer)));
 
   const zipBlob = await zipWriter.close();
 
@@ -417,7 +453,23 @@ export const getAdminPerformanceSheet = (filteredData) => {
   return wsPerf;
 };
 
-export const exportAdminData = async (exportType, filteredCalls, filteredLogs, filteredPerf, customFileNameBase) => {
+export const getAdminExpensesSheet = (filteredData) => {
+  const expData = filteredData.map(exp => ({
+    'التاريخ': exp.date || '-',
+    'الوقت': exp.time || '-',
+    'المبلغ': `${exp.amount} ج.م`,
+    'النوع': exp.type === 'advance' ? 'سلفة' : 'مصروف/أخرى',
+    'اسم الموظف/البند': exp.employeeName || exp.item || 'غير محدد',
+    'السبب/الملاحظات': exp.notes || 'لا يوجد',
+    'اسم حامل البطاقة': exp.User ? (exp.User.fullName || exp.User.username) : 'غير محدد'
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(expData.length ? expData : [{ 'رسالة': 'لا توجد بيانات مصروفات' }]);
+  ws['!dir'] = 'rtl';
+  return ws;
+};
+
+export const exportAdminData = async (exportType, filteredCalls, filteredLogs, filteredPerf, filteredExpenses = [], customFileNameBase = null) => {
   const todayStr = getLogicalDateString();
   const fileNameBase = customFileNameBase || `تقرير_الإدارة_الشامل_${todayStr}`;
 
@@ -439,10 +491,17 @@ export const exportAdminData = async (exportType, filteredCalls, filteredLogs, f
     XLSX.utils.book_append_sheet(wb, wsPerf, "سجل المهام المجمع");
     XLSX.writeFile(wb, `${fileNameBase}_المهام.xlsx`);
   }
+  else if (exportType === 'expenses_only') {
+    const wsExp = getAdminExpensesSheet(filteredExpenses);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, wsExp, "سجل المصروفات المجمع");
+    XLSX.writeFile(wb, `${fileNameBase}_المصروفات.xlsx`);
+  }
   else if (exportType === 'all_zip') {
     const wsCalls = getAdminCallsSheet(filteredCalls);
     const wsLogs = getAdminLogsSheet(filteredLogs);
     const wsPerf = getAdminPerformanceSheet(filteredPerf);
+    const wsExp = getAdminExpensesSheet(filteredExpenses);
 
     const wbCalls = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wbCalls, wsCalls, "سجل المكالمات المجمع");
@@ -453,9 +512,13 @@ export const exportAdminData = async (exportType, filteredCalls, filteredLogs, f
     const wbPerf = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wbPerf, wsPerf, "سجل المهام المجمع");
 
+    const wbExp = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wbExp, wsExp, "سجل المصروفات المجمع");
+
     const callsBuffer = XLSX.write(wbCalls, { bookType: 'xlsx', type: 'array' });
     const logsBuffer = XLSX.write(wbLogs, { bookType: 'xlsx', type: 'array' });
     const perfBuffer = XLSX.write(wbPerf, { bookType: 'xlsx', type: 'array' });
+    const expBuffer = XLSX.write(wbExp, { bookType: 'xlsx', type: 'array' });
 
     const blobWriter = new zip.BlobWriter("application/zip");
     // Without password for admin
@@ -464,6 +527,7 @@ export const exportAdminData = async (exportType, filteredCalls, filteredLogs, f
     await zipWriter.add("سجل_المكالمات_المجمع.xlsx", new zip.Uint8ArrayReader(new Uint8Array(callsBuffer)));
     await zipWriter.add("سجل_النشاط_والخمول_المجمع.xlsx", new zip.Uint8ArrayReader(new Uint8Array(logsBuffer)));
     await zipWriter.add("سجل_الأداء_المجمع.xlsx", new zip.Uint8ArrayReader(new Uint8Array(perfBuffer)));
+    await zipWriter.add("سجل_المصروفات_المجمع.xlsx", new zip.Uint8ArrayReader(new Uint8Array(expBuffer)));
 
     const zipBlob = await zipWriter.close();
 

@@ -17,9 +17,8 @@ const WhatsAppIcon = ({ size = 24, color = "currentColor", style }) => (
   </svg>
 );
 
-const TARGET_CALLS = 30;
-
 const Home = () => {
+  const [targetCalls, setTargetCalls] = useState(30);
   const [calls, setCalls] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [reportMethod, setReportMethod] = useState(null);
@@ -106,6 +105,7 @@ const Home = () => {
     setActiveBreak(breakType);
     setBreakStartTime(startTime);
     localStorage.setItem('activeBreak', breakType);
+    window.dispatchEvent(new Event('userStatusChanged'));
     localStorage.setItem('breakStartTime', startTime);
     localStorage.setItem('breakLogId', breakLogId);
 
@@ -150,6 +150,7 @@ const Home = () => {
     setActiveBreak(null);
     setBreakStartTime(null);
     localStorage.removeItem('activeBreak');
+    window.dispatchEvent(new Event('userStatusChanged'));
     localStorage.removeItem('breakStartTime');
     localStorage.removeItem('breakLogId');
     showToast('تم العودة للعمل بنجاح وتم تسجيل الفاصل', 'success');
@@ -157,6 +158,16 @@ const Home = () => {
 
   const fetchCalls = async () => {
     try {
+      // Fetch target calls first
+      try {
+        const settingsRes = await api.get('/settings?key=dailyCallsTarget');
+        if (settingsRes.data && settingsRes.data.dailyCallsTarget) {
+          setTargetCalls(Number(settingsRes.data.dailyCallsTarget));
+        }
+      } catch (settingsErr) {
+        console.error('Error fetching target calls:', settingsErr);
+      }
+
       const res = await api.get('/data/calls');
       setCalls(res.data || []);
     } catch (err) {
@@ -306,7 +317,7 @@ const Home = () => {
 
   // Progress calculations
   const circumference = 314.159; // 2 * pi * r (where r=50)
-  const progressPercent = Math.min(totalCallsCount / TARGET_CALLS, 1);
+  const progressPercent = Math.min(totalCallsCount / targetCalls, 1);
   const strokeDashoffset = circumference - (progressPercent * circumference);
 
   return (
@@ -409,7 +420,7 @@ const Home = () => {
               <div className="progress-content">
                 <span className="progress-label">تم تحقيق</span>
                 <span className="progress-number">{totalCallsCount}</span>
-                <span className="progress-total">من أصل {TARGET_CALLS}<br />مكالمات اليوم</span>
+                <span className="progress-total">من أصل {targetCalls}<br />مكالمات اليوم</span>
               </div>
             </div>
           </div>

@@ -6,11 +6,8 @@ import api from '../services/api';
 import { getLogicalDateString } from '../utils/dateHelpers';
 import CustomSelect from '../components/CustomSelect';
 import AdminNavBar from '../components/AdminNavBar';
+import AvatarIcon from '../components/AvatarIcon';
 import './Monitoring.css';
-
-const avatarMap = {
-  User, Shield, Cat, Crown, Star, Smile, Briefcase, Flame, Zap, Heart, Moon
-};
 
 const Monitoring = ({ isMyMonitoring = false }) => {
   const { user } = useAuth();
@@ -405,7 +402,7 @@ const Monitoring = ({ isMyMonitoring = false }) => {
             ) : currentLogs.length > 0 ? (
               currentLogs.map(log => {
                 const isIdle = !log.type || log.type === 'idle';
-                const AvatarIcon = log.User && log.User.avatar ? (avatarMap[log.User.avatar] || User) : User;
+                const userAvatar = log.User?.avatar || 'User';
                 return (
                   <tr key={log.id}>
                     <td>
@@ -421,7 +418,7 @@ const Monitoring = ({ isMyMonitoring = false }) => {
                           borderRadius: '50%',
                           flexShrink: 0
                         }}>
-                          <AvatarIcon size={20} style={{ color: 'var(--theme-color, #3b82f6)' }} />
+                          <AvatarIcon name={userAvatar} size={20} color="var(--theme-color)" />
                         </div>
                         <div>
                           <div style={{ fontWeight: 'bold', color: 'var(--theme-color)' }}>{log.User ? log.User.fullName : (log.supervisorName || 'موظف')}</div>

@@ -26,5 +26,7 @@ router.post('/admin/absence', requireAdmin, attendanceController.registerAbsence
 router.get('/today-status', requireAdmin, attendanceController.getTodayStatus);
 // Admin route to force update status
 router.post('/admin/update-status', requireAdmin, attendanceController.adminUpdateStatus);
+// Admin route to update specific log time
+router.put('/admin/log/:id', requireAdmin, attendanceController.updateLogTime);
 
 module.exports = router;

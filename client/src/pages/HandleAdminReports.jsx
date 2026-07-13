@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Activity, Search, Trash2, ChevronRight, ChevronLeft, Users, LogIn, LogOut, CheckCircle, Calendar } from 'lucide-react';
+import { Activity, Search, Trash2, ChevronRight, ChevronLeft, Users, LogIn, LogOut, CheckCircle, Calendar, Edit2, X, Save } from 'lucide-react';
 import AdminGuard from '../components/AdminGuard';
 import CustomSelect from '../components/CustomSelect';
 import { getLogicalDateString } from '../utils/dateHelpers';
 import api from '../services/api';
 import './Monitoring.css';
+import { useToast } from '../contexts/ToastContext';
 
 const HandleAdminReports = () => {
   const location = useLocation();
@@ -22,6 +23,9 @@ const HandleAdminReports = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 8; // Adjust if needed
 
+  const [editModal, setEditModal] = useState({ isOpen: false, log: null, checkInTime: '', checkOutTime: '' });
+  const { showToast } = useToast();
+
   useEffect(() => {
     document.title = "تقارير الحضور المجمعة | مخصوص";
     fetchAttendanceLogs();
@@ -33,6 +37,23 @@ const HandleAdminReports = () => {
       setAttendanceLogs(res.data);
     } catch (err) {
       console.error('Error fetching attendance logs', err);
+      showToast('خطأ في جلب البيانات', 'error');
+    }
+  };
+
+  const handleEditTime = async () => {
+    if (!editModal.log) return;
+    try {
+      const res = await api.put(`/attendance/admin/log/${editModal.log.id}`, {
+        checkInTime: editModal.checkInTime || undefined,
+        checkOutTime: editModal.checkOutTime || undefined
+      });
+      showToast('تم تحديث الوقت بنجاح', 'success');
+      setEditModal({ isOpen: false, log: null, checkInTime: '', checkOutTime: '' });
+      fetchAttendanceLogs();
+    } catch (err) {
+      console.error('Error updating log time:', err);
+      showToast(err.response?.data?.error || 'حدث خطأ أثناء التحديث', 'error');
     }
   };
 
@@ -241,6 +262,7 @@ const HandleAdminReports = () => {
                   <th>الاستراحات</th>
                   <th>التأخير</th>
                   <th>الحالة</th>
+                  <th>إجراء</th>
                 </tr>
               </thead>
               <tbody>
@@ -307,9 +329,43 @@ const HandleAdminReports = () => {
                       {calculateDelay(log.checkInTime, log.Shift?.startTime)}
                     </td>
                     <td>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', borderRadius: '20px', fontSize: '0.85rem' }}>
+                      <span className="status-badge" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
                         <CheckCircle size={14} /> مسجل
                       </span>
+                    </td>
+                    <td>
+                      <button 
+                        onClick={() => {
+                          const getHHMM = (dateStr) => {
+                            if (!dateStr) return '';
+                            const d = new Date(dateStr);
+                            return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+                          };
+                          setEditModal({
+                            isOpen: true,
+                            log,
+                            checkInTime: getHHMM(log.checkInTime),
+                            checkOutTime: getHHMM(log.checkOutTime)
+                          });
+                        }}
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.1)',
+                          border: 'none',
+                          color: 'var(--text-secondary)',
+                          padding: '0.5rem',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: '0.3s'
+                        }}
+                        title="تعديل الوقت"
+                        onMouseOver={(e) => e.currentTarget.style.color = 'var(--theme-color)'}
+                        onMouseOut={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
+                      >
+                        <Edit2 size={18} />
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -344,8 +400,58 @@ const HandleAdminReports = () => {
             </div>
           )}
         </div>
-
       </div>
+
+      {/* Edit Time Modal */}
+      {editModal.isOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'var(--bg-main)', padding: '2rem', borderRadius: '16px', width: '90%', maxWidth: '400px', border: '1px solid var(--border-color)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+            <h3 style={{ color: 'var(--text-primary)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Edit2 size={24} className="text-blue" />
+              تعديل أوقات السجل
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+              موظف: <strong>{editModal.log?.User?.fullName}</strong><br/>
+              تاريخ: {formatDate(editModal.log?.date)}
+            </p>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>وقت الحضور</label>
+              <input 
+                type="time" 
+                value={editModal.checkInTime} 
+                onChange={(e) => setEditModal({...editModal, checkInTime: e.target.value})}
+                style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+              />
+            </div>
+            
+            <div style={{ marginBottom: '2rem' }}>
+              <label style={{ display: 'block', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>وقت الانصراف</label>
+              <input 
+                type="time" 
+                value={editModal.checkOutTime} 
+                onChange={(e) => setEditModal({...editModal, checkOutTime: e.target.value})}
+                style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button 
+                onClick={handleEditTime}
+                style={{ flex: 1, background: 'var(--theme-color)', color: 'white', padding: '0.8rem', borderRadius: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', border: 'none', fontWeight: 'bold' }}
+              >
+                <Save size={18} /> حفظ
+              </button>
+              <button 
+                onClick={() => setEditModal({ isOpen: false, log: null, checkInTime: '', checkOutTime: '' })}
+                style={{ flex: 1, background: 'rgba(255,255,255,0.1)', color: 'var(--text-primary)', padding: '0.8rem', borderRadius: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', border: 'none' }}
+              >
+                <X size={18} /> إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminGuard>
   );
 };

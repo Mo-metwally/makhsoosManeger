@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { X, FileSpreadsheet, Archive, PhoneCall, Activity, ClipboardList } from 'lucide-react';
 import { exportAdminData } from '../utils/exportExcel';
 import { applyFiltersAndSort, parseArabicDate } from '../utils/filterAndSort';
+import { useToast } from '../contexts/ToastContext';
 
 const AdminExportModal = ({ isOpen, onClose, filters }) => {
+  const { showToast } = useToast();
   const [exportType, setExportType] = useState('all_zip'); // 'calls_only', 'logs_only', 'perf_only', 'all_zip'
   const [timeFilter, setTimeFilter] = useState('all');
   const [customStartDate, setCustomStartDate] = useState('');
@@ -13,7 +15,7 @@ const AdminExportModal = ({ isOpen, onClose, filters }) => {
 
   const handleExport = () => {
     if (timeFilter === 'custom' && (!customStartDate || !customEndDate)) {
-      alert("يرجى اختيار تاريخ البداية والنهاية");
+      showToast("يرجى اختيار تاريخ البداية والنهاية", "error");
       return;
     }
 

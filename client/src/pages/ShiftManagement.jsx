@@ -14,9 +14,7 @@ const DAYS_OF_WEEK = [
   { id: 'Friday', label: 'الجمعة' }
 ];
 
-const avatarMap = {
-  User: UserIcon, Shield, Cat, Crown, Star, Smile, Briefcase, Flame, Zap, Heart, Moon
-};
+import AvatarIcon from '../components/AvatarIcon';
 
 const ShiftManagement = () => {
   const [shifts, setShifts] = useState([]);
@@ -396,7 +394,7 @@ const ShiftManagement = () => {
                                   boxShadow: isAdmin ? '0 4px 10px rgba(0,0,0,0.2)' : 'none',
                                   border: isAdmin ? 'none' : '2px solid rgba(249, 115, 22, 0.3)'
                                 }}>
-                                  {React.createElement(avatarMap[user.avatar] || UserIcon, { size: 22 })}
+                                  <AvatarIcon name={user.avatar} size={22} />
                                 </div>
                                 <div style={{ flex: 1 }}>
                                   <div style={{ fontWeight: 'bold', color: isAdmin ? '#60a5fa' : 'var(--text-primary)', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
