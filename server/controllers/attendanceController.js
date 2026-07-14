@@ -21,9 +21,8 @@ exports.getStatus = async (req, res) => {
     const userId = req.user.id;
     const today = getLogicalDate(); // YYYY-MM-DD
     
-    // Find an unclosed log from any day
     const unclosedLog = await AttendanceLog.findOne({
-      where: { userId, checkOutTime: null },
+      where: { userId, checkInTime: { [Op.not]: null }, checkOutTime: null },
       include: [{ model: Shift, attributes: ['name', 'startTime', 'endTime'] }]
     });
 
@@ -31,6 +30,10 @@ exports.getStatus = async (req, res) => {
     const todayLog = await AttendanceLog.findOne({
       where: { userId, date: today },
       include: [{ model: Shift, attributes: ['name', 'startTime', 'endTime'] }]
+    });
+
+    const dayOff = await DayOffRequest.findOne({
+      where: { userId, date: today, status: 'Approved' }
     });
 
     const activeLog = unclosedLog || todayLog;
@@ -44,7 +47,8 @@ exports.getStatus = async (req, res) => {
       hasCheckedIn, 
       log: activeLog, 
       hasShiftToday: !!activeShift,
-      shift: activeShift 
+      shift: activeShift,
+      isDayOff: !!dayOff
     });
   } catch (error) {
     console.error('Error fetching attendance status:', error);
@@ -57,9 +61,20 @@ exports.checkIn = async (req, res) => {
     const userId = req.user.id;
     const today = getLogicalDate();
     
-    // Check if already checked in
+    // Handle existing DayOff or Absent
+    let dayOff = await DayOffRequest.findOne({ where: { userId, date: today } });
+    if (dayOff) {
+      await dayOff.destroy();
+    }
+
     const existingLog = await AttendanceLog.findOne({ where: { userId, date: today } });
     if (existingLog) {
+      if (existingLog.status === 'Absent') {
+        existingLog.status = 'Present';
+        existingLog.checkInTime = new Date();
+        await existingLog.save();
+        return res.status(201).json({ message: 'تم تسجيل الحضور بنجاح', log: existingLog });
+      }
       return res.status(400).json({ error: 'لقد قمت بتسجيل الحضور مسبقاً لهذا اليوم' });
     }
 
@@ -175,7 +190,32 @@ exports.getAllLogs = async (req, res) => {
       return logData;
     });
 
-    res.json(resultLogs);
+    const dayOffs = await DayOffRequest.findAll({
+      where: { status: 'Approved' },
+      include: [{ model: User, attributes: ['id', 'fullName', 'username', 'jobTitle'] }]
+    });
+
+    const dayOffLogs = dayOffs.map(d => ({
+      id: d.id,
+      userId: d.userId,
+      date: d.date,
+      status: 'DayOff',
+      checkInTime: null,
+      checkOutTime: null,
+      User: d.User,
+      Shift: null,
+      breakDetails: { 'بريك صلاة': 0, 'بريك غداء': 0 },
+      notes: d.reason || 'إجازة مسجلة'
+    }));
+
+    const allCombined = [...resultLogs, ...dayOffLogs].sort((a, b) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      if (dateA !== dateB) return dateB - dateA;
+      return new Date(b.createdAt || b.date).getTime() - new Date(a.createdAt || a.date).getTime();
+    });
+
+    res.json(allCombined);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });
@@ -474,7 +514,11 @@ exports.adminUpdateStatus = async (req, res) => {
           if (manualCheckOutTime) attendance.checkOutTime = checkOutDate;
           else if (action === 'CheckOut' && !attendance.checkOutTime) attendance.checkOutTime = new Date();
 
-          if (notes) attendance.notes = (attendance.notes ? attendance.notes + '\\n' + notes : notes);
+          if (attendance.checkInTime && attendance.checkOutTime && attendance.checkOutTime < attendance.checkInTime) {
+            attendance.checkOutTime = new Date(attendance.checkOutTime.getTime() + 24 * 60 * 60 * 1000);
+          }
+
+          if (notes) attendance.notes = (attendance.notes ? attendance.notes + '\n' + notes : notes);
           await attendance.save();
         }
         break;
@@ -547,6 +591,10 @@ exports.updateLogTime = async (req, res) => {
     
     if (checkOutTime !== undefined) {
       log.checkOutTime = getValidDate(checkOutTime, log.date);
+    }
+
+    if (log.checkInTime && log.checkOutTime && log.checkOutTime < log.checkInTime) {
+      log.checkOutTime = new Date(log.checkOutTime.getTime() + 24 * 60 * 60 * 1000);
     }
 
     await log.save();

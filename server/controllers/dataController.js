@@ -1,6 +1,6 @@
 const { Op, Sequelize } = require('sequelize');
 const { getLogicalDate } = require('../utils/dateUtils');
-const { CallReport, InactivityLog, PerformanceLog, User, AttendanceLog, DayOffRequest, Expense } = require('../models');
+const { CallReport, InactivityLog, PerformanceLog, User, AttendanceLog, DayOffRequest, Expense, Shift, AdvanceRequest } = require('../models');
 
 // CALL REPORTS
 const getCallReports = async (req, res) => {
@@ -140,7 +140,9 @@ const getAllData = async (req, res) => {
   try {
     // Only allow if user is admin, but for now just return all
     // In real app, add check: if (req.user.role !== 'Admin') ...
-    const calls = await CallReport.findAll();
+    const calls = await CallReport.findAll({
+      include: [{ model: User, attributes: ['id', 'fullName', 'username', 'jobTitle'] }]
+    });
     const inactivity = await InactivityLog.findAll({
       include: [{ model: User, attributes: ['id', 'fullName', 'username', 'jobTitle', 'avatar'] }],
       order: [['createdAt', 'DESC']]
@@ -150,8 +152,49 @@ const getAllData = async (req, res) => {
       include: [{ model: User, attributes: ['id', 'fullName', 'username'] }],
       order: [['createdAt', 'DESC']]
     });
+    const attendanceLogs = await AttendanceLog.findAll({
+      include: [
+        { model: User, attributes: ['id', 'fullName', 'username', 'jobTitle'] },
+        { model: Shift }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
 
-    res.json({ calls, inactivity, performance, expenses });
+    const dayOffs = await DayOffRequest.findAll({
+      where: { status: 'Approved' },
+      include: [{ model: User, attributes: ['id', 'fullName', 'username'] }]
+    });
+
+    const dayOffLogs = dayOffs.map(d => ({
+      id: d.id,
+      userId: d.userId,
+      date: d.date,
+      status: 'DayOff',
+      checkInTime: null,
+      checkOutTime: null,
+      User: d.User,
+      notes: d.reason || 'إجازة مسجلة'
+    }));
+
+    const combinedAttendance = [...attendanceLogs.map(l => l.toJSON()), ...dayOffLogs].sort((a, b) => {
+      const dateA = new Date(a.createdAt || a.date).getTime();
+      const dateB = new Date(b.createdAt || b.date).getTime();
+      return dateB - dateA;
+    });
+
+    const advances = await AdvanceRequest.findAll({
+      where: { status: 'approved' },
+      include: [{ model: User, as: 'Requester', attributes: ['id', 'fullName', 'username'] }]
+    });
+
+    res.json({
+      calls,
+      inactivity,
+      performance,
+      expenses,
+      attendanceLogs: combinedAttendance,
+      advances
+    });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch all data' });
   }

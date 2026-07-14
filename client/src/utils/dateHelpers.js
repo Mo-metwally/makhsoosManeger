@@ -5,7 +5,8 @@
  */
 export const getLogicalDateString = (dateParam = new Date()) => {
   const d = new Date(dateParam);
-  d.setHours(d.getHours() - 1);
+  const cutoff = parseInt(localStorage.getItem('logicalDayCutoff')) || 5;
+  d.setHours(d.getHours() - cutoff);
   
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -19,6 +20,7 @@ export const getLogicalDateString = (dateParam = new Date()) => {
  */
 export const getLogicalDateObj = (dateParam = new Date()) => {
   const d = new Date(dateParam);
-  d.setHours(d.getHours() - 1);
+  const cutoff = parseInt(localStorage.getItem('logicalDayCutoff')) || 5;
+  d.setHours(d.getHours() - cutoff);
   return d;
 };

@@ -95,6 +95,10 @@ const HandleAdminReports = () => {
 
   let filteredLogs = [...attendanceLogs];
   const now = new Date();
+  const todayStr = getLogicalDateString(now);
+
+  // Exclude future dates
+  filteredLogs = filteredLogs.filter(log => log.date <= todayStr);
 
   // Time Filter
   if (timeFilter !== 'all') {
@@ -298,9 +302,11 @@ const HandleAdminReports = () => {
                     </td>
                     <td>{formatDate(log.date)}</td>
                     <td>{log.Shift ? log.Shift.name : '---'}</td>
-                    <td style={{ color: '#10b981' }}><LogIn size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> {formatTime(log.checkInTime)}</td>
+                    <td style={{ color: log.checkInTime ? '#10b981' : 'var(--text-secondary)' }}>
+                      {log.checkInTime ? <><LogIn size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> {formatTime(log.checkInTime)}</> : '---'}
+                    </td>
                     <td style={{ color: log.checkOutTime ? '#ef4444' : 'var(--text-secondary)' }}>
-                      {log.checkOutTime ? <><LogOut size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> {formatTime(log.checkOutTime)}</> : 'لم ينصرف بعد'}
+                      {log.checkOutTime ? <><LogOut size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> {formatTime(log.checkOutTime)}</> : (log.status === 'Present' ? 'لم ينصرف بعد' : '---')}
                     </td>
                     <td>
                       <div style={{ fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
@@ -329,9 +335,19 @@ const HandleAdminReports = () => {
                       {calculateDelay(log.checkInTime, log.Shift?.startTime)}
                     </td>
                     <td>
-                      <span className="status-badge" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
-                        <CheckCircle size={14} /> مسجل
-                      </span>
+                      {log.status === 'Absent' ? (
+                        <span className="status-badge" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
+                          <X size={14} /> غياب
+                        </span>
+                      ) : log.status === 'DayOff' ? (
+                        <span className="status-badge" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
+                          <Calendar size={14} /> إجازة
+                        </span>
+                      ) : (
+                        <span className="status-badge" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+                          <CheckCircle size={14} /> حضور
+                        </span>
+                      )}
                     </td>
                     <td>
                       <button 

@@ -10,7 +10,8 @@ import { useAuth } from '../context/AuthContext';
 const HandleAdminExport = () => {
   const { showToast } = useToast();
   const { user } = useAuth();
-  const [exportType, setExportType] = useState('all_zip');
+  const [exportType, setExportType] = useState('summary_calls');
+  const [reportDetailLevel, setReportDetailLevel] = useState('summary');
   const [timeFilter, setTimeFilter] = useState('month');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
@@ -26,6 +27,8 @@ const HandleAdminExport = () => {
   const [allLogs, setAllLogs] = useState([]);
   const [allPerf, setAllPerf] = useState([]);
   const [allExpenses, setAllExpenses] = useState([]);
+  const [allAttendance, setAllAttendance] = useState([]);
+  const [allAdvances, setAllAdvances] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Close dropdown on outside click
@@ -64,7 +67,7 @@ const HandleAdminExport = () => {
           api.get('/shifts')
         ]);
 
-        const { calls, inactivity, performance, expenses } = resData.data;
+        const { calls, inactivity, performance, expenses, attendanceLogs, advances } = resData.data;
         setAllCalls(calls || []);
 
         // Map inactivity logs to include userName if User object exists
@@ -76,6 +79,8 @@ const HandleAdminExport = () => {
 
         setAllPerf(performance || []);
         setAllExpenses(expenses || []);
+        setAllAttendance(attendanceLogs || []);
+        setAllAdvances(advances || []);
 
         const fetchedShifts = resShifts.data || [];
         let allowedShifts = [];
@@ -111,7 +116,7 @@ const HandleAdminExport = () => {
     const finalFilters = { timeFilter, customStartDate, customEndDate, supervisorFilter: 'all', searchQuery: '', sortBy: 'date_desc' };
 
     if (timeFilter === 'custom' && (!customStartDate || !customEndDate)) {
-      return { callsCount: 0, logsCount: 0, perfCount: 0, expCount: 0, filteredCalls: [], filteredLogs: [], filteredPerf: [], filteredExpenses: [] };
+      return { callsCount: 0, logsCount: 0, perfCount: 0, expCount: 0, attendanceCount: 0, filteredCalls: [], filteredLogs: [], filteredPerf: [], filteredExpenses: [], filteredAttendance: [] };
     }
 
     let filteredCalls = applyFiltersAndSort(allCalls, finalFilters, false);
@@ -123,11 +128,19 @@ const HandleAdminExport = () => {
     const mapDateForExp = allExpenses.map(l => ({ ...l, createdAt: l.createdAt || parseArabicDate(l.date) }));
     let filteredExpenses = applyFiltersAndSort(mapDateForExp, finalFilters, true);
 
+    const mapDateForAttendance = allAttendance.map(l => ({ ...l, createdAt: l.date ? new Date(l.date).getTime() : new Date(l.checkInTime).getTime() }));
+    let filteredAttendance = applyFiltersAndSort(mapDateForAttendance, finalFilters, true);
+
+    const mapDateForAdvances = allAdvances.map(l => ({ ...l, createdAt: new Date(l.createdAt).getTime() }));
+    let filteredAdvances = applyFiltersAndSort(mapDateForAdvances, finalFilters, true);
+
     if (shiftUserIds) {
       filteredCalls = filteredCalls.filter(c => shiftUserIds.includes(c.userId));
       filteredLogs = filteredLogs.filter(c => shiftUserIds.includes(c.userId));
       filteredPerf = filteredPerf.filter(c => shiftUserIds.includes(c.userId));
       filteredExpenses = filteredExpenses.filter(c => shiftUserIds.includes(c.userId));
+      filteredAttendance = filteredAttendance.filter(c => shiftUserIds.includes(c.userId));
+      filteredAdvances = filteredAdvances.filter(c => shiftUserIds.includes(c.userId));
     }
 
     return {
@@ -135,19 +148,23 @@ const HandleAdminExport = () => {
       logsCount: filteredLogs.length,
       perfCount: filteredPerf.length,
       expCount: filteredExpenses.length,
+      attendanceCount: filteredAttendance.length,
+      advancesCount: filteredAdvances.length,
       filteredCalls,
       filteredLogs,
       filteredPerf,
-      filteredExpenses
+      filteredExpenses,
+      filteredAttendance,
+      filteredAdvances
     };
-  }, [allCalls, allLogs, allPerf, allExpenses, timeFilter, customStartDate, customEndDate, selectedShift, shifts]);
+  }, [allCalls, allLogs, allPerf, allExpenses, allAttendance, timeFilter, customStartDate, customEndDate, selectedShift, shifts]);
 
   const handleExport = () => {
     if (timeFilter === 'custom' && (!customStartDate || !customEndDate)) {
       showToast('يجب تحديد تاريخ البداية والنهاية', 'error');
       return;
     }
-    exportAdminData(exportType, previewData.filteredCalls, previewData.filteredLogs, previewData.filteredPerf, previewData.filteredExpenses);
+    exportAdminData(exportType, previewData.filteredCalls, previewData.filteredLogs, previewData.filteredPerf, previewData.filteredExpenses, previewData.filteredAttendance, previewData.filteredAdvances, null, reportDetailLevel);
   };
 
   return (
@@ -322,144 +339,286 @@ const HandleAdminExport = () => {
                     <FileSpreadsheet size={18} color="#ef4444" />
                     <strong>{previewData.expCount}</strong> استخدام للمصروفات/السلف
                   </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(0,0,0,0.2)', padding: '0.5rem 1rem', borderRadius: '100px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <Check size={18} color="#0ea5e9" />
+                    <strong>{previewData.attendanceCount}</strong> سجل حضور وانصراف
+                  </span>
                 </div>
               </div>
             </div>
 
             <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', margin: '2.5rem 0' }} />
 
-            <h3 style={{ color: 'var(--text-primary)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>3</span>
-              اختر نوع الملف
-            </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <h3 style={{ color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>3</span>
+                اختر نوع الملف
+              </h3>
+
+              <div style={{ display: 'flex', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', padding: '0.3rem', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <button
+                  onClick={() => { setReportDetailLevel('detailed'); setExportType('all_zip'); }}
+                  style={{
+                    padding: '0.6rem 1.2rem',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: reportDetailLevel === 'detailed' ? 'var(--theme-color)' : 'transparent',
+                    color: reportDetailLevel === 'detailed' ? 'white' : 'var(--text-secondary)',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s',
+                    boxShadow: reportDetailLevel === 'detailed' ? '0 4px 10px rgba(59, 130, 246, 0.3)' : 'none'
+                  }}
+                >
+                  تقرير مفصل
+                </button>
+                <button
+                  onClick={() => { setReportDetailLevel('summary'); setExportType('summary_calls'); }}
+                  style={{
+                    padding: '0.6rem 1.2rem',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: reportDetailLevel === 'summary' ? 'var(--theme-color)' : 'transparent',
+                    color: reportDetailLevel === 'summary' ? 'white' : 'var(--text-secondary)',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s',
+                    boxShadow: reportDetailLevel === 'summary' ? '0 4px 10px rgba(59, 130, 246, 0.3)' : 'none'
+                  }}
+                >
+                  تقرير ملخص
+                </button>
+              </div>
+            </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginBottom: '3rem' }}>
+              {reportDetailLevel === 'detailed' ? (
+                <>
+                  <label style={{
+                    display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.5rem',
+                    border: `2px solid ${exportType === 'all_zip' ? 'var(--theme-color)' : 'rgba(255,255,255,0.1)'}`,
+                    borderRadius: '16px', cursor: 'pointer', background: 'rgba(0,0,0,0.2)', transition: 'all 0.3s',
+                    transform: exportType === 'all_zip' ? 'translateY(-2px)' : 'none',
+                    boxShadow: exportType === 'all_zip' ? '0 10px 25px -5px rgba(59, 130, 246, 0.2)' : 'none'
+                  }}>
+                    <input
+                      type="radio"
+                      name="adminExportType"
+                      value="all_zip"
+                      checked={exportType === 'all_zip'}
+                      onChange={() => setExportType('all_zip')}
+                      style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
+                    />
+                    <div style={{ background: exportType === 'all_zip' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
+                      <Archive size={32} color={exportType === 'all_zip' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>تحميل كل السجلات (ZIP)</h4>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل جميع السجلات الثلاثة معاً في ملف مضغوط واحد.</p>
+                    </div>
+                  </label>
 
-              <label style={{
-                display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.5rem',
-                border: `2px solid ${exportType === 'all_zip' ? 'var(--theme-color)' : 'rgba(255,255,255,0.1)'}`,
-                borderRadius: '16px', cursor: 'pointer', background: 'rgba(0,0,0,0.2)', transition: 'all 0.3s',
-                transform: exportType === 'all_zip' ? 'translateY(-2px)' : 'none',
-                boxShadow: exportType === 'all_zip' ? '0 10px 25px -5px rgba(59, 130, 246, 0.2)' : 'none'
-              }}>
-                <input
-                  type="radio"
-                  name="adminExportType"
-                  value="all_zip"
-                  checked={exportType === 'all_zip'}
-                  onChange={() => setExportType('all_zip')}
-                  style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
-                />
-                <div style={{ background: exportType === 'all_zip' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
-                  <Archive size={32} color={exportType === 'all_zip' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>تحميل كل السجلات (ZIP)</h4>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل جميع السجلات الثلاثة معاً في ملف مضغوط واحد.</p>
-                </div>
-              </label>
+                  <label style={{
+                    display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.5rem',
+                    border: `2px solid ${exportType === 'calls_only' ? 'var(--theme-color)' : 'rgba(255,255,255,0.1)'}`,
+                    borderRadius: '16px', cursor: 'pointer', background: 'rgba(0,0,0,0.2)', transition: 'all 0.3s',
+                    transform: exportType === 'calls_only' ? 'translateY(-2px)' : 'none',
+                    boxShadow: exportType === 'calls_only' ? '0 10px 25px -5px rgba(59, 130, 246, 0.2)' : 'none'
+                  }}>
+                    <input
+                      type="radio"
+                      name="adminExportType"
+                      value="calls_only"
+                      checked={exportType === 'calls_only'}
+                      onChange={() => setExportType('calls_only')}
+                      style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
+                    />
+                    <div style={{ background: exportType === 'calls_only' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
+                      <PhoneCall size={32} color={exportType === 'calls_only' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>سجل المكالمات (Excel)</h4>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل مكالمات المندوبين المجمعة فقط.</p>
+                    </div>
+                  </label>
 
-              <label style={{
-                display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.5rem',
-                border: `2px solid ${exportType === 'calls_only' ? 'var(--theme-color)' : 'rgba(255,255,255,0.1)'}`,
-                borderRadius: '16px', cursor: 'pointer', background: 'rgba(0,0,0,0.2)', transition: 'all 0.3s',
-                transform: exportType === 'calls_only' ? 'translateY(-2px)' : 'none',
-                boxShadow: exportType === 'calls_only' ? '0 10px 25px -5px rgba(59, 130, 246, 0.2)' : 'none'
-              }}>
-                <input
-                  type="radio"
-                  name="adminExportType"
-                  value="calls_only"
-                  checked={exportType === 'calls_only'}
-                  onChange={() => setExportType('calls_only')}
-                  style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
-                />
-                <div style={{ background: exportType === 'calls_only' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
-                  <PhoneCall size={32} color={exportType === 'calls_only' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>سجل المكالمات (Excel)</h4>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل مكالمات المندوبين المجمعة فقط.</p>
-                </div>
-              </label>
+                  <label style={{
+                    display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.5rem',
+                    border: `2px solid ${exportType === 'logs_only' ? 'var(--theme-color)' : 'rgba(255,255,255,0.1)'}`,
+                    borderRadius: '16px', cursor: 'pointer', background: 'rgba(0,0,0,0.2)', transition: 'all 0.3s',
+                    transform: exportType === 'logs_only' ? 'translateY(-2px)' : 'none',
+                    boxShadow: exportType === 'logs_only' ? '0 10px 25px -5px rgba(59, 130, 246, 0.2)' : 'none'
+                  }}>
+                    <input
+                      type="radio"
+                      name="adminExportType"
+                      value="logs_only"
+                      checked={exportType === 'logs_only'}
+                      onChange={() => setExportType('logs_only')}
+                      style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
+                    />
+                    <div style={{ background: exportType === 'logs_only' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
+                      <Activity size={32} color={exportType === 'logs_only' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>سجل النشاط والخمول (Excel)</h4>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل فترات خمول وراحة المندوبين المجمعة فقط.</p>
+                    </div>
+                  </label>
 
-              <label style={{
-                display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.5rem',
-                border: `2px solid ${exportType === 'logs_only' ? 'var(--theme-color)' : 'rgba(255,255,255,0.1)'}`,
-                borderRadius: '16px', cursor: 'pointer', background: 'rgba(0,0,0,0.2)', transition: 'all 0.3s',
-                transform: exportType === 'logs_only' ? 'translateY(-2px)' : 'none',
-                boxShadow: exportType === 'logs_only' ? '0 10px 25px -5px rgba(59, 130, 246, 0.2)' : 'none'
-              }}>
-                <input
-                  type="radio"
-                  name="adminExportType"
-                  value="logs_only"
-                  checked={exportType === 'logs_only'}
-                  onChange={() => setExportType('logs_only')}
-                  style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
-                />
-                <div style={{ background: exportType === 'logs_only' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
-                  <Activity size={32} color={exportType === 'logs_only' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>سجل النشاط والخمول (Excel)</h4>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل فترات خمول وراحة المندوبين المجمعة فقط.</p>
-                </div>
-              </label>
+                  <label style={{
+                    display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.5rem',
+                    border: `2px solid ${exportType === 'perf_only' ? 'var(--theme-color)' : 'rgba(255,255,255,0.1)'}`,
+                    borderRadius: '16px', cursor: 'pointer', background: 'rgba(0,0,0,0.2)', transition: 'all 0.3s',
+                    transform: exportType === 'perf_only' ? 'translateY(-2px)' : 'none',
+                    boxShadow: exportType === 'perf_only' ? '0 10px 25px -5px rgba(59, 130, 246, 0.2)' : 'none'
+                  }}>
+                    <input
+                      type="radio"
+                      name="adminExportType"
+                      value="perf_only"
+                      checked={exportType === 'perf_only'}
+                      onChange={() => setExportType('perf_only')}
+                      style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
+                    />
+                    <div style={{ background: exportType === 'perf_only' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
+                      <ClipboardList size={32} color={exportType === 'perf_only' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>سجل المهام (Excel)</h4>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل تقارير مهام المشرفين المجمعة فقط.</p>
+                    </div>
+                  </label>
 
-              <label style={{
-                display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.5rem',
-                border: `2px solid ${exportType === 'perf_only' ? 'var(--theme-color)' : 'rgba(255,255,255,0.1)'}`,
-                borderRadius: '16px', cursor: 'pointer', background: 'rgba(0,0,0,0.2)', transition: 'all 0.3s',
-                transform: exportType === 'perf_only' ? 'translateY(-2px)' : 'none',
-                boxShadow: exportType === 'perf_only' ? '0 10px 25px -5px rgba(59, 130, 246, 0.2)' : 'none'
-              }}>
-                <input
-                  type="radio"
-                  name="adminExportType"
-                  value="perf_only"
-                  checked={exportType === 'perf_only'}
-                  onChange={() => setExportType('perf_only')}
-                  style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
-                />
-                <div style={{ background: exportType === 'perf_only' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
-                  <ClipboardList size={32} color={exportType === 'perf_only' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>سجل المهام (Excel)</h4>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل تقارير مهام المشرفين المجمعة فقط.</p>
-                </div>
-              </label>
+                  <label style={{
+                    display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.5rem',
+                    border: `2px solid ${exportType === 'expenses_only' ? 'var(--theme-color)' : 'rgba(255,255,255,0.1)'}`,
+                    borderRadius: '16px', cursor: 'pointer', background: 'rgba(0,0,0,0.2)', transition: 'all 0.3s',
+                    transform: exportType === 'expenses_only' ? 'translateY(-2px)' : 'none',
+                    boxShadow: exportType === 'expenses_only' ? '0 10px 25px -5px rgba(59, 130, 246, 0.2)' : 'none'
+                  }}>
+                    <input
+                      type="radio"
+                      name="adminExportType"
+                      value="expenses_only"
+                      checked={exportType === 'expenses_only'}
+                      onChange={() => setExportType('expenses_only')}
+                      style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
+                    />
+                    <div style={{ background: exportType === 'expenses_only' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
+                      <FileSpreadsheet size={32} color={exportType === 'expenses_only' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>سجل المصروفات (Excel)</h4>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل تقارير المصروفات والسلف المجمعة فقط.</p>
+                    </div>
+                  </label>
 
-              <label style={{
-                display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.5rem',
-                border: `2px solid ${exportType === 'expenses_only' ? 'var(--theme-color)' : 'rgba(255,255,255,0.1)'}`,
-                borderRadius: '16px', cursor: 'pointer', background: 'rgba(0,0,0,0.2)', transition: 'all 0.3s',
-                transform: exportType === 'expenses_only' ? 'translateY(-2px)' : 'none',
-                boxShadow: exportType === 'expenses_only' ? '0 10px 25px -5px rgba(59, 130, 246, 0.2)' : 'none'
-              }}>
-                <input
-                  type="radio"
-                  name="adminExportType"
-                  value="expenses_only"
-                  checked={exportType === 'expenses_only'}
-                  onChange={() => setExportType('expenses_only')}
-                  style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
-                />
-                <div style={{ background: exportType === 'expenses_only' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
-                  <FileSpreadsheet size={32} color={exportType === 'expenses_only' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>سجل المصروفات (Excel)</h4>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل تقارير المصروفات والسلف المجمعة فقط.</p>
-                </div>
-              </label>
+                  <label style={{
+                    display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.5rem',
+                    border: `2px solid ${exportType === 'attendance_only' ? 'var(--theme-color)' : 'rgba(255,255,255,0.1)'}`,
+                    borderRadius: '16px', cursor: 'pointer', background: 'rgba(0,0,0,0.2)', transition: 'all 0.3s',
+                    transform: exportType === 'attendance_only' ? 'translateY(-2px)' : 'none',
+                    boxShadow: exportType === 'attendance_only' ? '0 10px 25px -5px rgba(59, 130, 246, 0.2)' : 'none'
+                  }}>
+                    <input
+                      type="radio"
+                      name="adminExportType"
+                      value="attendance_only"
+                      checked={exportType === 'attendance_only'}
+                      onChange={() => setExportType('attendance_only')}
+                      style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
+                    />
+                    <div style={{ background: exportType === 'attendance_only' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
+                      <Check size={32} color={exportType === 'attendance_only' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>سجل الحضور والانصراف (Excel)</h4>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل تقارير الحضور والانصراف المجمعة فقط.</p>
+                    </div>
+                  </label>
+                </>
+              ) : (
+                <>
+                  <label style={{
+                    display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.5rem',
+                    border: `2px solid ${exportType === 'summary_calls' ? 'var(--theme-color)' : 'rgba(255,255,255,0.1)'}`,
+                    borderRadius: '16px', cursor: 'pointer', background: 'rgba(0,0,0,0.2)', transition: 'all 0.3s',
+                    transform: exportType === 'summary_calls' ? 'translateY(-2px)' : 'none',
+                    boxShadow: exportType === 'summary_calls' ? '0 10px 25px -5px rgba(59, 130, 246, 0.2)' : 'none'
+                  }}>
+                    <input
+                      type="radio"
+                      name="adminExportType"
+                      value="summary_calls"
+                      checked={exportType === 'summary_calls'}
+                      onChange={() => setExportType('summary_calls')}
+                      style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
+                    />
+                    <div style={{ background: exportType === 'summary_calls' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
+                      <PhoneCall size={32} color={exportType === 'summary_calls' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>ملخص سجل التواصل (Excel)</h4>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل تقرير ملخص عن أداء التواصل لكل مندوب.</p>
+                    </div>
+                  </label>
+
+                  <label style={{
+                    display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.5rem',
+                    border: `2px solid ${exportType === 'summary_attendance' ? 'var(--theme-color)' : 'rgba(255,255,255,0.1)'}`,
+                    borderRadius: '16px', cursor: 'pointer', background: 'rgba(0,0,0,0.2)', transition: 'all 0.3s',
+                    transform: exportType === 'summary_attendance' ? 'translateY(-2px)' : 'none',
+                    boxShadow: exportType === 'summary_attendance' ? '0 10px 25px -5px rgba(59, 130, 246, 0.2)' : 'none'
+                  }}>
+                    <input
+                      type="radio"
+                      name="adminExportType"
+                      value="summary_attendance"
+                      checked={exportType === 'summary_attendance'}
+                      onChange={() => setExportType('summary_attendance')}
+                      style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
+                    />
+                    <div style={{ background: exportType === 'summary_attendance' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
+                      <Check size={32} color={exportType === 'summary_attendance' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>ملخص سجل الحضور (Excel)</h4>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل تقرير ملخص عن الحضور والانصراف لكل مندوب.</p>
+                    </div>
+                  </label>
+
+                  <label style={{
+                    display: 'flex', alignItems: 'center', gap: '1.5rem', padding: '1.5rem',
+                    border: `2px solid ${exportType === 'summary_payroll' ? 'var(--theme-color)' : 'rgba(255,255,255,0.1)'}`,
+                    borderRadius: '16px', cursor: 'pointer', background: 'rgba(0,0,0,0.2)', transition: 'all 0.3s',
+                    transform: exportType === 'summary_payroll' ? 'translateY(-2px)' : 'none',
+                    boxShadow: exportType === 'summary_payroll' ? '0 10px 25px -5px rgba(59, 130, 246, 0.2)' : 'none'
+                  }}>
+                    <input
+                      type="radio"
+                      name="adminExportType"
+                      value="summary_payroll"
+                      checked={exportType === 'summary_payroll'}
+                      onChange={() => setExportType('summary_payroll')}
+                      style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
+                    />
+                    <div style={{ background: exportType === 'summary_payroll' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
+                      <FileSpreadsheet size={32} color={exportType === 'summary_payroll' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>ملخص حساب المرتبات (Excel)</h4>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل تقرير شامل لساعات التأخير، الحضور، الإجازات، والغياب والسلف.</p>
+                    </div>
+                  </label>
+                </>
+              )}
             </div>
 
             <button
               className="btn-save"
               onClick={handleExport}
-              disabled={previewData.callsCount === 0 && previewData.logsCount === 0 && previewData.perfCount === 0 && previewData.expCount === 0}
+              disabled={previewData.callsCount === 0 && previewData.logsCount === 0 && previewData.perfCount === 0 && previewData.expCount === 0 && previewData.attendanceCount === 0}
               style={{
                 width: '100%',
                 padding: '1.2rem',
@@ -470,14 +629,14 @@ const HandleAdminExport = () => {
                 fontSize: '1.2rem',
                 fontWeight: 'bold',
                 borderRadius: '16px',
-                backgroundColor: previewData.callsCount === 0 && previewData.logsCount === 0 && previewData.perfCount === 0 ? 'rgba(255,255,255,0.1)' : '#22c55e',
-                color: previewData.callsCount === 0 && previewData.logsCount === 0 && previewData.perfCount === 0 ? 'rgba(255,255,255,0.3)' : 'white',
-                boxShadow: previewData.callsCount === 0 && previewData.logsCount === 0 && previewData.perfCount === 0 ? 'none' : '0 10px 25px -5px rgba(34, 197, 94, 0.5)',
-                cursor: previewData.callsCount === 0 && previewData.logsCount === 0 && previewData.perfCount === 0 ? 'not-allowed' : 'pointer'
+                backgroundColor: previewData.callsCount === 0 && previewData.logsCount === 0 && previewData.perfCount === 0 && previewData.attendanceCount === 0 ? 'rgba(255,255,255,0.1)' : '#22c55e',
+                color: previewData.callsCount === 0 && previewData.logsCount === 0 && previewData.perfCount === 0 && previewData.attendanceCount === 0 ? 'rgba(255,255,255,0.3)' : 'white',
+                boxShadow: previewData.callsCount === 0 && previewData.logsCount === 0 && previewData.perfCount === 0 && previewData.attendanceCount === 0 ? 'none' : '0 10px 25px -5px rgba(34, 197, 94, 0.5)',
+                cursor: previewData.callsCount === 0 && previewData.logsCount === 0 && previewData.perfCount === 0 && previewData.attendanceCount === 0 ? 'not-allowed' : 'pointer'
               }}
             >
               <FileSpreadsheet size={28} />
-              {previewData.callsCount === 0 && previewData.logsCount === 0 && previewData.perfCount === 0 ? 'لا توجد بيانات للتحميل' : 'بدء التحميل الآن'}
+              {previewData.callsCount === 0 && previewData.logsCount === 0 && previewData.perfCount === 0 && previewData.attendanceCount === 0 ? 'لا توجد بيانات للتحميل' : 'بدء التحميل الآن'}
             </button>
           </div>
         )}

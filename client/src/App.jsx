@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import { TriangleAlert, PlayCircle, Info } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import api from './services/api';
+import { getLogicalDateString } from './utils/dateHelpers';
 
 import Sidebar from './components/Sidebar';
 import Home from './pages/Home';
@@ -55,10 +56,24 @@ function AppContent() {
   const [showSummaryReminder, setShowSummaryReminder] = useState(false);
   const [activeWorkShift, setActiveWorkShift] = useState(null);
 
+  const [leaveStatus, setLeaveStatus] = useState(null); // 'Absent' | 'DayOff'
+  const [overrideLeave, setOverrideLeave] = useState(false);
+
   useEffect(() => {
     if (user && user.status === 'Active') {
+      // Fetch settings first to ensure logicalDayCutoff is up to date
+      api.get('/settings').then(res => {
+        if (res.data && res.data.logicalDayCutoff) {
+          localStorage.setItem('logicalDayCutoff', res.data.logicalDayCutoff);
+        }
+      }).catch(console.error);
+
       api.get('/attendance/status').then(res => {
-        if (res.data.hasShiftToday && !res.data.hasCheckedIn) {
+        if (res.data.isDayOff || (res.data.log && res.data.log.status === 'Absent')) {
+          setLeaveStatus(res.data.isDayOff ? 'DayOff' : 'Absent');
+          setTodayShift(res.data.shift);
+          setNeedsCheckIn(true);
+        } else if (res.data.hasShiftToday && !res.data.hasCheckedIn) {
           setTodayShift(res.data.shift);
           setNeedsCheckIn(true);
 
@@ -114,12 +129,23 @@ function AppContent() {
 
     const checkReminder = () => {
       const now = new Date();
-      const todayStr = now.toDateString();
+      const todayStr = getLogicalDateString(now);
       if (localStorage.getItem('summaryReminderDate') === todayStr) return;
 
+      const [startHour] = activeWorkShift.startTime ? activeWorkShift.startTime.split(':').map(Number) : [0];
       const [endHour, endMinute] = activeWorkShift.endTime.split(':').map(Number);
       const endTimeDate = new Date();
       endTimeDate.setHours(endHour, endMinute, 0, 0);
+
+      // If shift crosses midnight (e.g. 17:00 to 01:00)
+      if (endHour < startHour) {
+        if (now.getHours() >= startHour) {
+          // If current time is before midnight, the end time is tomorrow
+          endTimeDate.setDate(endTimeDate.getDate() + 1);
+        } else {
+          // If current time is after midnight, the end time is today (which is already set)
+        }
+      }
 
       const diffMs = endTimeDate.getTime() - now.getTime();
       const diffMins = diffMs / 60000;
@@ -170,6 +196,31 @@ function AppContent() {
 
   // Show CheckInPage only if they need to check in AND it's not more than 5 mins early
   if (needsCheckIn && !isEarlyForShift) {
+    if (leaveStatus && !overrideLeave) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg-main)', color: 'var(--text-primary)', padding: '2rem', textAlign: 'center' }}>
+          <div style={{ background: 'var(--glass-bg)', padding: '3rem', borderRadius: '24px', border: 'var(--glass-border)', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', maxWidth: '450px', width: '100%' }}>
+            <div style={{ background: leaveStatus === 'DayOff' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: leaveStatus === 'DayOff' ? '#3b82f6' : '#ef4444', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '0 auto 1.5rem' }}>
+              <Info size={40} />
+            </div>
+            <h2 style={{ fontSize: '1.8rem', marginBottom: '1rem' }}>
+              {leaveStatus === 'DayOff' ? 'أنت في إجازة اليوم' : 'تم تسجيلك غياب اليوم'}
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '2.5rem', lineHeight: '1.6' }}>
+              {leaveStatus === 'DayOff' ? 'نتمنى لك إجازة سعيدة. لا تحتاج لتسجيل الحضور اليوم.' : 'لقد تم تسجيلك كغياب في نظام الحضور والانصراف لهذا اليوم.'}
+            </p>
+            <button
+              onClick={() => setOverrideLeave(true)}
+              style={{ padding: '0.8rem 1.5rem', background: 'transparent', border: '1px solid var(--theme-color)', color: 'var(--theme-color)', borderRadius: '12px', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.3s' }}
+              onMouseOver={e => { e.target.style.background = 'rgba(16, 185, 129, 0.1)' }}
+              onMouseOut={e => { e.target.style.background = 'transparent' }}
+            >
+              تسجيل حضور
+            </button>
+          </div>
+        </div>
+      );
+    }
     return <CheckInPage onCheckedIn={() => setNeedsCheckIn(false)} shift={todayShift} userName={user.fullName} />;
   }
 
@@ -237,7 +288,7 @@ function AppContent() {
               <button 
                 onClick={() => {
                   setShowSummaryReminder(false);
-                  localStorage.setItem('summaryReminderDate', new Date().toDateString());
+                  localStorage.setItem('summaryReminderDate', getLogicalDateString(new Date()));
                   window.location.href = '/summery';
                 }}
                 style={{ flex: 1, background: 'var(--theme-color)', color: 'white', padding: '1rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem' }}
@@ -247,7 +298,7 @@ function AppContent() {
               <button 
                 onClick={() => {
                   setShowSummaryReminder(false);
-                  localStorage.setItem('summaryReminderDate', new Date().toDateString());
+                  localStorage.setItem('summaryReminderDate', getLogicalDateString(new Date()));
                 }}
                 style={{ flex: 1, background: 'rgba(255,255,255,0.1)', color: 'var(--text-primary)', padding: '1rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem' }}
               >

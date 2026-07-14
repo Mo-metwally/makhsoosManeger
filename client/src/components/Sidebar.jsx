@@ -38,17 +38,17 @@ const Sidebar = () => {
     try {
       const res = await api.get('/attendance/status');
       const { hasCheckedIn, log } = res.data;
-      
+
       if (!hasCheckedIn || !log) {
         setUserStatus({ text: 'غير متصل', color: 'var(--text-secondary)' });
         return;
       }
-      
+
       if (log.checkOutTime) {
         setUserStatus({ text: 'انصراف', color: '#ef4444' });
         return;
       }
-      
+
       const activeBreak = localStorage.getItem('activeBreak');
       if (activeBreak === 'بريك غداء') {
         setUserStatus({ text: 'غداء', color: '#f59e0b' });
@@ -69,7 +69,7 @@ const Sidebar = () => {
     const handleStorage = () => fetchUserStatus();
     window.addEventListener('storage', handleStorage);
     window.addEventListener('userStatusChanged', handleStorage);
-    
+
     const interval = setInterval(fetchUserStatus, 30000); // 30s
     return () => {
       window.removeEventListener('storage', handleStorage);
@@ -282,13 +282,13 @@ const Sidebar = () => {
                     <Activity size={18} />
                     <span>متابعة اليوم</span>
                   </NavLink>
-                  <NavLink to="/monitoring" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                    <Activity size={18} />
-                    <span>سجل الإستراحات المجمع</span>
-                  </NavLink>
                   <NavLink to="/attendancereports" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <Folder size={18} />
                     <span>سجل الحضور المجمع</span>
+                  </NavLink>
+                  <NavLink to="/monitoring" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Activity size={18} />
+                    <span>سجل الإستراحات المجمع</span>
                   </NavLink>
                   <NavLink to="/allPerformance" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <History size={18} />

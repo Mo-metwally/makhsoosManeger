@@ -57,6 +57,7 @@ const MyAdvances = () => {
   const totalPending = requests.filter(r => r.status === 'pending').reduce((sum, r) => sum + r.amount, 0);
   const totalApproved = requests.filter(r => r.status === 'approved').reduce((sum, r) => sum + r.amount, 0);
   const totalRejected = requests.filter(r => r.status === 'rejected').reduce((sum, r) => sum + r.amount, 0);
+  const totalSettled = requests.filter(r => r.status === 'settled').reduce((sum, r) => sum + r.amount, 0);
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -102,6 +103,13 @@ const MyAdvances = () => {
           <div className="stat-info">
             <h3>مقبولة (إجمالي الديون)</h3>
             <p>{totalApproved.toLocaleString()} ج.م</p>
+          </div>
+        </div>
+        <div className="stat-card stat-card-settled" style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
+          <div className="stat-icon" style={{ background: 'rgba(34, 197, 94, 0.2)', color: '#22c55e' }}><CheckCircle size={24} /></div>
+          <div className="stat-info">
+            <h3 style={{ color: '#22c55e' }}>سلف مسددة (تم التسوية)</h3>
+            <p style={{ color: '#22c55e' }}>{totalSettled.toLocaleString()} ج.م</p>
           </div>
         </div>
         <div className="stat-card stat-card-rejected">
