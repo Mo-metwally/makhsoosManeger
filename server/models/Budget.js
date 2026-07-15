@@ -20,6 +20,10 @@ module.exports = (sequelize) => {
       type: DataTypes.FLOAT,
       defaultValue: 0
     },
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true
+    },
     userId: {
       type: DataTypes.UUID,
       allowNull: false,

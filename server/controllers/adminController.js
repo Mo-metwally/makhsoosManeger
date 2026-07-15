@@ -1,4 +1,4 @@
-const { User, CallReport } = require('../models');
+const { User, CallReport, Shift } = require('../models');
 const { sendActivationEmail } = require('../utils/emailService');
 
 // Middleware to check admin role
@@ -20,7 +20,11 @@ const getPendingUsers = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.findAll();
+    const users = await User.findAll({
+      include: [
+        { model: Shift, through: { attributes: [] } }
+      ]
+    });
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: 'خطأ في جلب المستخدمين' });

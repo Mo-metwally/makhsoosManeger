@@ -125,7 +125,11 @@ const TodayFollowup = () => {
     }
   };
 
-  const getStatusDetails = (status) => {
+  const getStatusDetails = (status, shifts = []) => {
+    if (shifts.length === 0) {
+      return { label: 'بدون وردية', icon: <XCircle size={16} />, className: 'status-absent' };
+    }
+
     switch (status) {
       case 'Present':
       case 'Late': // Treating Late visually as Present/Active in this overview, or we can separate
@@ -145,18 +149,20 @@ const TodayFollowup = () => {
         return { label: 'انصراف', icon: <LogOut size={16} />, className: 'status-checkedout' };
       case 'Pending':
       default:
-        return { label: 'لم يحضر بعد', icon: <Clock size={16} />, className: 'status-pending' };
+        return { label: 'خارج الوردية', icon: <Clock size={16} />, className: 'status-pending' };
     }
   };
 
   const filteredByShift = shiftFilter === 'All'
     ? employees
-    : employees.filter(emp => emp.shifts && emp.shifts.includes(shiftFilter));
+    : shiftFilter === 'غير مجدول'
+      ? employees.filter(emp => !emp.shifts || emp.shifts.length === 0)
+      : employees.filter(emp => emp.shifts && emp.shifts.includes(shiftFilter));
 
   const filteredEmployees = filteredByShift.filter(emp => {
     if (filter === 'All') return emp.role === 'Supervisor';
     if (filter === 'Admins') return emp.role === 'Admin' || emp.role === 'SuperAdmin';
-    
+
     if (!emp.shifts || emp.shifts.length === 0) return false;
 
     if (filter === 'Present') return ['Present', 'Late', 'بريك غداء', 'بريك صلاة', 'تدريب', 'CheckedOut', 'انصراف'].includes(emp.todayStatus);
@@ -235,8 +241,8 @@ const TodayFollowup = () => {
               <span
                 onClick={() => setShiftFilter('All')}
                 style={{
-                  background: shiftFilter === 'All' ? 'var(--primary-color)' : 'rgba(249, 115, 22, 0.1)',
-                  color: shiftFilter === 'All' ? '#fff' : 'var(--primary-color)',
+                  background: shiftFilter === 'All' ? 'var(--theme-glow)' : 'rgba(249, 115, 22, 0.1)',
+                  color: shiftFilter === 'All' ? '#fff' : 'var(--theme-glow)',
                   padding: '0.4rem 1rem',
                   borderRadius: '20px',
                   fontSize: '0.9rem',
@@ -249,6 +255,24 @@ const TodayFollowup = () => {
                 }}
               >
                 جميع الورديات
+              </span>
+              <span
+                onClick={() => setShiftFilter('غير مجدول')}
+                style={{
+                  background: shiftFilter === 'غير مجدول' ? 'var(--primary-color)' : 'rgba(249, 115, 22, 0.1)',
+                  color: shiftFilter === 'غير مجدول' ? '#fff' : 'var(--primary-color)',
+                  padding: '0.4rem 1rem',
+                  borderRadius: '20px',
+                  fontSize: '0.9rem',
+                  border: '1px solid rgba(249, 115, 22, 0.3)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                غير مجدول
               </span>
               {adminShifts.map((shift, idx) => (
                 <span
@@ -272,6 +296,7 @@ const TodayFollowup = () => {
                   {shift.name} ({shift.startTime} - {shift.endTime})
                 </span>
               ))}
+
             </div>
           )}
         </div>
@@ -339,7 +364,7 @@ const TodayFollowup = () => {
         }}>
           <ShieldAlert size={22} />
           <span>
-            <strong>مسؤول وردية ({shiftFilter}): </strong> 
+            <strong>مسؤول وردية ({shiftFilter}): </strong>
             {adminShifts.find(s => s.name === shiftFilter)?.admins || 'لا يوجد مسؤول محدد'}
           </span>
         </div>
@@ -363,7 +388,7 @@ const TodayFollowup = () => {
               </thead>
               <tbody>
                 {sortedEmployees.map(emp => {
-                  const status = getStatusDetails(emp.todayStatus);
+                  const status = getStatusDetails(emp.todayStatus, emp.shifts);
                   const userAvatar = emp.avatar || 'User';
                   const isAdmin = emp.role === 'Admin' || emp.role === 'SuperAdmin';
                   return (
