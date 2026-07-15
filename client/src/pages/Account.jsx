@@ -157,9 +157,21 @@ const Account = () => {
   return (
     <div className="account-container">
       <header className="page-header">
-        <div className="page-title-wrapper">
-          <User size={28} className="title-icon text-blue" />
-          <h1 className="page-title gradient-title">إعدادات الحساب</h1>
+        <div className="page-title-wrapper" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <User size={28} className="title-icon text-blue" />
+            <h1 className="page-title gradient-title">إعدادات الحساب</h1>
+          </div>
+          {user?.isTrackerOnline && (
+            <div style={{ 
+              display: 'flex', alignItems: 'center', gap: '0.4rem', 
+              background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', 
+              color: '#22c55e', padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.9rem', fontWeight: 'bold' 
+            }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', animation: 'pulse 2s infinite' }}></div>
+              التراكر متصل
+            </div>
+          )}
         </div>
       </header>
 

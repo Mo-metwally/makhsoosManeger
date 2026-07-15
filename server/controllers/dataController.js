@@ -1,6 +1,6 @@
 const { Op, Sequelize } = require('sequelize');
 const { getLogicalDate } = require('../utils/dateUtils');
-const { CallReport, InactivityLog, PerformanceLog, User, AttendanceLog, DayOffRequest, Expense, Shift, AdvanceRequest } = require('../models');
+const { CallReport, InactivityLog, PerformanceLog, User, AttendanceLog, DayOffRequest, Expense, Shift, AdvanceRequest, Setting } = require('../models');
 
 // CALL REPORTS
 const getCallReports = async (req, res) => {
@@ -436,6 +436,105 @@ const getPersonalStats = async (req, res) => {
   }
 };
 
+const getTrackerSettings = async (req, res) => {
+  try {
+    const defaultSettings = {
+      idleThresholdMs: 300000,
+      allowedIdleThresholdMs: 300000,
+      checkIntervalMs: 1000,
+      enableTracking: true
+    };
+
+    const settingsDb = await Setting.findAll({
+      where: {
+        key: ['tracker_idleThresholdMs', 'tracker_allowedIdleThresholdMs', 'tracker_checkIntervalMs', 'tracker_enable']
+      }
+    });
+
+    const settingsMap = {};
+    settingsDb.forEach(s => {
+      settingsMap[s.key] = s.value;
+    });
+
+    const settings = {
+      idleThresholdMs: settingsMap['tracker_idleThresholdMs'] ? parseInt(settingsMap['tracker_idleThresholdMs']) : defaultSettings.idleThresholdMs,
+      allowedIdleThresholdMs: settingsMap['tracker_allowedIdleThresholdMs'] ? parseInt(settingsMap['tracker_allowedIdleThresholdMs']) : defaultSettings.allowedIdleThresholdMs,
+      checkIntervalMs: settingsMap['tracker_checkIntervalMs'] ? parseInt(settingsMap['tracker_checkIntervalMs']) : defaultSettings.checkIntervalMs,
+      enableTracking: settingsMap['tracker_enable'] ? settingsMap['tracker_enable'] === 'true' : defaultSettings.enableTracking
+    };
+
+    res.json(settings);
+  } catch (error) {
+    console.error('Error fetching tracker settings:', error);
+    res.status(500).json({ error: 'Failed to fetch tracker settings' });
+  }
+};
+
+const updateTrackerStatus = async (req, res) => {
+  try {
+    require('fs').appendFileSync('tracker_debug.txt', new Date().toISOString() + ' RECV: ' + JSON.stringify(req.body) + '\n');
+    let { status, idleSince } = req.body;
+    
+    if (typeof status === 'string') {
+      status = status.toLowerCase();
+      if (status === 'online') status = 'active';
+      if (status === 'inactive' || status === 'away') status = 'idle';
+    }
+
+    if (!['active', 'idle', 'offline'].includes(status)) {
+      console.log('Invalid status received:', req.body);
+      return res.status(400).json({ error: 'Invalid status', received: status || 'undefined' });
+    }
+
+    req.user.trackerStatus = status;
+    req.user.isTrackerOnline = (status !== 'offline');
+    await req.user.save();
+
+    if (status === 'idle') {
+      // Check if employee is currently on a break (any open log that is not 'idle')
+      const activeBreak = await InactivityLog.findOne({
+        where: { 
+          userId: req.user.id, 
+          endTime: null,
+          type: { [Op.notIn]: ['idle'] }
+        }
+      });
+
+      if (!activeBreak) {
+        // Find open idle log
+        const openLog = await InactivityLog.findOne({
+          where: { userId: req.user.id, type: 'idle', endTime: null }
+        });
+        if (!openLog) {
+          await InactivityLog.create({
+            id: require('crypto').randomUUID(),
+            userId: req.user.id,
+            type: 'idle',
+            startTime: idleSince ? new Date(idleSince).toISOString() : new Date().toISOString(),
+            supervisorName: req.user.fullName || req.user.username
+          });
+        }
+      }
+    } else if (status === 'active' || status === 'offline') {
+      // Find open idle log and close it
+      const openLog = await InactivityLog.findOne({
+        where: { userId: req.user.id, type: 'idle', endTime: null }
+      });
+      
+      if (openLog) {
+        openLog.endTime = new Date().toISOString();
+        openLog.durationMs = new Date(openLog.endTime).getTime() - new Date(openLog.startTime).getTime();
+        await openLog.save();
+      }
+    }
+
+    res.json({ success: true, trackerStatus: status });
+  } catch (error) {
+    console.error('Error updating tracker status:', error);
+    res.status(500).json({ error: 'Failed to update tracker status' });
+  }
+};
+
 module.exports = {
   getCallReports,
   saveCallReports,
@@ -446,5 +545,7 @@ module.exports = {
   getAllData,
   getPersonalStats,
   checkPhoneExists,
-  getPhoneHistory
+  getPhoneHistory,
+  getTrackerSettings,
+  updateTrackerStatus
 };

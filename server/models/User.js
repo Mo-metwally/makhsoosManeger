@@ -76,6 +76,14 @@ const User = sequelize.define('User', {
   notes: {
     type: DataTypes.JSON, // Use JSON for sqlite compatibility instead of JSONB
     defaultValue: []
+  },
+  isTrackerOnline: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  trackerStatus: {
+    type: DataTypes.ENUM('offline', 'active', 'idle'),
+    defaultValue: 'offline'
   }
 });
 

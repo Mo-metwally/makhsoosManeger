@@ -48,7 +48,8 @@ exports.getStatus = async (req, res) => {
       log: activeLog, 
       hasShiftToday: !!activeShift,
       shift: activeShift,
-      isDayOff: !!dayOff
+      isDayOff: !!dayOff,
+      trackerStatus: req.user.trackerStatus
     });
   } catch (error) {
     console.error('Error fetching attendance status:', error);

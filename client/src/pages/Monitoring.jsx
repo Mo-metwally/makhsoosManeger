@@ -17,6 +17,7 @@ const Monitoring = ({ isMyMonitoring = false }) => {
   const initialEmployeeName = searchParams.get('employeeName');
 
   const [filter, setFilter] = useState('today'); // 'today', 'week', 'month', 'all'
+  const [recordTypeFilter, setRecordTypeFilter] = useState('all'); // 'all', 'idle', 'breaks'
   const [searchQuery, setSearchQuery] = useState('');
   const [myStatsOnly, setMyStatsOnly] = useState(false);
   const [selectedSupervisor, setSelectedSupervisor] = useState(initialEmployeeName || 'all');
@@ -33,7 +34,7 @@ const Monitoring = ({ isMyMonitoring = false }) => {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filter, searchQuery, myStatsOnly, selectedSupervisor, sortBy]);
+  }, [filter, recordTypeFilter, searchQuery, myStatsOnly, selectedSupervisor, sortBy]);
 
   const fetchLogs = async () => {
     try {
@@ -120,6 +121,12 @@ const Monitoring = ({ isMyMonitoring = false }) => {
         }
         return true;
       });
+    }
+
+    if (recordTypeFilter === 'idle') {
+      filtered = filtered.filter(log => !log.type || log.type === 'idle');
+    } else if (recordTypeFilter === 'breaks') {
+      filtered = filtered.filter(log => log.type && log.type !== 'idle');
     }
 
     // Sort
@@ -239,95 +246,87 @@ const Monitoring = ({ isMyMonitoring = false }) => {
 
       <div className="filter-section">
         <div className="filter-toolbar">
-          <div className="filter-group-container">
-            <h3 className="filter-title">تصفية السجل:</h3>
-            <div className="mon-radio-filter-group">
-              <label className="mon-filter-radio">
-                <input
-                  type="radio"
-                  name="timeFilter"
-                  value="today"
-                  checked={filter === 'today'}
-                  onChange={(e) => setFilter(e.target.value)}
-                />
-                <span>اليوم</span>
-              </label>
-              <label className="mon-filter-radio">
-                <input
-                  type="radio"
-                  name="timeFilter"
-                  value="yesterday"
-                  checked={filter === 'yesterday'}
-                  onChange={(e) => setFilter(e.target.value)}
-                />
-                <span>أمس</span>
-              </label>
-              <label className="mon-filter-radio">
-                <input
-                  type="radio"
-                  name="timeFilter"
-                  value="week"
-                  checked={filter === 'week'}
-                  onChange={(e) => setFilter(e.target.value)}
-                />
-                <span>الأسبوع</span>
-              </label>
-              <label className="mon-filter-radio">
-                <input
-                  type="radio"
-                  name="timeFilter"
-                  value="month"
-                  checked={filter === 'month'}
-                  onChange={(e) => setFilter(e.target.value)}
-                />
-                <span>الشهر</span>
-              </label>
-              <label className="mon-filter-radio">
-                <input
-                  type="radio"
-                  name="timeFilter"
-                  value="all"
-                  checked={filter === 'all'}
-                  onChange={(e) => setFilter(e.target.value)}
-                />
-                <span>الكل</span>
-              </label>
-              <label className="mon-filter-radio">
-                <input
-                  type="radio"
-                  name="timeFilter"
-                  value="custom"
-                  checked={filter === 'custom'}
-                  onChange={(e) => setFilter(e.target.value)}
-                />
-                <span>مخصص</span>
-              </label>
-            </div>
-            {filter === 'custom' && (
-              <div className="custom-date-filters fade-in" style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                  <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>من تاريخ</label>
-                  <input type="date" className="employee-search-input" value={customStartDate} onChange={(e) => setCustomStartDate(e.target.value)} style={{ padding: '0.4rem', borderRadius: '6px', background: 'rgba(15, 23, 42, 0.6)' }} />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                  <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>إلى تاريخ</label>
-                  <input type="date" className="employee-search-input" value={customEndDate} onChange={(e) => setCustomEndDate(e.target.value)} style={{ padding: '0.4rem', borderRadius: '6px', background: 'rgba(15, 23, 42, 0.6)' }} />
-                </div>
+
+          {/* Top Row: Time Filters and Type Filters */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', width: '100%' }}>
+            <div className="filter-group-container">
+              <h3 className="filter-title">تصفية السجل:</h3>
+              <div className="mon-radio-filter-group">
+                <label className="mon-filter-radio">
+                  <input
+                    type="radio"
+                    name="timeFilter"
+                    value="today"
+                    checked={filter === 'today'}
+                    onChange={(e) => setFilter(e.target.value)}
+                  />
+                  <span>اليوم</span>
+                </label>
+                <label className="mon-filter-radio">
+                  <input
+                    type="radio"
+                    name="timeFilter"
+                    value="yesterday"
+                    checked={filter === 'yesterday'}
+                    onChange={(e) => setFilter(e.target.value)}
+                  />
+                  <span>أمس</span>
+                </label>
+                <label className="mon-filter-radio">
+                  <input
+                    type="radio"
+                    name="timeFilter"
+                    value="week"
+                    checked={filter === 'week'}
+                    onChange={(e) => setFilter(e.target.value)}
+                  />
+                  <span>الأسبوع</span>
+                </label>
+                <label className="mon-filter-radio">
+                  <input
+                    type="radio"
+                    name="timeFilter"
+                    value="month"
+                    checked={filter === 'month'}
+                    onChange={(e) => setFilter(e.target.value)}
+                  />
+                  <span>الشهر</span>
+                </label>
+                <label className="mon-filter-radio">
+                  <input
+                    type="radio"
+                    name="timeFilter"
+                    value="all"
+                    checked={filter === 'all'}
+                    onChange={(e) => setFilter(e.target.value)}
+                  />
+                  <span>الكل</span>
+                </label>
+                <label className="mon-filter-radio">
+                  <input
+                    type="radio"
+                    name="timeFilter"
+                    value="custom"
+                    checked={filter === 'custom'}
+                    onChange={(e) => setFilter(e.target.value)}
+                  />
+                  <span>مخصص</span>
+                </label>
               </div>
-            )}
-          </div>
+              {filter === 'custom' && (
+                <div className="custom-date-filters fade-in" style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                    <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>من تاريخ</label>
+                    <input type="date" className="employee-search-input" value={customStartDate} onChange={(e) => setCustomStartDate(e.target.value)} style={{ padding: '0.4rem', borderRadius: '6px', background: 'rgba(15, 23, 42, 0.6)' }} />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                    <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>إلى تاريخ</label>
+                    <input type="date" className="employee-search-input" value={customEndDate} onChange={(e) => setCustomEndDate(e.target.value)} style={{ padding: '0.4rem', borderRadius: '6px', background: 'rgba(15, 23, 42, 0.6)' }} />
+                  </div>
+                </div>
+              )}
 
-          <div className="filter-actions-container">
-            {!isMyMonitoring && (
-              <button
-                onClick={() => setMyStatsOnly(!myStatsOnly)}
-                className={`my-stats-toggle ${myStatsOnly ? 'active' : ''}`}
-              >
-                <User size={18} />
-                <span>بياناتي</span>
-              </button>
-            )}
-
+            </div>
             {!isMyMonitoring && (
               <div className="search-container">
                 <div className="search-icon-box">
@@ -343,26 +342,77 @@ const Monitoring = ({ isMyMonitoring = false }) => {
               </div>
             )}
           </div>
-        </div>
 
-        <div className="advanced-filters-container">
-          {!isMyMonitoring && (
-            <CustomSelect
-              options={employeeOptions}
-              value={selectedSupervisor}
-              onChange={setSelectedSupervisor}
-              icon={<Users size={18} />}
-            />
-          )}
+          <div className="advanced-filters-container">
+            <div className="filter-actions-container" style={{ justifyContent: 'flex-start', flexWrap: 'wrap' }}>
+              <div className="filter-group-container" style={{ marginTop: filter === 'custom' ? '1rem' : '0' }}>
+                <h3 className="filter-title">نوع السجل:</h3>
+                <div className="mon-radio-filter-group">
+                  <label className="mon-filter-radio">
+                    <input
+                      type="radio"
+                      name="recordTypeFilter"
+                      value="all"
+                      checked={recordTypeFilter === 'all'}
+                      onChange={(e) => setRecordTypeFilter(e.target.value)}
+                    />
+                    <span>الكل</span>
+                  </label>
+                  <label className="mon-filter-radio">
+                    <input
+                      type="radio"
+                      name="recordTypeFilter"
+                      value="idle"
+                      checked={recordTypeFilter === 'idle'}
+                      onChange={(e) => setRecordTypeFilter(e.target.value)}
+                    />
+                    <span>خمول فقط</span>
+                  </label>
+                  <label className="mon-filter-radio">
+                    <input
+                      type="radio"
+                      name="recordTypeFilter"
+                      value="breaks"
+                      checked={recordTypeFilter === 'breaks'}
+                      onChange={(e) => setRecordTypeFilter(e.target.value)}
+                    />
+                    <span>استراحات فقط</span>
+                  </label>
+                </div>
+              </div>
 
-          {!isMyMonitoring && (
-            <CustomSelect
-              options={sortOptions}
-              value={sortBy}
-              onChange={setSortBy}
-              icon={<ArrowUpDown size={18} />}
-            />
-          )}
+            </div>
+          </div>
+
+          <div className="advanced-filters-container">
+            {!isMyMonitoring && (
+              <button
+                onClick={() => setMyStatsOnly(!myStatsOnly)}
+                className={`my-stats-toggle ${myStatsOnly ? 'active' : ''}`}
+              >
+                <User size={18} />
+                <span>بياناتي</span>
+              </button>
+            )}
+            {!isMyMonitoring && (
+              <CustomSelect
+                options={employeeOptions}
+                value={selectedSupervisor}
+                onChange={setSelectedSupervisor}
+                icon={<Users size={18} />}
+              />
+            )}
+
+            {!isMyMonitoring && (
+              <CustomSelect
+                options={sortOptions}
+                value={sortBy}
+                onChange={setSortBy}
+                icon={<ArrowUpDown size={18} />}
+              />
+            )}
+
+          </div>
         </div>
       </div>
 
@@ -373,9 +423,8 @@ const Monitoring = ({ isMyMonitoring = false }) => {
               <th>الموظف</th>
               <th>التاريخ</th>
               <th>نوع الفترة</th>
-              <th>بداية الفترة</th>
-              <th>وقت العودة (النشاط)</th>
-              <th>المدة الإجمالية</th>
+              <th style={{ textAlign: 'center' }}>التوقيت</th>
+              <th style={{ textAlign: 'center' }}>المدة الإجمالية</th>
               <th>الحالة</th>
             </tr>
           </thead>
@@ -457,11 +506,16 @@ const Monitoring = ({ isMyMonitoring = false }) => {
                         <span className="status-badge badge-default">{log.type}</span>
                       )}
                     </td>
-                    <td className="time-cell" dir="ltr">{formatTime(log.startTime)}</td>
                     <td className="time-cell" dir="ltr">
-                      {log.endTime ? formatTime(log.endTime) : <span style={{ color: 'var(--text-secondary)' }}>---</span>}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
+                        <span style={{ color: 'var(--text-primary)' }}>{formatTime(log.startTime)}</span>
+                        <div style={{ width: '30px', height: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
+                        <span style={{ color: 'var(--text-secondary)' }}>
+                          {log.endTime ? formatTime(log.endTime) : '---'}
+                        </span>
+                      </div>
                     </td>
-                    <td className="duration-cell">
+                    <td className="duration-cell" style={{ textAlign: 'center' }}>
                       <span className="duration-badge">
                         {formatDuration(log.durationMs)}
                       </span>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ShieldAlert, CheckCircle, XCircle, Users, RefreshCw, ChevronDown, ChevronUp, Save, X, Edit2, Smartphone, KeyRound, Trash2, Crown, Shield, User } from 'lucide-react';
+import { ShieldAlert, CheckCircle, XCircle, Users, RefreshCw, ChevronDown, ChevronUp, Save, X, Edit2, Smartphone, KeyRound, Trash2, Crown, Shield, User, Zap } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import './PermissionsReport.css';
@@ -41,8 +41,8 @@ const RoleSelector = ({ currentRole, currentUserRole, userId, onChange }) => {
       {isOpen && (
         <div className="adv-role-dropdown scale-in">
           {options.map(opt => (
-            <div 
-              key={opt.value} 
+            <div
+              key={opt.value}
               className={`adv-role-option ${currentRole === opt.value ? 'active' : ''}`}
               onClick={(e) => {
                 e.stopPropagation();
@@ -124,17 +124,28 @@ const UserRow = ({ user, currentUser, onRefresh, handleRoleChange, handleAction 
         <td>
           <div className="flex items-center gap-2">
             {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            {user.username}
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              {user.username}
+              {(() => {
+                const status = user.trackerStatus || (user.isTrackerOnline ? 'active' : 'offline');
+                if (status === 'active') {
+                  return <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', animation: 'pulse 2s infinite' }} title="التراكر متصل (نشط)"></div>;
+                } else if (status === 'idle') {
+                  return <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f97316' }} title="التراكر متصل (خامل)"></div>;
+                }
+                return null;
+              })()}
+            </span>
           </div>
         </td>
         <td>{user.fullName}</td>
         <td onClick={(e) => e.stopPropagation()} style={{ position: 'relative' }}>
           {(currentUser?.role === 'SuperAdmin' || currentUser?.role === 'Admin') && (currentUser?.role === 'SuperAdmin' || user.role !== 'SuperAdmin') ? (
-            <RoleSelector 
-              currentRole={user.role} 
-              currentUserRole={currentUser?.role} 
-              userId={user.id} 
-              onChange={handleRoleChange} 
+            <RoleSelector
+              currentRole={user.role}
+              currentUserRole={currentUser?.role}
+              userId={user.id}
+              onChange={handleRoleChange}
             />
           ) : (
             <span style={{ fontSize: '0.95rem' }}>
@@ -204,22 +215,38 @@ const UserRow = ({ user, currentUser, onRefresh, handleRoleChange, handleAction 
                     {isEditing ? <input type="text" name="jobTitle" value={formData.jobTitle} onChange={handleEditChange} /> : <p>{user.jobTitle || 'غير مسجل'}</p>}
                   </div>
                 </div>
-                
-                <div className="device-lock-section">
-                  <div className="device-info">
-                    <Smartphone size={20} className="text-blue" />
-                    <span>الأجهزة المرتبطة: <strong>{user.deviceId ? '1 جهاز (مقفل)' : '0 أجهزة (غير مرتبط)'}</strong></span>
+
+                <div className="device-lock-section" style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+                  <div>
+                    <div className="device-info" style={{ marginBottom: '1rem' }}>
+                      <Smartphone size={20} className="text-blue" />
+                      <span>الأجهزة المرتبطة: <strong>{user.deviceId ? '1 جهاز (مقفل)' : '0 أجهزة (غير مرتبط)'}</strong></span>
+                    </div>
+                    {user.deviceId && (
+                      <button className="btn-unlock" onClick={handleUnlockDevice}>
+                        <KeyRound size={16} /> فك ارتباط الجهاز
+                      </button>
+                    )}
                   </div>
-                  {user.deviceId && (
-                    <button className="btn-unlock" onClick={handleUnlockDevice}>
-                      <KeyRound size={16} /> فك ارتباط الجهاز
-                    </button>
-                  )}
+
+                  <div>
+                    {(() => {
+                      const status = user.trackerStatus || (user.isTrackerOnline ? 'active' : 'offline');
+                      const color = status === 'active' ? '#22c55e' : status === 'idle' ? '#f97316' : 'var(--text-secondary)';
+                      const label = status === 'active' ? 'متصل (نشط)' : status === 'idle' ? 'متصل (خامل)' : 'غير متصل';
+                      return (
+                        <div className="device-info" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.03)', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                          <Zap size={20} style={{ color }} />
+                          <span>متتبع النشاط: <strong style={{ color }}>{label}</strong></span>
+                        </div>
+                      );
+                    })()}
+                  </div>
                 </div>
 
                 <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', display: 'flex', justifyContent: 'flex-start' }}>
-                  <button 
-                    onClick={handleDeleteUser} 
+                  <button
+                    onClick={handleDeleteUser}
                     style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '0.8rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', transition: '0.3s', cursor: 'pointer' }}
                     onMouseOver={(e) => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = 'white'; }}
                     onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#ef4444'; }}
@@ -300,7 +327,7 @@ const PermissionsReport = () => {
   };
 
   const pendingUsers = users.filter(u => u.status === 'Pending Approval');
-  
+
   let filteredUsers = users.filter(u => u.status !== 'Pending Approval');
   if (roleFilter !== 'All') {
     filteredUsers = filteredUsers.filter(u => u.role === roleFilter);
@@ -414,13 +441,13 @@ const PermissionsReport = () => {
                 </thead>
                 <tbody>
                   {filteredUsers.map(u => (
-                    <UserRow 
-                      key={u.id} 
-                      user={u} 
-                      currentUser={currentUser} 
-                      onRefresh={fetchUsers} 
-                      handleRoleChange={handleRoleChange} 
-                      handleAction={handleAction} 
+                    <UserRow
+                      key={u.id}
+                      user={u}
+                      currentUser={currentUser}
+                      onRefresh={fetchUsers}
+                      handleRoleChange={handleRoleChange}
+                      handleAction={handleAction}
                     />
                   ))}
                 </tbody>

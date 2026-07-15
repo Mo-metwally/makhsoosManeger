@@ -57,7 +57,11 @@ const Sidebar = () => {
       } else if (activeBreak === 'تدريب') {
         setUserStatus({ text: 'تدريب', color: '#3b82f6' });
       } else {
-        setUserStatus({ text: 'متصل', color: '#22c55e' });
+        if (res.data.trackerStatus === 'idle') {
+          setUserStatus({ text: 'خامل', color: '#f97316' }); // orange
+        } else {
+          setUserStatus({ text: 'متصل', color: '#22c55e' });
+        }
       }
     } catch (err) {
       setUserStatus({ text: 'متصل', color: '#22c55e' });
@@ -357,10 +361,16 @@ const Sidebar = () => {
                     </NavLink>
                   )}
                   {(profile.role === 'SuperAdmin') && (
-                    <NavLink to="/general-settings" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                      <Settings size={18} />
-                      <span>إعدادات النظام</span>
-                    </NavLink>
+                    <>
+                      <NavLink to="/general-settings" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                        <Settings size={18} />
+                        <span>إعدادات النظام</span>
+                      </NavLink>
+                      <NavLink to="/tracker-settings" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                        <Activity size={18} />
+                        <span>إعدادات التراكر</span>
+                      </NavLink>
+                    </>
                   )}
                 </div>
               </li>

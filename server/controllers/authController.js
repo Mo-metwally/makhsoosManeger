@@ -98,6 +98,8 @@ const login = async (req, res) => {
         workingHours: user.workingHours,
         avatar: user.avatar,
         tasks: user.tasks,
+        isTrackerOnline: user.isTrackerOnline,
+        trackerStatus: user.trackerStatus,
         notes: user.notes
       }
     });
@@ -105,6 +107,53 @@ const login = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'حدث خطأ أثناء تسجيل الدخول' });
+  }
+};
+
+const trackerLogin = async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ error: 'يرجى إدخال اسم المستخدم وكلمة المرور.' });
+  }
+
+  try {
+    const trimmedUsername = username.trim();
+    const user = await User.findOne({ 
+      where: { 
+        [Op.or]: [
+          { username: trimmedUsername },
+          { email: trimmedUsername }
+        ]
+      } 
+    });
+    
+    if (!user || user.password !== password) {
+      return res.status(401).json({ error: 'بيانات الدخول غير صحيحة.' });
+    }
+
+    if (user.status === 'Suspended') {
+      return res.status(403).json({ error: 'الحساب موقوف.' });
+    }
+
+    // Mark tracker as online
+    user.isTrackerOnline = true;
+    await user.save();
+
+    // Create a long-lived JWT for the tracker tool, no device locking here
+    const token = jwt.sign(
+      { id: user.id, role: user.role, version: user.jwtVersion, isTracker: true }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '365d' }
+    );
+
+    res.json({
+      message: 'تم تسجيل دخول المتتبع بنجاح',
+      token,
+      user: { id: user.id, username: user.username, fullName: user.fullName, isTrackerOnline: user.isTrackerOnline, trackerStatus: user.trackerStatus }
+    });
+  } catch (error) {
+    console.error('Tracker Login Error:', error);
+    res.status(500).json({ error: 'خطأ أثناء تسجيل الدخول للمتتبع.' });
   }
 };
 
@@ -150,6 +199,8 @@ const me = (req, res) => {
       workingHours: req.user.workingHours,
       avatar: req.user.avatar,
       tasks: req.user.tasks,
+      isTrackerOnline: req.user.isTrackerOnline,
+      trackerStatus: req.user.trackerStatus,
       notes: req.user.notes
     }
   });
@@ -373,8 +424,10 @@ const resetPassword = async (req, res) => {
   }
 };
 
+
 module.exports = {
   login,
+  trackerLogin,
   logout,
   me,
   updateProfile,

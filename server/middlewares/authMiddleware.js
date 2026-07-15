@@ -3,7 +3,13 @@ const { User } = require('../models');
 
 const authMiddleware = async (req, res, next) => {
   try {
-    const token = req.cookies.token;
+    let token = req.cookies.token;
+
+    // Support Bearer token from header (for Desktop Tracker Tool)
+    if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+
     if (!token) {
       return res.status(401).json({ error: 'غير مصرح لك بالدخول، يرجى تسجيل الدخول' });
     }
@@ -21,6 +27,7 @@ const authMiddleware = async (req, res, next) => {
     }
 
     req.user = user;
+    req.isTracker = decoded.isTracker || false;
     next();
   } catch (error) {
     return res.status(401).json({ error: 'الجلسة منتهية، يرجى تسجيل الدخول مجدداً' });

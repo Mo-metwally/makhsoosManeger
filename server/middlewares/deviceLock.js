@@ -7,6 +7,11 @@ const deviceLock = async (req, res, next) => {
 
     const currentDeviceId = req.cookies.deviceId;
 
+    // Bypass device lock if this is an authorized tracker tool
+    if (req.isTracker) {
+      return next();
+    }
+
     // If user has a deviceId registered but it doesn't match the cookie
     // Bypass this check for SuperAdmin to prevent lockouts during testing/admin duties
     if (user.role !== 'SuperAdmin' && user.deviceId && user.deviceId !== currentDeviceId) {
