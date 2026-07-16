@@ -1,9 +1,11 @@
+const { verifyLicense } = require('./utils/licenseChecker');
+require('dotenv').config();
+
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const os = require('os');
-require('dotenv').config();
 
 // Handle graceful shutdown and ignore EPIPE
 process.on('uncaughtException', (err) => {
@@ -77,6 +79,9 @@ const runAutoSettleAdvances = require('./services/autoSettleAdvancesService');
 
 const startServer = async () => {
   try {
+    // التحقق من الرخصة (يتطلب إنترنت للوقت)
+    await verifyLicense();
+
     // Validate database connection
     await sequelize.authenticate();
     const dbName = sequelize.config.database || process.env.DB_NAME || 'Unknown';
@@ -133,6 +138,14 @@ const startServer = async () => {
       // Start Auto Settle Advances (Every 12 hours)
       runAutoSettleAdvances();
       setInterval(runAutoSettleAdvances, 12 * 60 * 60 * 1000);
+
+      // Start License Check (Every 24 hours, silently)
+      setInterval(() => {
+        verifyLicense(true).catch(err => {
+          console.error('[SYSTEM PROTECTION] Automatic license check failed:', err);
+          process.exit(1);
+        });
+      }, 24 * 60 * 60 * 1000);
     });
   } catch (err) {
     console.error('[ERROR] Unable to connect to the database:', err);
