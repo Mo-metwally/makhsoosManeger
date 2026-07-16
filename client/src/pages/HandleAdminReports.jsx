@@ -75,8 +75,13 @@ const HandleAdminReports = () => {
     if (diffMs <= 0) return 'لا يوجد';
 
     const diffMins = Math.floor(diffMs / 60000);
-    const hours = Math.floor(diffMins / 60);
-    const mins = diffMins % 60;
+    const allowedDelay = Number(localStorage.getItem('allowedDelayMinutes') || '15');
+    const actualDelayMins = diffMins - allowedDelay;
+
+    if (actualDelayMins <= 0) return 'لا يوجد';
+
+    const hours = Math.floor(actualDelayMins / 60);
+    const mins = actualDelayMins % 60;
 
     if (hours > 0) return `${hours} س ${mins > 0 ? `و ${mins} د` : ''}`;
     return `${mins} دقيقة`;

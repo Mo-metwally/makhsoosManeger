@@ -826,7 +826,13 @@ export const getPayrollSummarySheet = (attendanceData, advancesData = []) => {
         
         if (checkInDate > shiftStart) {
           const diffMs = checkInDate - shiftStart;
-          userStats[uId].delayMinutes += (diffMs / 60000);
+          const diffMins = Math.floor(diffMs / 60000);
+          const allowedDelay = Number(localStorage.getItem('allowedDelayMinutes') || '15');
+          const actualDelayMins = diffMins - allowedDelay;
+
+          if (actualDelayMins > 0) {
+            userStats[uId].delayMinutes += actualDelayMins;
+          }
         }
       }
     } else if (log.status === 'Absent') {

@@ -38,6 +38,9 @@ const settingRoutes = require('./routes/settingRoutes');
 const app = express();
 
 const allowedOrigins = process.env.ALLOWLIST ? process.env.ALLOWLIST.split(',') : ['http://localhost:5173'];
+if (process.env.BASE_URL && !allowedOrigins.includes(process.env.BASE_URL)) {
+  allowedOrigins.push(process.env.BASE_URL);
+}
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -89,27 +92,27 @@ const startServer = async () => {
 
     await sequelize.sync({ alter: true });
     console.log('[INFO] Database synced');
-  
-  // Create SuperAdmin if not exists
-  const superAdminUsername = process.env.SUPERADMIN_USERNAME || 'admin';
-  const existingSuperAdmin = await User.findOne({ where: { username: superAdminUsername } });
-  
-  if (!existingSuperAdmin) {
-    await User.create({
-      username: superAdminUsername,
-      password: process.env.SUPERADMIN_PASSWORD || 'password123',
-      fullName: 'المدير العام',
-      email: process.env.SUPERADMIN_EMAIL || 'admin@makhsoos.com',
-      phone: '01000000000',
-      role: 'SuperAdmin',
-      status: 'Active',
-      workingHours: 8,
-      avatar: 'Crown'
-    });
-    console.log(`[INFO] SuperAdmin account created successfully (${superAdminUsername})`);
-  } else {
-    console.log(`[INFO] SuperAdmin account already exists.`);
-  }
+
+    // Create SuperAdmin if not exists
+    const superAdminUsername = process.env.SUPERADMIN_USERNAME || 'admin';
+    const existingSuperAdmin = await User.findOne({ where: { username: superAdminUsername } });
+
+    if (!existingSuperAdmin) {
+      await User.create({
+        username: superAdminUsername,
+        password: process.env.SUPERADMIN_PASSWORD || 'password123',
+        fullName: 'المدير العام',
+        email: process.env.SUPERADMIN_EMAIL || 'admin@makhsoos.com',
+        phone: '01000000000',
+        role: 'SuperAdmin',
+        status: 'Active',
+        workingHours: 8,
+        avatar: 'Crown'
+      });
+      console.log(`[INFO] SuperAdmin account created successfully (${superAdminUsername})`);
+    } else {
+      console.log(`[INFO] SuperAdmin account already exists.`);
+    }
 
     app.listen(PORT, () => {
       const interfaces = os.networkInterfaces();
@@ -128,6 +131,13 @@ const startServer = async () => {
       console.log(`[INFO] Server running successfully!`);
       console.log(`> Local:   http://localhost:${PORT}`);
       console.log(`> Network: http://${networkIP}:${PORT}`);
+      if (process.env.TSILSCALE_DOMAIN || process.env.TAILSCALE_DOMAIN) {
+        console.log(`> Domain:  ${process.env.TSILSCALE_DOMAIN || process.env.TAILSCALE_DOMAIN}`);
+      }
+      if (process.env.BASE_URL) {
+        console.log(`> Custom:  ${process.env.BASE_URL}`);
+      }
+      console.log(`> Allowed: ${allowedOrigins.join(', ')}`);
       console.log(`======================================\n`);
 
       // Run automatic absent check immediately, then every 5 minutes

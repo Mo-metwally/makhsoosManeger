@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { User, Shield, Cat, Crown, Star, Smile, Briefcase, Check, Save, Flame, Zap, Heart, Moon, Sun, TriangleAlert, KeyRound, Loader2, XCircle, Eye, EyeOff } from 'lucide-react';
+import { User, Shield, Cat, Crown, Star, Smile, Briefcase, Check, Save, Flame, Zap, Heart, Moon, Sun, TriangleAlert, KeyRound, Loader2, XCircle, Eye, EyeOff, Info, Clock, Calendar, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import api from '../services/api';
 import './Account.css';
 
 import AvatarIcon, { avatarOptions } from '../components/AvatarIcon';
+
+const DAYS_OF_WEEK = [
+  { id: 'Saturday', label: 'السبت' },
+  { id: 'Sunday', label: 'الأحد' },
+  { id: 'Monday', label: 'الإثنين' },
+  { id: 'Tuesday', label: 'الثلاثاء' },
+  { id: 'Wednesday', label: 'الأربعاء' },
+  { id: 'Thursday', label: 'الخميس' },
+  { id: 'Friday', label: 'الجمعة' }
+];
 
 const Account = () => {
   const { user, updateProfile, logout } = useAuth();
@@ -32,6 +42,7 @@ const Account = () => {
   const [showNewPwd, setShowNewPwd] = useState(false);
   const [showConfirmPwd, setShowConfirmPwd] = useState(false);
   const [appMode, setAppMode] = useState(localStorage.getItem('app-mode') || 'dark');
+  const [myShifts, setMyShifts] = useState([]);
 
   const handleModeChange = (mode) => {
     setAppMode(mode);
@@ -58,6 +69,14 @@ const Account = () => {
       const finalAvatar = user?.avatar || 'User';
       document.documentElement.setAttribute('data-theme', finalAvatar);
     };
+  }, [user]);
+
+  useEffect(() => {
+    if (user && user.status === 'Active') {
+      api.get('/shifts/my-shifts').then(res => {
+        if (res.data) setMyShifts(res.data);
+      }).catch(console.error);
+    }
   }, [user]);
 
   const handleChange = (e) => {
@@ -176,6 +195,63 @@ const Account = () => {
       </header>
 
       <div className="account-content">
+        {/* Shift Info Section */}
+        {myShifts.length > 0 && (
+          <div style={{ marginBottom: '2rem' }}>
+            <h2 style={{ color: 'var(--text-primary)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Info size={24} className="text-blue" />
+              بيانات الوردية الحالية
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+              {myShifts.map(shift => {
+                const shiftUsers = shift.Users || [];
+                return (
+                  <div key={shift.id} className="account-card" style={{ padding: '1.5rem 2rem', background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                    <h3 style={{ fontSize: '1.4rem', color: 'var(--text-primary)', margin: 0 }}>{shift.name}</h3>
+
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', direction: 'ltr' }}>
+                        <Clock size={16} className="text-blue" />
+                        {shift.endTime} - {shift.startTime}
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <Calendar size={16} className="text-blue" />
+                        {(shift.workingDays || []).map(dId => DAYS_OF_WEEK.find(d => d.id === dId)?.label).join('، ')}
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <Users size={16} className="text-blue" />
+                        {shiftUsers.length} موظف
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem 0.8rem', borderRadius: '6px' }}>
+                        <strong>نظام الإجازات:</strong>
+                        {shift.dayOffType === 'Fixed' ? 'ثابت' : 'متغير'}
+                      </span>
+                      {shift.dayOffType === 'Fixed' ? (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem 0.8rem', borderRadius: '6px' }}>
+                          <strong>الأيام:</strong>
+                          {(shift.fixedDaysOff || []).map(dId => DAYS_OF_WEEK.find(d => d.id === dId)?.label).join('، ') || 'لا يوجد'}
+                        </span>
+                      ) : (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem 0.8rem', borderRadius: '6px' }}>
+                          <strong>الأيام المسموحة شهرياً:</strong>
+                          {shift.variableDaysOffCount || 0} أيام
+                        </span>
+                      )}
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '0.4rem 0.8rem', borderRadius: '6px' }}>
+                        <strong>فترة السماح للتأخير:</strong>
+                        {localStorage.getItem('allowedDelayMinutes') || '15'} دقيقة
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
         <div className="account-card">
           <form onSubmit={handleSave}>
             <div className="form-section">

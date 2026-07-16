@@ -64,8 +64,9 @@ function AppContent() {
     if (user && user.status === 'Active') {
       // Fetch settings first to ensure logicalDayCutoff is up to date
       api.get('/settings').then(res => {
-        if (res.data && res.data.logicalDayCutoff) {
-          localStorage.setItem('logicalDayCutoff', res.data.logicalDayCutoff);
+        if (res.data) {
+          if (res.data.logicalDayCutoff) localStorage.setItem('logicalDayCutoff', res.data.logicalDayCutoff);
+          if (res.data.allowedDelayMinutes) localStorage.setItem('allowedDelayMinutes', res.data.allowedDelayMinutes);
         }
       }).catch(console.error);
 
