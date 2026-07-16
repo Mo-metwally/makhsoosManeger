@@ -148,8 +148,8 @@ erDiagram
 ### 12. جدول الإعدادات (`Settings`)
 جداول تخزين إعدادات النظام العامة.
 - `id` (UUID): المعرف الفريد.
-- `key` (String): مفتاح الإعداد (مثال: `autoCheckoutHours`).
-- `value` (String): قيمة الإعداد (مثال: `1`).
+- `key` (String): مفتاح الإعداد (أمثلة: `autoCheckoutHours`, `logicalDayCutoff`, `allowedDelayMinutes`).
+- `value` (String): قيمة الإعداد (مثال: `1` ، `5` ، `15`).
 
 ---
 
