@@ -149,13 +149,55 @@ const startServer = async () => {
       runAutoSettleAdvances();
       setInterval(runAutoSettleAdvances, 12 * 60 * 60 * 1000);
 
-      // Start License Check (Every 24 hours, silently)
-      setInterval(() => {
-        verifyLicense(true).catch(err => {
-          console.error('[SYSTEM PROTECTION] Automatic license check failed:', err);
-          process.exit(1);
-        });
-      }, 24 * 60 * 60 * 1000);
+      // Start License Check (Scheduled for Midnight Egypt Time, using Google's Time)
+      const scheduleLicenseCheck = () => {
+        const scheduleNext = (trueTime) => {
+          const formatter = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'Africa/Cairo',
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', second: '2-digit',
+            hour12: false
+          });
+          
+          const parts = formatter.formatToParts(trueTime);
+          const getPart = (type) => parseInt(parts.find(p => p.type === type).value, 10);
+          
+          const cYear = getPart('year');
+          const cMonth = getPart('month') - 1;
+          const cDay = getPart('day');
+          const cHour = getPart('hour');
+          const cMinute = getPart('minute');
+          const cSecond = getPart('second');
+
+          const cairoNow = Date.UTC(cYear, cMonth, cDay, cHour === 24 ? 0 : cHour, cMinute, cSecond);
+          const cairoMidnight = Date.UTC(cYear, cMonth, cDay + 1, 0, 0, 0);
+          
+          let msToMidnight = cairoMidnight - cairoNow;
+          if (msToMidnight <= 0) msToMidnight += 24 * 60 * 60 * 1000; // safety
+
+          setTimeout(() => {
+            verifyLicense(true).catch(err => {
+              console.error('[SYSTEM PROTECTION] Automatic license check failed:', err);
+              process.exit(1);
+            });
+            // Re-schedule for next midnight
+            scheduleLicenseCheck();
+          }, msToMidnight);
+        };
+
+        const https = require('https');
+        https.request({ method: 'HEAD', host: 'google.com', port: 443, path: '/' }, (res) => {
+          if (res.headers.date) {
+            scheduleNext(new Date(res.headers.date));
+          } else {
+            scheduleNext(new Date());
+          }
+        }).on('error', () => {
+          scheduleNext(new Date()); // Fallback to local time if no internet
+        }).end();
+      };
+      
+      scheduleLicenseCheck();
     });
   } catch (err) {
     console.error('[ERROR] Unable to connect to the database:', err);
