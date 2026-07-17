@@ -68,11 +68,29 @@ app.use('/api/budgets', budgetRoutes);
 app.use('/api/advances', advanceRoutes);
 app.use('/api/settings', settingRoutes);
 
+// Determine the path to the frontend dist folder
+const fs = require('fs');
+let distPath = path.join(__dirname, 'public', 'dist');
+
+// If running as a compiled pkg executable
+if (process.pkg) {
+  const externalDistPath = path.join(path.dirname(process.execPath), 'public', 'dist');
+  // Check if the public folder exists next to the .exe
+  if (fs.existsSync(externalDistPath)) {
+    distPath = externalDistPath;
+  }
+}
+
 // Serve frontend client
-app.use(express.static(path.join(__dirname, 'public', 'dist')));
+app.use(express.static(distPath));
 
 app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'dist', 'index.html'));
+  const indexPath = path.join(distPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).send('Frontend not found. Make sure the public/dist folder exists.');
+  }
 });
 
 const PORT = process.env.PORT || 5000;

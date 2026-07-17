@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api', // Pointing to the Node.js server via env var
+  baseURL: window.APP_CONFIG?.API_URL || import.meta.env.VITE_API_URL || 'http://localhost:5000/api', // Pointing to the Node.js server via config or env var
   withCredentials: true, // Very important for cookies (token, deviceId)
 });
 
