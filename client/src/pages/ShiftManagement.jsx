@@ -19,7 +19,7 @@ import AvatarIcon from '../components/AvatarIcon';
 const ShiftManagement = () => {
   const [shifts, setShifts] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
-  
+
   // Form State
   const [shiftForm, setShiftForm] = useState({
     name: '',
@@ -38,6 +38,7 @@ const ShiftManagement = () => {
   const [selectedShift, setSelectedShift] = useState(null);
   const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [modalSearchTerm, setModalSearchTerm] = useState('');
+  const [modalScheduleFilter, setModalScheduleFilter] = useState('All');
 
   // Shift-specific search terms
   const [shiftSearchTerms, setShiftSearchTerms] = useState({});
@@ -120,14 +121,14 @@ const ShiftManagement = () => {
   };
 
   const resetForm = () => {
-    setShiftForm({ 
-      name: '', 
-      startTime: '09:00', 
-      endTime: '17:00', 
+    setShiftForm({
+      name: '',
+      startTime: '09:00',
+      endTime: '17:00',
       workingDays: [],
       dayOffType: 'Fixed',
       fixedDaysOff: [],
-      variableDaysOffCount: 0 
+      variableDaysOffCount: 0
     });
     setEditingShiftId(null);
     setIsFormModalOpen(false);
@@ -189,10 +190,19 @@ const ShiftManagement = () => {
   };
 
   // Filter users in the modal
-  const filteredModalUsers = allUsers.filter(user => 
-    user.fullName.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
-    (user.jobTitle && user.jobTitle.toLowerCase().includes(modalSearchTerm.toLowerCase()))
-  );
+  const filteredModalUsers = allUsers.filter(user => {
+    const matchesSearch = user.fullName.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
+      (user.jobTitle && user.jobTitle.toLowerCase().includes(modalSearchTerm.toLowerCase()));
+
+    let matchesSchedule = true;
+    if (modalScheduleFilter === 'Scheduled') {
+      matchesSchedule = user.Shifts && user.Shifts.length > 0;
+    } else if (modalScheduleFilter === 'Unscheduled') {
+      matchesSchedule = !user.Shifts || user.Shifts.length === 0;
+    }
+
+    return matchesSearch && matchesSchedule;
+  });
 
   return (
     <div className="account-container">
@@ -204,7 +214,7 @@ const ShiftManagement = () => {
       </header>
 
       <div className="account-content" style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
-        
+
         {/* Section: Advanced List of Shifts */}
         <div className="shifts-list-section">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
@@ -212,8 +222,8 @@ const ShiftManagement = () => {
               <Calendar size={24} className="text-blue" />
               إدارة الورديات وتفاصيل الموظفين
             </h2>
-            <button 
-              className="btn-save" 
+            <button
+              className="btn-save"
               onClick={() => setIsFormModalOpen(true)}
               style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.8rem 1.5rem', background: '#fff', color: '#000', borderRadius: '12px' }}
             >
@@ -231,7 +241,7 @@ const ShiftManagement = () => {
               {shifts.map(shift => {
                 const searchTerm = shiftSearchTerms[shift.id] || '';
                 const shiftUsers = shift.Users || [];
-                const filteredShiftUsers = shiftUsers.filter(u => 
+                const filteredShiftUsers = shiftUsers.filter(u =>
                   u.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                   (u.jobTitle && u.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()))
                 ).sort((a, b) => {
@@ -245,9 +255,9 @@ const ShiftManagement = () => {
                 return (
                   <div key={shift.id} className="account-card" style={{ padding: '0', overflow: 'hidden' }}>
                     {/* Shift Header */}
-                    <div style={{ 
-                      padding: '1.5rem 2rem', 
-                      background: 'rgba(59, 130, 246, 0.05)', 
+                    <div style={{
+                      padding: '1.5rem 2rem',
+                      background: 'rgba(59, 130, 246, 0.05)',
                       borderBottom: '1px solid rgba(255,255,255,0.05)',
                       display: 'flex',
                       flexWrap: 'wrap',
@@ -259,42 +269,42 @@ const ShiftManagement = () => {
                         <h3 style={{ fontSize: '1.4rem', color: 'var(--text-primary)', margin: '0 0 0.5rem 0' }}>{shift.name}</h3>
                         <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
                           <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            <Clock size={16} className="text-blue" /> 
+                            <Clock size={16} className="text-blue" />
                             {shift.startTime} - {shift.endTime}
                           </span>
                           <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            <Calendar size={16} className="text-blue" /> 
+                            <Calendar size={16} className="text-blue" />
                             {shift.workingDays.map(dId => DAYS_OF_WEEK.find(d => d.id === dId)?.label).join('، ')}
                           </span>
                           <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            <Users size={16} className="text-blue" /> 
+                            <Users size={16} className="text-blue" />
                             {shiftUsers.length} موظف
                           </span>
                         </div>
                         <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
                           <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px' }}>
-                            <strong>نظام الإجازات:</strong> 
+                            <strong>نظام الإجازات:</strong>
                             {shift.dayOffType === 'Fixed' ? 'ثابت' : 'متغير'}
                           </span>
                           {shift.dayOffType === 'Fixed' ? (
                             <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px' }}>
-                              <strong>أيام الإجازة:</strong> 
+                              <strong>أيام الإجازة:</strong>
                               {(shift.fixedDaysOff || []).map(dId => DAYS_OF_WEEK.find(d => d.id === dId)?.label).join('، ') || 'لا يوجد'}
                             </span>
                           ) : (
                             <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px' }}>
-                              <strong>الأيام المسموحة شهرياً:</strong> 
+                              <strong>الأيام المسموحة شهرياً:</strong>
                               {shift.variableDaysOffCount || 0} أيام
                             </span>
                           )}
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: '0.8rem' }}>
-                        <button 
+                        <button
                           onClick={() => handleEditShift(shift)}
-                          style={{ 
-                            background: 'rgba(59, 130, 246, 0.1)', color: 'var(--accent-blue)', 
-                            border: '1px solid rgba(59, 130, 246, 0.2)', 
+                          style={{
+                            background: 'rgba(59, 130, 246, 0.1)', color: 'var(--accent-blue)',
+                            border: '1px solid rgba(59, 130, 246, 0.2)',
                             padding: '0.6rem 1rem', borderRadius: '8px', cursor: 'pointer',
                             display: 'flex', alignItems: 'center', gap: '0.5rem',
                             transition: 'all 0.2s'
@@ -304,18 +314,18 @@ const ShiftManagement = () => {
                         >
                           <Edit size={16} /> تعديل الوردية
                         </button>
-                        <button 
+                        <button
                           onClick={() => openAssignModal(shift)}
                           className="btn-save"
                           style={{ padding: '0.6rem 1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                         >
                           <Users size={16} /> إدارة الموظفين
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDeleteShift(shift.id)}
-                          style={{ 
-                            background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', 
-                            border: '1px solid rgba(239, 68, 68, 0.2)', 
+                          style={{
+                            background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444',
+                            border: '1px solid rgba(239, 68, 68, 0.2)',
                             padding: '0.6rem 1rem', borderRadius: '8px', cursor: 'pointer',
                             display: 'flex', alignItems: 'center', gap: '0.5rem',
                             transition: 'all 0.2s'
@@ -332,7 +342,7 @@ const ShiftManagement = () => {
                     <div style={{ padding: '1.5rem 2rem' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                         <h4 style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', margin: 0 }}>موظفو الوردية</h4>
-                        
+
                         <div className="search-box" style={{ width: '300px', maxWidth: '100%', position: 'relative' }}>
                           <Search size={18} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', pointerEvents: 'none' }} />
                           <input
@@ -340,12 +350,12 @@ const ShiftManagement = () => {
                             placeholder="ابحث عن موظف في هذه الوردية..."
                             value={searchTerm}
                             onChange={(e) => handleShiftSearchChange(shift.id, e.target.value)}
-                            style={{ 
-                              width: '100%', 
-                              padding: '0.7rem 2.5rem 0.7rem 1rem', 
-                              borderRadius: '8px', 
-                              border: '1px solid rgba(255,255,255,0.1)', 
-                              background: 'rgba(0,0,0,0.2)', 
+                            style={{
+                              width: '100%',
+                              padding: '0.7rem 2.5rem 0.7rem 1rem',
+                              borderRadius: '8px',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              background: 'rgba(0,0,0,0.2)',
                               color: 'var(--text-primary)',
                               outline: 'none',
                               transition: 'border-color 0.2s'
@@ -365,7 +375,7 @@ const ShiftManagement = () => {
                           {filteredShiftUsers.map(user => {
                             const isAdmin = user.role === 'Admin' || user.role === 'SuperAdmin';
                             const isSuperAdmin = user.role === 'SuperAdmin';
-                            
+
                             return (
                               <div key={user.id} style={{
                                 display: 'flex',
@@ -379,17 +389,17 @@ const ShiftManagement = () => {
                                 cursor: 'default',
                                 gridColumn: isAdmin ? '1 / -1' : 'auto',
                               }}
-                              onMouseOver={e => e.currentTarget.style.borderColor = isAdmin ? 'rgba(59, 130, 246, 0.5)' : 'rgba(255,255,255,0.1)'}
-                              onMouseOut={e => e.currentTarget.style.borderColor = isAdmin ? 'rgba(59, 130, 246, 0.3)' : 'rgba(255,255,255,0.05)'}
+                                onMouseOver={e => e.currentTarget.style.borderColor = isAdmin ? 'rgba(59, 130, 246, 0.5)' : 'rgba(255,255,255,0.1)'}
+                                onMouseOut={e => e.currentTarget.style.borderColor = isAdmin ? 'rgba(59, 130, 246, 0.3)' : 'rgba(255,255,255,0.05)'}
                               >
-                                <div style={{ 
-                                  width: '45px', 
-                                  height: '45px', 
-                                  borderRadius: '50%', 
-                                  background: isSuperAdmin ? 'linear-gradient(135deg, #f59e0b, #d97706)' : isAdmin ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'rgba(249, 115, 22, 0.1)', 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
-                                  justifyContent: 'center', 
+                                <div style={{
+                                  width: '45px',
+                                  height: '45px',
+                                  borderRadius: '50%',
+                                  background: isSuperAdmin ? 'linear-gradient(135deg, #f59e0b, #d97706)' : isAdmin ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'rgba(249, 115, 22, 0.1)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
                                   color: isAdmin ? '#fff' : 'var(--primary-color)',
                                   boxShadow: isAdmin ? '0 4px 10px rgba(0,0,0,0.2)' : 'none',
                                   border: isAdmin ? 'none' : '2px solid rgba(249, 115, 22, 0.3)'
@@ -403,8 +413,8 @@ const ShiftManagement = () => {
                                   </div>
                                   <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>{user.jobTitle || 'موظف'}</div>
                                 </div>
-                                
-                                <Link 
+
+                                <Link
                                   to={`/personal-followup/${user.id}`}
                                   style={{
                                     display: 'flex',
@@ -460,7 +470,7 @@ const ShiftManagement = () => {
                     <input
                       type="text"
                       value={shiftForm.name}
-                      onChange={(e) => setShiftForm({...shiftForm, name: e.target.value})}
+                      onChange={(e) => setShiftForm({ ...shiftForm, name: e.target.value })}
                       placeholder="مثال: الوردية الصباحية"
                       required
                       style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '1rem', borderRadius: '8px' }}
@@ -476,7 +486,7 @@ const ShiftManagement = () => {
                       <input
                         type="time"
                         value={shiftForm.startTime}
-                        onChange={(e) => setShiftForm({...shiftForm, startTime: e.target.value})}
+                        onChange={(e) => setShiftForm({ ...shiftForm, startTime: e.target.value })}
                         required
                         style={{ width: '100%', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '1rem 3rem 1rem 1rem', borderRadius: '8px' }}
                       />
@@ -489,7 +499,7 @@ const ShiftManagement = () => {
                       <input
                         type="time"
                         value={shiftForm.endTime}
-                        onChange={(e) => setShiftForm({...shiftForm, endTime: e.target.value})}
+                        onChange={(e) => setShiftForm({ ...shiftForm, endTime: e.target.value })}
                         required
                         style={{ width: '100%', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '1rem 3rem 1rem 1rem', borderRadius: '8px' }}
                       />
@@ -533,7 +543,7 @@ const ShiftManagement = () => {
                   <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
                     <button
                       type="button"
-                      onClick={() => setShiftForm({...shiftForm, dayOffType: 'Fixed'})}
+                      onClick={() => setShiftForm({ ...shiftForm, dayOffType: 'Fixed' })}
                       style={{
                         flex: 1,
                         padding: '1rem',
@@ -551,10 +561,10 @@ const ShiftManagement = () => {
                         fontSize: '1.05rem'
                       }}
                     >
-                      <div style={{ 
-                        width: '20px', 
-                        height: '20px', 
-                        borderRadius: '50%', 
+                      <div style={{
+                        width: '20px',
+                        height: '20px',
+                        borderRadius: '50%',
                         border: `2px solid ${shiftForm.dayOffType === 'Fixed' ? '#3b82f6' : 'rgba(255,255,255,0.3)'}`,
                         display: 'flex',
                         alignItems: 'center',
@@ -566,7 +576,7 @@ const ShiftManagement = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setShiftForm({...shiftForm, dayOffType: 'Variable'})}
+                      onClick={() => setShiftForm({ ...shiftForm, dayOffType: 'Variable' })}
                       style={{
                         flex: 1,
                         padding: '1rem',
@@ -584,10 +594,10 @@ const ShiftManagement = () => {
                         fontSize: '1.05rem'
                       }}
                     >
-                      <div style={{ 
-                        width: '20px', 
-                        height: '20px', 
-                        borderRadius: '50%', 
+                      <div style={{
+                        width: '20px',
+                        height: '20px',
+                        borderRadius: '50%',
                         border: `2px solid ${shiftForm.dayOffType === 'Variable' ? '#3b82f6' : 'rgba(255,255,255,0.3)'}`,
                         display: 'flex',
                         alignItems: 'center',
@@ -637,12 +647,12 @@ const ShiftManagement = () => {
                         min="0"
                         max="31"
                         value={shiftForm.variableDaysOffCount}
-                        onChange={(e) => setShiftForm({...shiftForm, variableDaysOffCount: parseInt(e.target.value) || 0})}
-                        style={{ 
-                          width: '100px', 
-                          background: 'rgba(255,255,255,0.03)', 
-                          border: '1px solid rgba(255,255,255,0.1)', 
-                          padding: '0.8rem', 
+                        onChange={(e) => setShiftForm({ ...shiftForm, variableDaysOffCount: parseInt(e.target.value) || 0 })}
+                        style={{
+                          width: '100px',
+                          background: 'rgba(255,255,255,0.03)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          padding: '0.8rem',
                           borderRadius: '8px',
                           color: '#fff',
                           fontSize: '1.1rem',
@@ -680,7 +690,42 @@ const ShiftManagement = () => {
               <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.9rem' }}>
                 اختر الموظفين الذين تود ربطهم بهذه الوردية. يمكن للموظف الواحد الانتماء لعدة ورديات لتغطية أيام مختلفة.
               </p>
-              
+
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', padding: '0.4rem', background: 'rgba(0, 0, 0, 0.61)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                {['All', 'Scheduled', 'Unscheduled'].map((val) => {
+                  const labelMap = { All: 'الكل', Scheduled: 'مجدول', Unscheduled: 'غير مجدول' };
+                  const isChecked = modalScheduleFilter === val;
+                  return (
+                    <label
+                      key={val}
+                      style={{
+                        flex: 1,
+                        textAlign: 'center',
+                        padding: '0.6rem',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '0.9rem',
+                        fontWeight: 'bold',
+                        transition: 'all 0.3s ease',
+                        background: isChecked ? 'var(--theme-glow)' : 'transparent',
+                        color: isChecked ? '#fff' : 'var(--text-secondary)',
+                        boxShadow: isChecked ? '0 4px 12px rgba(59, 130, 246, 0.4)' : 'none'
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="modalScheduleFilter"
+                        value={val}
+                        checked={isChecked}
+                        onChange={() => setModalScheduleFilter(val)}
+                        style={{ display: 'none' }}
+                      />
+                      {labelMap[val]}
+                    </label>
+                  );
+                })}
+              </div>
+
               <div className="search-box" style={{ marginBottom: '1.5rem', position: 'relative' }}>
                 <Search size={18} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', pointerEvents: 'none' }} />
                 <input
@@ -688,12 +733,12 @@ const ShiftManagement = () => {
                   placeholder="ابحث عن موظف لتعيينه..."
                   value={modalSearchTerm}
                   onChange={(e) => setModalSearchTerm(e.target.value)}
-                  style={{ 
-                    width: '100%', 
-                    padding: '0.8rem 2.5rem 0.8rem 1rem', 
-                    borderRadius: '8px', 
-                    border: '1px solid rgba(255,255,255,0.1)', 
-                    background: 'rgba(0,0,0,0.2)', 
+                  style={{
+                    width: '100%',
+                    padding: '0.8rem 2.5rem 0.8rem 1rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    background: 'rgba(0,0,0,0.2)',
                     color: 'var(--text-primary)',
                     outline: 'none',
                     transition: 'border-color 0.2s'
@@ -707,8 +752,8 @@ const ShiftManagement = () => {
                 {filteredModalUsers.map(user => {
                   const isAssigned = selectedUserIds.includes(user.id);
                   return (
-                    <div 
-                      key={user.id} 
+                    <div
+                      key={user.id}
                       onClick={() => handleUserToggle(user.id)}
                       style={{
                         display: 'flex',
@@ -724,17 +769,21 @@ const ShiftManagement = () => {
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
-                          {React.createElement(avatarMap[user.avatar] || UserIcon, { size: 18 })}
+                          <AvatarIcon name={user.avatar || 'User'} size={18} />
                         </div>
                         <div>
                           <div style={{ fontWeight: 'bold', color: isAssigned ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{user.fullName}</div>
-                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{user.jobTitle || 'موظف'}</div>
+                          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                            {user.Shifts && user.Shifts.length > 0
+                              ? user.Shifts.map(s => `${s.name} (${s.startTime} - ${s.endTime})`).join('، ')
+                              : 'غير مجدول'}
+                          </div>
                         </div>
                       </div>
-                      <div style={{ 
-                        width: '22px', 
-                        height: '22px', 
-                        borderRadius: '6px', 
+                      <div style={{
+                        width: '22px',
+                        height: '22px',
+                        borderRadius: '6px',
                         border: `2px solid ${isAssigned ? 'var(--accent-blue)' : 'rgba(255,255,255,0.3)'}`,
                         background: isAssigned ? 'var(--accent-blue)' : 'transparent',
                         display: 'flex',

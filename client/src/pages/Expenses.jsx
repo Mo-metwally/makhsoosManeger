@@ -59,6 +59,9 @@ const Expenses = () => {
   const [isEmployeeDropdownOpen, setIsEmployeeDropdownOpen] = useState(false);
   const employeeDropdownRef = useRef(null);
 
+  const [budgetIsActive, setBudgetIsActive] = useState(true);
+  const [hasBudgetCard, setHasBudgetCard] = useState(true);
+
   // Load data for the selected month
   useEffect(() => {
     if (user && user.id) {
@@ -67,6 +70,8 @@ const Expenses = () => {
           if (res.data) {
             setMonthlyExpense(res.data.totalBudget);
             setOpeningBalance(res.data.openingBalance);
+            setBudgetIsActive(res.data.isActive !== false);
+            setHasBudgetCard(!!res.data.id);
           }
         })
         .catch(err => console.error('Error fetching budget:', err));
@@ -125,12 +130,6 @@ const Expenses = () => {
   const [showBudgetModal, setShowBudgetModal] = useState(false);
   const [budgetInput, setBudgetInput] = useState('');
   const [budgetAction, setBudgetAction] = useState('add');
-
-  useEffect(() => {
-    if (isFirstOfMonth && monthlyExpense === 0) {
-      setShowBudgetModal(true);
-    }
-  }, [isFirstOfMonth, monthlyExpense]);
 
   const handleSaveBudget = () => {
     const val = parseFloat(budgetInput) || 0;
@@ -379,10 +378,32 @@ const Expenses = () => {
       {(activeTab === 'budget' || activeTab === 'advances_log' || activeTab === 'supplies_log') ? (
         <>
           {activeTab === 'budget' && (
-            <section className="expenses-hero-section">
+            hasBudgetCard ? (
+              <section className="expenses-hero-section" style={{ position: 'relative' }}>
+
+              <div style={{
+                position: 'absolute',
+                top: '-15px',
+                left: '20px',
+                padding: '0.5rem 1.2rem',
+                borderRadius: '25px',
+                fontWeight: 'bold',
+                fontSize: '0.9rem',
+                color: '#fff',
+                background: budgetIsActive ? '#22c55e90' : '#ef4444',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                zIndex: 10,
+                border: '2px solid var(--bg-secondary)'
+              }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#fff', animation: budgetIsActive ? 'pulse 2s infinite' : 'none' }}></div>
+                STATUS: {budgetIsActive ? 'ACTIVE' : 'INACTIVE'}
+              </div>
 
               {/* User Info Bar */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem', marginTop: '10px' }}>
                 <div style={{ flex: 1 }}>
                   {user.cardUses && (
                     <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
@@ -526,23 +547,34 @@ const Expenses = () => {
                     </div>
                     <div className="visa-expires">
                       <span>STATUS</span>
-                      <div className="date">{remaining >= 0 ? 'ACTIVE' : 'WARNING'}</div>
+                      <div className="date" style={{ color: budgetIsActive ? '#10b981' : '#ef4444' }}>
+                        {budgetIsActive ? 'ACTIVE' : 'INACTIVE'}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div className="use-card-actions">
-                <button className="use-card-btn glow-hover" onClick={() => setShowExpenseModal(true)}>
-                  <CreditCard size={20} />
-                  <span>إستخدام البطاقة</span>
-                </button>
+                {budgetIsActive && (
+                  <button className="use-card-btn glow-hover" onClick={() => setShowExpenseModal(true)}>
+                    <CreditCard size={20} />
+                    <span>إستخدام البطاقة</span>
+                  </button>
+                )}
                 <div className="card-usage-count">
                   تم استخدام البطاقة <span className="highlight-count">{expenses.length}</span> مرات هذا الشهر
                 </div>
               </div>
 
-            </section>
+              </section>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '3rem', background: 'var(--glass-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', margin: '2rem 0' }}>
+                <CreditCard size={48} style={{ color: 'var(--text-secondary)', marginBottom: '1rem', opacity: 0.5 }} />
+                <h3 style={{ color: 'var(--text-secondary)' }}>لا يوجد بطاقة مصروفات للحساب في هذا الشهر</h3>
+                <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', fontSize: '0.9rem' }}>يرجى التواصل مع الإدارة لإنشاء بطاقة مصروفات لك.</p>
+              </div>
+            )
           )}
 
           {/* Expense Table Section */}
@@ -578,7 +610,7 @@ const Expenses = () => {
                         <th>النوع</th>
                         <th>التفاصيل / الاسم</th>
                         <th>المبلغ المخصوم</th>
-                        <th>الإجراءات</th>
+                        {budgetIsActive && <th>الإجراءات</th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -623,26 +655,27 @@ const Expenses = () => {
                               -{exp.amount.toLocaleString()} ج.م
                             </span>
                           </td>
-                          <td>
-                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                              <button
-                                className="edit-btn"
-                                style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6' }}
-                                onClick={() => handleEditExpense(exp)}
-                                title="تعديل"
-                              >
-                                <Edit2 size={16} />
-                              </button>
-                              <button
-                                className="edit-btn"
-                                style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}
-                                onClick={() => handleDeleteExpense(exp.id)}
-                                title="حذف"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </td>
+                          {budgetIsActive && (
+                            <td>
+                              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                <button
+                                  className="edit-btn"
+                                  style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6' }}
+                                  onClick={() => handleEditExpense(exp)}
+                                  title="تعديل"
+                                >
+                                  <Edit2 size={16} />
+                                </button>
+                                <button
+                                  className="edit-btn"
+                                  style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}
+                                  onClick={() => handleDeleteExpense(exp.id)}
+                                  title="حذف"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </td>)}
                         </tr>
                       ))}
                     </tbody>

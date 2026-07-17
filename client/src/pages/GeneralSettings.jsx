@@ -11,6 +11,7 @@ const GeneralSettings = () => {
   const [targetCalls, setTargetCalls] = useState('');
   const [logicalDayCutoff, setLogicalDayCutoff] = useState('5');
   const [autoCheckoutHours, setAutoCheckoutHours] = useState('1');
+  const [allowedDelayMinutes, setAllowedDelayMinutes] = useState('15');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -27,11 +28,14 @@ const GeneralSettings = () => {
         setTargetCalls(res.data.dailyCallsTarget || '30');
         setLogicalDayCutoff(res.data.logicalDayCutoff || '5');
         setAutoCheckoutHours(res.data.autoCheckoutHours || '1');
+        setAllowedDelayMinutes(res.data.allowedDelayMinutes || '15');
         localStorage.setItem('logicalDayCutoff', res.data.logicalDayCutoff || '5');
+        localStorage.setItem('allowedDelayMinutes', res.data.allowedDelayMinutes || '15');
       } else {
         setTargetCalls('30');
         setLogicalDayCutoff('5');
         setAutoCheckoutHours('1');
+        setAllowedDelayMinutes('15');
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
@@ -39,6 +43,7 @@ const GeneralSettings = () => {
       setTargetCalls('30');
       setLogicalDayCutoff('5');
       setAutoCheckoutHours('1');
+      setAllowedDelayMinutes('15');
     } finally {
       setLoading(false);
     }
@@ -69,7 +74,13 @@ const GeneralSettings = () => {
         value: autoCheckoutHours.toString()
       });
 
+      await api.put('/settings', {
+        key: 'allowedDelayMinutes',
+        value: allowedDelayMinutes.toString()
+      });
+
       localStorage.setItem('logicalDayCutoff', logicalDayCutoff.toString());
+      localStorage.setItem('allowedDelayMinutes', allowedDelayMinutes.toString());
       showToast('تم حفظ الإعدادات بنجاح', 'success');
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -250,6 +261,41 @@ const GeneralSettings = () => {
                 />
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
                   إذا سجل الموظف حضور ولم يسجل انصراف، سيقوم النظام تلقائياً بتسجيل انصرافه بميعاد نهاية الوردية الأصلي بعد مرور هذه الساعات من وقت انتهاء الوردية. (مثلاً: 1 ساعة).
+                </span>
+              </div>
+            </div>
+
+            <div className="form-section" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '2rem', marginBottom: '2rem' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--theme-color)' }}>
+                <Clock size={24} />
+                الحد الأقصي المسموح به للتأخير (دقيقة)
+              </h3>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxWidth: '400px' }}>
+                <label style={{ color: 'var(--text-primary)', fontWeight: '600' }}>
+                  عدد الدقائق المسموح بها قبل احتساب غرامة تأخير
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={allowedDelayMinutes}
+                  onChange={(e) => setAllowedDelayMinutes(e.target.value)}
+                  style={{
+                    padding: '0.8rem 1rem',
+                    borderRadius: '12px',
+                    border: '1px solid var(--border-color)',
+                    background: 'var(--glass-bg)',
+                    color: 'var(--text-primary)',
+                    fontSize: '1.1rem',
+                    outline: 'none',
+                    transition: 'border-color 0.3s'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = 'var(--theme-color)'}
+                  onBlur={(e) => e.target.style.borderColor = 'var(--border-color)'}
+                />
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+                  إذا سجل الموظف حضوره بعد مرور هذا الوقت من بداية الشفت، سيتم اعتباره متأخراً (مثال: 15 دقيقة).
                 </span>
               </div>
             </div>

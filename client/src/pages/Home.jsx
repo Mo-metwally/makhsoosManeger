@@ -28,6 +28,46 @@ const Home = () => {
   const [showConfirmDuplicate, setShowConfirmDuplicate] = useState(false);
   const [pendingCallData, setPendingCallData] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
+  const [trackerStatus, setTrackerStatus] = useState('active');
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const res = await api.get('/attendance/status');
+        setTrackerStatus(res.data.trackerStatus || 'active');
+      } catch (e) {}
+    };
+    fetchStatus();
+    const int = setInterval(fetchStatus, 30000);
+    return () => clearInterval(int);
+  }, []);
+
+  // Auto-wakeup if user interacts with the page while idle
+  useEffect(() => {
+    const handleActivity = async () => {
+      if (trackerStatus === 'idle') {
+        setTrackerStatus('active');
+        try {
+          await api.post('/data/tracker/status', { status: 'active' });
+          window.dispatchEvent(new Event('userStatusChanged'));
+        } catch (err) {
+          console.error('Failed to update status on interaction', err);
+        }
+      }
+    };
+
+    if (trackerStatus === 'idle') {
+      window.addEventListener('mousemove', handleActivity);
+      window.addEventListener('keydown', handleActivity);
+      window.addEventListener('click', handleActivity);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+      window.removeEventListener('click', handleActivity);
+    };
+  }, [trackerStatus]);
 
   useEffect(() => {
     if (!phoneInput) {
@@ -344,11 +384,11 @@ const Home = () => {
         <div className="status-text">
           <h3 className="status-label">الحالة الحالية:</h3>
           <div className="status-value-group">
-            <h2 className={activeBreak ? "status-active break-mode-text" : "status-active"}>
-              {activeBreak || "نشط"}
+            <h2 className={activeBreak ? "status-active break-mode-text" : "status-active"} style={!activeBreak && trackerStatus === 'idle' ? { color: '#f97316' } : {}}>
+              {activeBreak || (trackerStatus === 'idle' ? 'خامل' : 'نشط')}
             </h2>
-            <span className="status-en" style={activeBreak ? { color: '#f59e0b', fontWeight: 'bold', fontSize: '1.2rem' } : {}}>
-              ({activeBreak ? breakTimer : 'Active'})
+            <span className="status-en" style={activeBreak ? { color: '#f59e0b', fontWeight: 'bold', fontSize: '1.2rem' } : (trackerStatus === 'idle' ? { color: '#f97316' } : {})}>
+              ({activeBreak ? breakTimer : (trackerStatus === 'idle' ? 'Idle' : 'Active')})
             </span>
           </div>
         </div>
@@ -357,6 +397,7 @@ const Home = () => {
             {activeBreak === 'بريك غداء' ? <Coffee size={50} strokeWidth={2} color="#f59e0b" /> :
               activeBreak === 'بريك صلاة' ? <Moon size={50} strokeWidth={2} color="#8b5cf6" /> :
                 activeBreak === 'تدريب' ? <BookOpen size={50} strokeWidth={2} color="#3b82f6" /> :
+                  trackerStatus === 'idle' ? <Moon size={50} strokeWidth={3} color="#f97316" /> :
                   <Check size={50} strokeWidth={4} color="#22c55e" />}
           </div>
         </div>

@@ -278,6 +278,39 @@
           }
         }
       ]
+    },
+    {
+      "name": "Tracker",
+      "item": [
+        {
+          "name": "Update Tracker Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"idle\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/data/tracker/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "data",
+                "tracker",
+                "status"
+              ]
+            }
+          }
+        }
+      ]
     }
   ],
   "event": [

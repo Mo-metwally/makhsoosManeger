@@ -39,6 +39,8 @@ erDiagram
 - `shiftId` (UUID): معرف الوردية الأساسية للموظف.
 - `customStartTime` (Time): وقت بدء مخصص (اختياري).
 - `customEndTime` (Time): وقت إنهاء مخصص (اختياري).
+- `trackerStatus` (String): حالة أداة التتبع (نشط، خامل، غير متصل).
+- `isTrackerOnline` (Boolean): حالة اتصال أداة التتبع بالخادم.
 
 ### 2. جدول الورديات (`Shifts`)
 يحتوي على مواعيد ونوعيات الورديات المتاحة في النظام.
@@ -78,10 +80,13 @@ erDiagram
 
 ### 5. جدول سجلات الخمول (`InactivityLogs`)
 يسجل فترات الراحة أو الخمول للموظف خلال يوم العمل.
-- `id` (UUID): المعرف الفريد.
+- `id` (String): المعرف الفريد.
 - `userId` (UUID): معرف الموظف (FK).
-- `date` (String): التاريخ.
-- `durationMinutes` (Integer): مدة الخمول بالدقائق.
+- `type` (String): نوع السجل (خمول `idle` أو استراحة مثل `بريك غداء`).
+- `startTime` (String): تاريخ ووقت البداية (ISO String).
+- `endTime` (String): تاريخ ووقت النهاية.
+- `durationMs` (Integer): المدة بالمللي ثانية.
+- `supervisorName` (String): اسم المشرف / المستخدم.
 
 ### 6. جدول تقارير الأداء (`PerformanceLogs`)
 يسجل المهام اليومية وأداء الموظف.
@@ -143,8 +148,8 @@ erDiagram
 ### 12. جدول الإعدادات (`Settings`)
 جداول تخزين إعدادات النظام العامة.
 - `id` (UUID): المعرف الفريد.
-- `key` (String): مفتاح الإعداد (مثال: `autoCheckoutHours`).
-- `value` (String): قيمة الإعداد (مثال: `1`).
+- `key` (String): مفتاح الإعداد (أمثلة: `autoCheckoutHours`, `logicalDayCutoff`, `allowedDelayMinutes`).
+- `value` (String): قيمة الإعداد (مثال: `1` ، `5` ، `15`).
 
 ---
 

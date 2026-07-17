@@ -5,6 +5,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
 const deviceLock = require('../middlewares/deviceLock');
 
 router.post('/login', authController.login);
+router.post('/tracker-login', authController.trackerLogin);
 router.post('/signup', authController.signup);
 router.post('/logout', authController.logout);
 router.post('/forgot-password', authController.forgotPassword);

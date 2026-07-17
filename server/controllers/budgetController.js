@@ -69,6 +69,7 @@ exports.saveBudget = async (req, res) => {
     if (budget) {
       budget.totalBudget = totalBudget !== undefined ? totalBudget : budget.totalBudget;
       budget.openingBalance = openingBalance !== undefined ? openingBalance : budget.openingBalance;
+      budget.isActive = true;
       await budget.save();
     } else {
       budget = await Budget.create({
@@ -86,6 +87,61 @@ exports.saveBudget = async (req, res) => {
   }
 };
 
+// Delete budget (SuperAdmin only) - Soft Delete
+exports.deleteBudget = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const budget = await Budget.findByPk(id);
+    if (!budget) return res.status(404).json({ error: 'البطاقة غير موجودة' });
+
+    // Set as inactive instead of destroying, to keep transactions intact
+    budget.isActive = false;
+    await budget.save();
+
+    res.json({ message: 'تم إيقاف البطاقة بنجاح' });
+  } catch (error) {
+    console.error('Error deleting budget:', error);
+    res.status(500).json({ error: 'حدث خطأ أثناء الإيقاف' });
+  }
+};
+
+// Hard Delete budget (SuperAdmin only)
+exports.hardDeleteBudget = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const budget = await Budget.findByPk(id);
+    if (!budget) return res.status(404).json({ error: 'البطاقة غير موجودة' });
+
+    // Destroy associated expenses first
+    await Expense.destroy({ where: { budgetId: id } });
+
+    // Destroy the budget
+    await budget.destroy();
+
+    res.json({ message: 'تم الحذف النهائي بنجاح' });
+  } catch (error) {
+    console.error('Error hard deleting budget:', error);
+    res.status(500).json({ error: 'حدث خطأ أثناء الحذف النهائي' });
+  }
+};
+
+// Activate budget (SuperAdmin only)
+exports.activateBudget = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const budget = await Budget.findByPk(id);
+    if (!budget) return res.status(404).json({ error: 'البطاقة غير موجودة' });
+
+    budget.isActive = true;
+    await budget.save();
+
+    res.json({ message: 'تم تنشيط البطاقة بنجاح' });
+  } catch (error) {
+    console.error('Error activating budget:', error);
+    res.status(500).json({ error: 'حدث خطأ أثناء التنشيط' });
+  }
+};
+
 // Add Expense
 exports.addExpense = async (req, res) => {
   try {
@@ -96,15 +152,10 @@ exports.addExpense = async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Find or create budget for the month to link the expense
-    let budget = await Budget.findOne({ where: { userId, monthKey } });
+    // Find active budget for the month to link the expense
+    let budget = await Budget.findOne({ where: { userId, monthKey, isActive: true } });
     if (!budget) {
-      budget = await Budget.create({
-        userId,
-        monthKey,
-        totalBudget: 0,
-        openingBalance: 0
-      });
+      return res.status(400).json({ error: 'عفواً، لا يوجد بطاقة نشطة لك في هذا الشهر. يرجى الرجوع لمدير النظام لإنشاء بطاقة.' });
     }
 
     const expense = await Expense.create({

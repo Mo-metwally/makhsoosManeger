@@ -1,9 +1,11 @@
+const { verifyLicense } = require('./utils/licenseChecker');
+require('dotenv').config();
+
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const os = require('os');
-require('dotenv').config();
 
 // Handle graceful shutdown and ignore EPIPE
 process.on('uncaughtException', (err) => {
@@ -36,6 +38,9 @@ const settingRoutes = require('./routes/settingRoutes');
 const app = express();
 
 const allowedOrigins = process.env.ALLOWLIST ? process.env.ALLOWLIST.split(',') : ['http://localhost:5173'];
+if (process.env.BASE_URL && !allowedOrigins.includes(process.env.BASE_URL)) {
+  allowedOrigins.push(process.env.BASE_URL);
+}
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -77,6 +82,9 @@ const runAutoSettleAdvances = require('./services/autoSettleAdvancesService');
 
 const startServer = async () => {
   try {
+    // التحقق من الرخصة (يتطلب إنترنت للوقت)
+    await verifyLicense();
+
     // Validate database connection
     await sequelize.authenticate();
     const dbName = sequelize.config.database || process.env.DB_NAME || 'Unknown';
@@ -84,27 +92,27 @@ const startServer = async () => {
 
     await sequelize.sync({ alter: true });
     console.log('[INFO] Database synced');
-  
-  // Create SuperAdmin if not exists
-  const superAdminUsername = process.env.SUPERADMIN_USERNAME || 'admin';
-  const existingSuperAdmin = await User.findOne({ where: { username: superAdminUsername } });
-  
-  if (!existingSuperAdmin) {
-    await User.create({
-      username: superAdminUsername,
-      password: process.env.SUPERADMIN_PASSWORD || 'password123',
-      fullName: 'المدير العام',
-      email: process.env.SUPERADMIN_EMAIL || 'admin@makhsoos.com',
-      phone: '01000000000',
-      role: 'SuperAdmin',
-      status: 'Active',
-      workingHours: 8,
-      avatar: 'Crown'
-    });
-    console.log(`[INFO] SuperAdmin account created successfully (${superAdminUsername})`);
-  } else {
-    console.log(`[INFO] SuperAdmin account already exists.`);
-  }
+
+    // Create SuperAdmin if not exists
+    const superAdminUsername = process.env.SUPERADMIN_USERNAME || 'admin';
+    const existingSuperAdmin = await User.findOne({ where: { username: superAdminUsername } });
+
+    if (!existingSuperAdmin) {
+      await User.create({
+        username: superAdminUsername,
+        password: process.env.SUPERADMIN_PASSWORD || 'password123',
+        fullName: 'المدير العام',
+        email: process.env.SUPERADMIN_EMAIL || 'admin@makhsoos.com',
+        phone: '01000000000',
+        role: 'SuperAdmin',
+        status: 'Active',
+        workingHours: 8,
+        avatar: 'Crown'
+      });
+      console.log(`[INFO] SuperAdmin account created successfully (${superAdminUsername})`);
+    } else {
+      console.log(`[INFO] SuperAdmin account already exists.`);
+    }
 
     app.listen(PORT, () => {
       const interfaces = os.networkInterfaces();
@@ -123,6 +131,13 @@ const startServer = async () => {
       console.log(`[INFO] Server running successfully!`);
       console.log(`> Local:   http://localhost:${PORT}`);
       console.log(`> Network: http://${networkIP}:${PORT}`);
+      if (process.env.TSILSCALE_DOMAIN || process.env.TAILSCALE_DOMAIN) {
+        console.log(`> Domain:  ${process.env.TSILSCALE_DOMAIN || process.env.TAILSCALE_DOMAIN}`);
+      }
+      if (process.env.BASE_URL) {
+        console.log(`> Custom:  ${process.env.BASE_URL}`);
+      }
+      console.log(`> Allowed: ${allowedOrigins.join(', ')}`);
       console.log(`======================================\n`);
 
       // Run automatic absent check immediately, then every 5 minutes
@@ -133,6 +148,56 @@ const startServer = async () => {
       // Start Auto Settle Advances (Every 12 hours)
       runAutoSettleAdvances();
       setInterval(runAutoSettleAdvances, 12 * 60 * 60 * 1000);
+
+      // Start License Check (Scheduled for Midnight Egypt Time, using Google's Time)
+      const scheduleLicenseCheck = () => {
+        const scheduleNext = (trueTime) => {
+          const formatter = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'Africa/Cairo',
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', second: '2-digit',
+            hour12: false
+          });
+          
+          const parts = formatter.formatToParts(trueTime);
+          const getPart = (type) => parseInt(parts.find(p => p.type === type).value, 10);
+          
+          const cYear = getPart('year');
+          const cMonth = getPart('month') - 1;
+          const cDay = getPart('day');
+          const cHour = getPart('hour');
+          const cMinute = getPart('minute');
+          const cSecond = getPart('second');
+
+          const cairoNow = Date.UTC(cYear, cMonth, cDay, cHour === 24 ? 0 : cHour, cMinute, cSecond);
+          const cairoMidnight = Date.UTC(cYear, cMonth, cDay + 1, 0, 0, 0);
+          
+          let msToMidnight = cairoMidnight - cairoNow;
+          if (msToMidnight <= 0) msToMidnight += 24 * 60 * 60 * 1000; // safety
+
+          setTimeout(() => {
+            verifyLicense(true).catch(err => {
+              console.error('[SYSTEM PROTECTION] Automatic license check failed:', err);
+              process.exit(1);
+            });
+            // Re-schedule for next midnight
+            scheduleLicenseCheck();
+          }, msToMidnight);
+        };
+
+        const https = require('https');
+        https.request({ method: 'HEAD', host: 'google.com', port: 443, path: '/' }, (res) => {
+          if (res.headers.date) {
+            scheduleNext(new Date(res.headers.date));
+          } else {
+            scheduleNext(new Date());
+          }
+        }).on('error', () => {
+          scheduleNext(new Date()); // Fallback to local time if no internet
+        }).end();
+      };
+      
+      scheduleLicenseCheck();
     });
   } catch (err) {
     console.error('[ERROR] Unable to connect to the database:', err);

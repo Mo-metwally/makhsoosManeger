@@ -55,8 +55,13 @@ const Attendance = () => {
     if (diffMs <= 0) return 'لا يوجد';
 
     const diffMins = Math.floor(diffMs / 60000);
-    const hours = Math.floor(diffMins / 60);
-    const mins = diffMins % 60;
+    const allowedDelay = Number(localStorage.getItem('allowedDelayMinutes') || '15');
+    const actualDelayMins = diffMins - allowedDelay;
+
+    if (actualDelayMins <= 0) return 'لا يوجد';
+
+    const hours = Math.floor(actualDelayMins / 60);
+    const mins = actualDelayMins % 60;
 
     if (hours > 0) return `${hours} س ${mins > 0 ? `و ${mins} د` : ''}`;
     return `${mins} دقيقة`;
@@ -123,6 +128,10 @@ const Attendance = () => {
                           {shift.variableDaysOffCount || 0} أيام
                         </span>
                       )}
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '0.4rem 0.8rem', borderRadius: '6px' }}>
+                        <strong>فترة السماح للتأخير:</strong>
+                        {localStorage.getItem('allowedDelayMinutes') || '15'} دقيقة
+                      </span>
                     </div>
                   </div>
                 )

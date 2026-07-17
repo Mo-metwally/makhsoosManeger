@@ -40,6 +40,7 @@ import ExpensesAdd from './pages/ExpensesAdd';
 import MyAdvances from './pages/MyAdvances';
 import ComingSoon from './pages/ComingSoon';
 import GeneralSettings from './pages/GeneralSettings';
+import TrackerSettings from './pages/TrackerSettings';
 import { ToastProvider } from './contexts/ToastContext';
 import './App.css';
 
@@ -63,8 +64,9 @@ function AppContent() {
     if (user && user.status === 'Active') {
       // Fetch settings first to ensure logicalDayCutoff is up to date
       api.get('/settings').then(res => {
-        if (res.data && res.data.logicalDayCutoff) {
-          localStorage.setItem('logicalDayCutoff', res.data.logicalDayCutoff);
+        if (res.data) {
+          if (res.data.logicalDayCutoff) localStorage.setItem('logicalDayCutoff', res.data.logicalDayCutoff);
+          if (res.data.allowedDelayMinutes) localStorage.setItem('allowedDelayMinutes', res.data.allowedDelayMinutes);
         }
       }).catch(console.error);
 
@@ -259,6 +261,7 @@ function AppContent() {
           <Route path="/expenses-add" element={<ExpensesAdd />} />
           <Route path="/my-advances" element={<MyAdvances />} />
           <Route path="/general-settings" element={<GeneralSettings />} />
+          <Route path="/tracker-settings" element={<TrackerSettings />} />
           <Route path="/report-editor/permissions" element={<ReportEditorPermissions />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

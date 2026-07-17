@@ -57,7 +57,11 @@ const Sidebar = () => {
       } else if (activeBreak === 'تدريب') {
         setUserStatus({ text: 'تدريب', color: '#3b82f6' });
       } else {
-        setUserStatus({ text: 'متصل', color: '#22c55e' });
+        if (res.data.trackerStatus === 'idle') {
+          setUserStatus({ text: 'خامل', color: '#f97316' }); // orange
+        } else {
+          setUserStatus({ text: 'متصل', color: '#22c55e' });
+        }
       }
     } catch (err) {
       setUserStatus({ text: 'متصل', color: '#22c55e' });
@@ -318,10 +322,10 @@ const Sidebar = () => {
                     <Summary size={18} />
                     <span>الملخص العام</span>
                   </NavLink>
-                  <NavLink to="/performance-log" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                  {/* <NavLink to="/performance-log" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <FileText size={18} />
                     <span>سجل تقييم الأداء</span>
-                  </NavLink>
+                  </NavLink> */}
                   <NavLink to="/report-editor" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <FileText size={18} />
                     <span>محرر التقارير</span>
@@ -340,8 +344,8 @@ const Sidebar = () => {
                   title="الإعدادات والماليات"
                 >
                   <div className="section-title">
-                    <Settings size={18} className="section-icon" />
-                    <span>الإعدادات والماليات</span>
+                    {profile.role === 'SuperAdmin' ? <Settings size={18} className="section-icon" /> : <DollarSign size={18} className="section-icon" />}
+                    <span>{profile.role === 'SuperAdmin' ? 'الإعدادات والماليات' : 'الماليات'}</span>
                   </div>
                   {isSettingsMenuOpen ? <ChevronUp size={14} className="section-chevron" /> : <ChevronDown size={14} className="section-chevron" />}
                 </div>
@@ -356,10 +360,18 @@ const Sidebar = () => {
                       <span>إدارة الميزانيات</span>
                     </NavLink>
                   )}
-                  <NavLink to="/general-settings" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                    <Settings size={18} />
-                    <span>إعدادات النظام</span>
-                  </NavLink>
+                  {(profile.role === 'SuperAdmin') && (
+                    <>
+                      <NavLink to="/general-settings" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                        <Settings size={18} />
+                        <span>إعدادات النظام</span>
+                      </NavLink>
+                      <NavLink to="/tracker-settings" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                        <Activity size={18} />
+                        <span>إعدادات التراكر</span>
+                      </NavLink>
+                    </>
+                  )}
                 </div>
               </li>
             </>

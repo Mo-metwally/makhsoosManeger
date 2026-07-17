@@ -13,7 +13,9 @@ const {
   getAllData,
   getPersonalStats,
   checkPhoneExists,
-  getPhoneHistory
+  getPhoneHistory,
+  getTrackerSettings,
+  updateTrackerStatus
 } = require('../controllers/dataController');
 
 router.use(authMiddleware);
@@ -32,5 +34,8 @@ router.post('/performance-logs', savePerformanceLog);
 
 router.get('/admin/all', getAllData);
 router.get('/personal-stats', getPersonalStats);
+
+router.get('/tracker-settings', getTrackerSettings);
+router.post('/tracker/status', updateTrackerStatus);
 
 module.exports = router;

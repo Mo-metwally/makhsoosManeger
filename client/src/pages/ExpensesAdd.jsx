@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CreditCard, Wallet, Filter, TrendingUp, X, Edit2, User as UserIcon, Clock, Calendar, FileText, ShoppingBag, Users, ChevronDown, ChevronUp, Download } from 'lucide-react';
+import { CreditCard, Wallet, Filter, TrendingUp, X, Edit2, User as UserIcon, Clock, Calendar, FileText, ShoppingBag, Users, ChevronDown, ChevronUp, Download, Trash2, Power } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
@@ -42,10 +42,15 @@ const ExpensesAdd = () => {
   const [selectedShift, setSelectedShift] = useState('all');
   const [isShiftDropdownOpen, setIsShiftDropdownOpen] = useState(false);
 
+  const [filterStatusInput, setFilterStatusInput] = useState('active');
+  const [selectedStatus, setSelectedStatus] = useState('active');
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+
   const [searchQuery, setSearchQuery] = useState('');
 
   // Modal State
   const [showBudgetModal, setShowBudgetModal] = useState(false);
+  const [showDeleteCardModal, setShowDeleteCardModal] = useState(false);
   const [budgetInput, setBudgetInput] = useState('');
   const [budgetAction, setBudgetAction] = useState('add');
   const [activeAdminId, setActiveAdminId] = useState(null);
@@ -78,6 +83,76 @@ const ExpensesAdd = () => {
     setShowUsesModal(true);
   };
 
+  const [showCreateCardModal, setShowCreateCardModal] = useState(false);
+  const [selectedCreateCardAdmin, setSelectedCreateCardAdmin] = useState('');
+  const [isCreateCardDropdownOpen, setIsCreateCardDropdownOpen] = useState(false);
+
+  const [cardToDelete, setCardToDelete] = useState(null);
+
+  const [showHardDeleteModal, setShowHardDeleteModal] = useState(false);
+  const [cardToHardDelete, setCardToHardDelete] = useState(null);
+
+  const handleDeleteCard = async () => {
+    if (!cardToDelete) return;
+    try {
+      await api.delete(`/budgets/${cardToDelete}`);
+      showToast('تم إيقاف البطاقة بنجاح', 'success');
+      setShowDeleteCardModal(false);
+      setCardToDelete(null);
+      fetchAdminsData();
+    } catch (error) {
+      console.error('Error deleting card:', error);
+      showToast('حدث خطأ أثناء الإيقاف', 'error');
+    }
+  };
+
+  const handleHardDeleteCard = async () => {
+    if (!cardToHardDelete) return;
+    try {
+      await api.delete(`/budgets/${cardToHardDelete}/hard`);
+      showToast('تم الحذف النهائي بنجاح', 'success');
+      setShowHardDeleteModal(false);
+      setCardToHardDelete(null);
+      fetchAdminsData();
+    } catch (error) {
+      console.error('Error hard deleting card:', error);
+      showToast('حدث خطأ أثناء الحذف النهائي', 'error');
+    }
+  };
+
+  const handleActivateCard = async (budgetId) => {
+    try {
+      await api.put(`/budgets/${budgetId}/activate`);
+      showToast('تم تنشيط البطاقة بنجاح', 'success');
+      fetchAdminsData();
+    } catch (error) {
+      console.error('Error activating card:', error);
+      showToast('حدث خطأ أثناء تنشيط البطاقة', 'error');
+    }
+  };
+
+  const handleCreateCard = async () => {
+    if (!selectedCreateCardAdmin) {
+      showToast('يرجى اختيار حساب أولاً', 'warning');
+      return;
+    }
+    try {
+      await api.post('/budgets', {
+        userId: selectedCreateCardAdmin,
+        monthKey: selectedMonth,
+        totalBudget: 0,
+        openingBalance: 0
+      });
+      showToast('تم إنشاء البطاقة بنجاح', 'success');
+      setShowCreateCardModal(false);
+      setSelectedCreateCardAdmin('');
+      fetchAdminsData();
+    } catch (error) {
+      console.error('Error creating card:', error);
+      showToast('حدث خطأ أثناء إنشاء البطاقة', 'error');
+    }
+  };
+
   const handleSaveUses = async () => {
     try {
       await api.put(`/admin/users/${activeUsesAdminId}`, { cardUses: usesInput });
@@ -94,12 +169,20 @@ const ExpensesAdd = () => {
     }
     setSelectedShift(filterShiftInput);
     setSearchQuery(filterSearchInput);
+    setSelectedStatus(filterStatusInput);
   };
 
   const getSelectedShiftName = () => {
     if (filterShiftInput === 'all') return 'الكل';
-    const s = shifts.find(x => x.id === filterShiftInput);
-    return s ? s.name : 'الكل';
+    const shift = shifts.find(s => s.id === filterShiftInput);
+    return shift ? shift.name : 'الكل';
+  };
+
+  const getSelectedStatusName = () => {
+    if (filterStatusInput === 'all') return 'الكل';
+    if (filterStatusInput === 'active') return 'نشط';
+    if (filterStatusInput === 'inactive') return 'غير نشط';
+    return 'نشط';
   };
 
   const openBudgetModal = (adminId) => {
@@ -215,11 +298,16 @@ const ExpensesAdd = () => {
   return (
     <div className="expenses-page">
       <header className="page-header">
-        <div className="header-title">
-          <Wallet className="header-icon" size={32} />
-          <h1>إدارة الميزانيات المالية</h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+          <div>
+            <div className="header-title">
+              <Wallet className="header-icon" size={32} />
+              <h1>إدارة الميزانيات المالية</h1>
+            </div>
+            <p>متابعة وتخصيص الميزانيات الشهرية لجميع المشرفين والمديرين</p>
+          </div>
+
         </div>
-        <p>متابعة وتخصيص الميزانيات الشهرية لجميع المشرفين والمديرين</p>
       </header>
 
       <div className="advanced-filter-card">
@@ -228,9 +316,15 @@ const ExpensesAdd = () => {
             <Filter size={22} className="theme-color" />
             <span>تصفية وتحديد الميزانيات</span>
           </div>
-          <button className="advanced-apply-btn" onClick={handleApplyFilter}>
-            تطبيق الفرز
-          </button>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <button className="advanced-apply-btn" onClick={() => setShowCreateCardModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--theme-glow)', color: '#fff', border: 'none', padding: '0.8rem 1.2rem', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
+              <CreditCard size={18} />
+              إنشاء بطاقة
+            </button>
+            <button className="advanced-apply-btn" onClick={handleApplyFilter}>
+              تطبيق الفرز
+            </button>
+          </div>
         </div>
 
         <div className="filter-controls-row">
@@ -281,6 +375,45 @@ const ExpensesAdd = () => {
           </div>
 
           <div className="filter-control-group">
+            <label>حالة البطاقة</label>
+            <div className="advanced-select-container" style={{ minWidth: '100%', width: '100%' }}>
+              <div
+                className="advanced-select-header"
+                style={{ padding: '0.8rem 1.2rem', borderRadius: '10px', background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255, 255, 255, 0.1)' }}
+                onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+              >
+                <span>{getSelectedStatusName()}</span>
+                <div className={`chevron-icon ${isStatusDropdownOpen ? 'open' : ''}`}>▼</div>
+              </div>
+              {isStatusDropdownOpen && (
+                <>
+                  <div className="dropdown-overlay" onClick={() => setIsStatusDropdownOpen(false)}></div>
+                  <div className="advanced-select-dropdown fade-in">
+                    <div
+                      className={`advanced-select-option ${filterStatusInput === 'all' ? 'selected' : ''}`}
+                      onClick={() => { setFilterStatusInput('all'); setIsStatusDropdownOpen(false); }}
+                    >
+                      الكل
+                    </div>
+                    <div
+                      className={`advanced-select-option ${filterStatusInput === 'active' ? 'selected' : ''}`}
+                      onClick={() => { setFilterStatusInput('active'); setIsStatusDropdownOpen(false); }}
+                    >
+                      نشط
+                    </div>
+                    <div
+                      className={`advanced-select-option ${filterStatusInput === 'inactive' ? 'selected' : ''}`}
+                      onClick={() => { setFilterStatusInput('inactive'); setIsStatusDropdownOpen(false); }}
+                    >
+                      غير نشط
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="filter-control-group">
             <label>البحث بالاسم</label>
             <input
               type="text"
@@ -303,6 +436,14 @@ const ExpensesAdd = () => {
             const name = (admin.fullName || admin.username || '').toLowerCase();
             if (!name.includes(searchQuery.toLowerCase())) return false;
           }
+
+          // Filter by Status
+          const budgetData = admin.Budgets && admin.Budgets.length > 0 ? admin.Budgets[0] : null;
+          if (!budgetData) return false; // Doesn't have any card
+
+          if (selectedStatus === 'active' && budgetData.isActive === false) return false;
+          if (selectedStatus === 'inactive' && budgetData.isActive !== false) return false;
+
           return true;
         }).map(admin => {
           const budgetData = admin.Budgets && admin.Budgets.length > 0 ? admin.Budgets[0] : null;
@@ -312,10 +453,32 @@ const ExpensesAdd = () => {
           const openingBalance = budgetData ? budgetData.openingBalance : 0;
           const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
           const remaining = monthlyExpense - totalExpenses;
+          const isActive = budgetData ? budgetData.isActive !== false : false;
 
           return (
-            <section key={admin.id} className="expenses-hero-section">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem' }}>
+            <section key={admin.id} className="expenses-hero-section" style={{ position: 'relative' }}>
+              <div style={{
+                position: 'absolute',
+                top: '-15px',
+                left: '20px',
+                padding: '0.5rem 1.2rem',
+                borderRadius: '25px',
+                fontWeight: 'bold',
+                fontSize: '0.9rem',
+                color: '#fff',
+                background: isActive ? '#22c55e90' : '#ef4444',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                zIndex: 10,
+                border: '2px solid var(--bg-secondary)'
+              }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#fff', animation: isActive ? 'pulse 2s infinite' : 'none' }}></div>
+                STATUS: {isActive ? 'ACTIVE' : 'INACTIVE'}
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem', marginTop: '10px' }}>
                 <div style={{ flex: 1 }}>
                   {admin.cardUses && (
                     <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
@@ -348,27 +511,99 @@ const ExpensesAdd = () => {
 
                   </button>
                 </div>
-                <button
-                  onClick={() => exportCardExpensesToExcel(admin, budgetData, expenses, userShift)}
-                  style={{
-                    background: 'rgba(16, 185, 129, 0.15)',
-                    color: 'var(--green)',
-                    border: '1px solid rgba(16, 185, 129, 0.3)',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.25)' }}
-                  onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.15)' }}
-                >
-                  <Download size={18} />
-                  تحميل تقرير المصاريف
-                </button>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  {budgetData && budgetData.isActive !== false && (
+                    <button
+                      onClick={() => { setCardToDelete(budgetData.id); setShowDeleteCardModal(true); }}
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.15)',
+                        color: '#ef4444',
+                        border: '1px solid rgba(239, 68, 68, 0.3)',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        transition: 'all 0.3s ease'
+                      }}
+                      onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.25)' }}
+                      onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)' }}
+                    >
+                      <Trash2 size={18} />
+                      إيقاف البطاقة
+                    </button>
+                  )}
+                  <button
+                    onClick={() => exportCardExpensesToExcel(admin, budgetData, expenses, userShift)}
+                    style={{
+                      background: 'rgba(16, 185, 129, 0.15)',
+                      color: 'var(--green)',
+                      border: '1px solid rgba(16, 185, 129, 0.3)',
+                      padding: '0.5rem 1rem',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.25)' }}
+                    onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.15)' }}
+                  >
+                    <Download size={18} />
+                    تحميل تقرير المصاريف
+                  </button>
+                  {budgetData && budgetData.isActive === false && (
+                    <>
+                      <button
+                        onClick={() => handleActivateCard(budgetData.id)}
+                        style={{
+                          background: 'rgba(59, 130, 246, 0.15)',
+                          color: '#3b82f6',
+                          border: '1px solid rgba(59, 130, 246, 0.3)',
+                          padding: '0.5rem 1rem',
+                          borderRadius: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          cursor: 'pointer',
+                          fontWeight: 'bold',
+                          transition: 'all 0.3s ease'
+                        }}
+                        onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(59, 130, 246, 0.25)' }}
+                        onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)' }}
+                      >
+                        <Power size={18} />
+                        تنشيط البطاقة
+                      </button>
+
+                      <button
+                        onClick={() => { setCardToHardDelete(budgetData.id); setShowHardDeleteModal(true); }}
+                        style={{
+                          background: 'rgba(220, 38, 38, 0.15)',
+                          color: '#dc2626',
+                          border: '1px solid rgba(220, 38, 38, 0.3)',
+                          padding: '0.5rem 1rem',
+                          borderRadius: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          cursor: 'pointer',
+                          fontWeight: 'bold',
+                          transition: 'all 0.3s ease'
+                        }}
+                        onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(220, 38, 38, 0.25)' }}
+                        onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(220, 38, 38, 0.15)' }}
+                      >
+                        <Trash2 size={18} />
+                        حذف نهائي
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
               <div className="user-info-bar">
                 <div className="info-item">
@@ -449,7 +684,9 @@ const ExpensesAdd = () => {
                     </div>
                     <div className="visa-expires">
                       <span>STATUS</span>
-                      <div className="date">{remaining >= 0 ? 'ACTIVE' : 'WARNING'}</div>
+                      <div className="date" style={{ color: isActive ? '#10b981' : '#ef4444' }}>
+                        {isActive ? 'ACTIVE' : 'INACTIVE'}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -589,30 +826,173 @@ const ExpensesAdd = () => {
 
       {/* Uses Modal */}
       {showUsesModal && (
-        <div className="budget-modal-overlay fade-in" onClick={() => setShowUsesModal(false)}>
-          <div className="budget-modal-content" onClick={e => e.stopPropagation()}>
-            <div className="budget-modal-header">
+        <div className="modal-overlay fade-in" onClick={() => setShowUsesModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
               <h3>تحديد إستخدامات البطاقة</h3>
               <button className="close-btn" onClick={() => setShowUsesModal(false)}><X size={24} /></button>
             </div>
-            <div className="budget-modal-body">
+            <div className="modal-body">
               <label>الأغراض المسموح الصرف عليها (مثال: بنزين، بوفيه، إلخ):</label>
               <textarea
                 value={usesInput}
                 onChange={(e) => setUsesInput(e.target.value)}
                 placeholder="اكتب استخدامات البطاقة هنا..."
-                style={{ width: '100%', minHeight: '100px', padding: '1rem', borderRadius: '12px', background: 'var(--glass-bg)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', outline: 'none', resize: 'vertical' }}
+                style={{ width: '100%', minHeight: '100px', padding: '1rem', borderRadius: '12px', background: 'var(--glass-bg)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', outline: 'none', resize: 'vertical', marginTop: '10px' }}
               />
             </div>
-            <div className="budget-modal-footer">
-              <button className="btn-cancel" onClick={() => setShowUsesModal(false)}>إلغاء</button>
-              <button className="btn-confirm" onClick={handleSaveUses}>حفظ</button>
+            <div className="modal-footer">
+              <button className="cancel-btn" onClick={() => setShowUsesModal(false)}>إلغاء</button>
+              <button className="save-btn" onClick={handleSaveUses}>حفظ</button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Create Card Modal */}
+      {showCreateCardModal && (
+        <div className="modal-overlay fade-in" onClick={() => setShowCreateCardModal(false)} style={{ zIndex: 9999 }}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ overflow: 'visible', maxWidth: '500px', width: '100%' }}>
+            <div className="modal-header">
+              <h3>إنشاء بطاقة</h3>
+              <button className="close-btn" onClick={() => setShowCreateCardModal(false)}><X size={20} /></button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group" style={{ position: 'relative' }}>
+                <label style={{ display: 'block', marginBottom: '10px' }}>اختر الحساب (المدير / المشرف)</label>
+                <div
+                  className="advanced-select-container"
+                  style={{ minWidth: '100%', width: '100%', padding: '0.8rem', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.3)', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                  onClick={() => setIsCreateCardDropdownOpen(!isCreateCardDropdownOpen)}
+                >
+                  <span style={{ color: selectedCreateCardAdmin ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
+                    {selectedCreateCardAdmin
+                      ? admins.find(a => a.id === selectedCreateCardAdmin)?.fullName
+                      : '-- اختر الحساب --'}
+                  </span>
+                  {isCreateCardDropdownOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                </div>
+
+                {isCreateCardDropdownOpen && (
+                  <div className="advanced-select-dropdown" style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10000, background: '#1e1e2d', border: '1px solid var(--border-color)', borderRadius: '12px', marginTop: '4px', maxHeight: '250px', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
+                    {admins.map(admin => {
+                      const shiftName = admin.Shifts && admin.Shifts.length > 0 ? admin.Shifts[0].name : 'بدون وردية';
+                      const hasActiveCard = admin.Budgets && admin.Budgets.length > 0 && admin.Budgets[0].isActive !== false;
+                      const hasInactiveCard = admin.Budgets && admin.Budgets.length > 0 && admin.Budgets[0].isActive === false;
+                      return (
+                        <div
+                          key={admin.id}
+                          className="advanced-select-option"
+                          style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                          onClick={() => {
+                            setSelectedCreateCardAdmin(admin.id);
+                            setIsCreateCardDropdownOpen(false);
+                          }}
+                        >
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#fff', textDecoration: hasInactiveCard ? 'line-through' : 'none', opacity: hasInactiveCard ? 0.7 : 1 }}>{admin.fullName}</span>
+                            <span style={{ fontSize: '0.8rem', color: '#aaa' }}>الوردية: {shiftName}</span>
+                          </div>
+                          {hasActiveCard && (
+                            <CreditCard size={20} style={{ color: 'var(--primary-color)' }} title="يمتلك بطاقة نشطة" />
+                          )}
+                          {hasInactiveCard && (
+                            <div style={{ position: 'relative' }} title="البطاقة متوقفة (غير نشطة)">
+                              <CreditCard size={20} style={{ color: '#ef4444', opacity: 0.7 }} />
+                              <div style={{ position: 'absolute', top: '50%', left: '-2px', right: '-2px', height: '2px', background: '#ef4444', transform: 'rotate(-45deg)' }}></div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="cancel-btn" onClick={() => setShowCreateCardModal(false)}>إلغاء</button>
+              <button className="save-btn" onClick={handleCreateCard}>إنشاء</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Card Modal (Soft Delete) */}
+      {showDeleteCardModal && (
+        <div className="modal-overlay fade-in" onClick={() => setShowDeleteCardModal(false)} style={{ zIndex: 9999 }}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h3 style={{ color: '#ef4444' }}>إيقاف البطاقة</h3>
+              <button className="close-btn" onClick={() => setShowDeleteCardModal(false)}><X size={20} /></button>
+            </div>
+            <div className="modal-body">
+              <p style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                هل أنت متأكد من إيقاف هذه البطاقة؟
+                <br /><small style={{ color: 'var(--text-secondary)' }}>(سيتم حفظ المعاملات ولن تحذف، وستتحول البطاقة لحالة "غير نشط")</small>
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button className="cancel-btn" onClick={() => setShowDeleteCardModal(false)}>إلغاء</button>
+              <button className="save-btn" onClick={handleDeleteCard} style={{ background: '#ef4444' }}>تأكيد الإيقاف</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hard Delete Card Modal */}
+      {showHardDeleteModal && (
+        <div className="modal-overlay fade-in" onClick={() => setShowHardDeleteModal(false)} style={{ zIndex: 9999 }}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '450px' }}>
+            <div className="modal-header">
+              <h3 style={{ color: '#dc2626' }}>حذف البطاقة نهائياً</h3>
+              <button className="close-btn" onClick={() => setShowHardDeleteModal(false)}><X size={20} /></button>
+            </div>
+            <div className="modal-body">
+              <div style={{ background: 'rgba(220, 38, 38, 0.1)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(220, 38, 38, 0.3)', marginBottom: '1rem' }}>
+                <p style={{ textAlign: 'center', color: '#fca5a5', fontWeight: 'bold', margin: 0, lineHeight: '1.6' }}>
+                  ⚠️ تحذير شديد الأهمية ⚠️<br />
+                  سيتم حذف هذه البطاقة وجميع المصروفات والمعاملات المرتبطة بها نهائياً ولا يمكن التراجع عن هذا الإجراء!
+                </p>
+              </div>
+              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                نصيحة: تأكد من <strong>تحميل تقرير المصاريف</strong> (Excel) للاحتفاظ بنسخة من البيانات قبل الحذف.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button className="cancel-btn" onClick={() => setShowHardDeleteModal(false)}>إلغاء</button>
+              <button className="save-btn" onClick={handleHardDeleteCard} style={{ background: '#dc2626' }}>حذف نهائي للبيانات</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteCardModal && (
+        <div className="modal-overlay fade-in" onClick={() => setShowDeleteCardModal(false)} style={{ zIndex: 9999 }}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h3 style={{ color: '#ef4444' }}>حذف البطاقة</h3>
+              <button className="close-btn" onClick={() => setShowDeleteCardModal(false)}><X size={20} /></button>
+            </div>
+            <div className="modal-body">
+              <p style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                هل أنت متأكد من حذف هذه البطاقة؟
+                <br /><small style={{ color: 'var(--text-secondary)' }}>(سيتم حفظ المعاملات ولن تحذف)</small>
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button className="cancel-btn" onClick={() => setShowDeleteCardModal(false)}>إلغاء</button>
+              <button className="save-btn" onClick={handleDeleteCard} style={{ background: '#ef4444' }}>تأكيد الحذف</button>
+            </div>
+          </div>
+        </div>
+      )
+      }
     </div>
+
   );
 };
+
+/* Delete Card Modal */
+
 
 export default ExpensesAdd;
