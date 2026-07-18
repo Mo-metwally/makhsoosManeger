@@ -25,6 +25,7 @@ const Sidebar = () => {
   const [isOpsMenuOpen, setIsOpsMenuOpen] = useState(false);
   const [isPerfMenuOpen, setIsPerfMenuOpen] = useState(false);
   const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
+  const [isFinancesMenuOpen, setIsFinancesMenuOpen] = useState(false);
   const [isWorkMenuOpen, setIsWorkMenuOpen] = useState(false);
   const [isPersonalMenuOpen, setIsPersonalMenuOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -340,16 +341,20 @@ const Sidebar = () => {
               <li className="nav-group">
                 <div
                   className="nav-section-header"
-                  onClick={() => { setIsSettingsMenuOpen(!isSettingsMenuOpen); if (!isOpen) setIsOpen(true); }}
-                  title="الإعدادات والماليات"
+                  onClick={() => { setIsFinancesMenuOpen(!isFinancesMenuOpen); if (!isOpen) setIsOpen(true); }}
+                  title="الماليات"
                 >
                   <div className="section-title">
-                    {profile.role === 'SuperAdmin' ? <Settings size={18} className="section-icon" /> : <DollarSign size={18} className="section-icon" />}
-                    <span>{profile.role === 'SuperAdmin' ? 'الإعدادات والماليات' : 'الماليات'}</span>
+                    <DollarSign size={18} className="section-icon" />
+                    <span>الماليات</span>
                   </div>
-                  {isSettingsMenuOpen ? <ChevronUp size={14} className="section-chevron" /> : <ChevronDown size={14} className="section-chevron" />}
+                  {isFinancesMenuOpen ? <ChevronUp size={14} className="section-chevron" /> : <ChevronDown size={14} className="section-chevron" />}
                 </div>
-                <div className={`sub-menu ${isSettingsMenuOpen ? 'open' : ''}`}>
+                <div className={`sub-menu ${isFinancesMenuOpen ? 'open' : ''}`}>
+                  <NavLink to="/employees-accounts" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <DollarSign size={18} />
+                    <span>حسابات الموظفين</span>
+                  </NavLink>
                   <NavLink to="/expenses" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
                     <Wallet size={18} />
                     <span>إدارة المصروفات</span>
@@ -360,20 +365,34 @@ const Sidebar = () => {
                       <span>إدارة الميزانيات</span>
                     </NavLink>
                   )}
-                  {(profile.role === 'SuperAdmin') && (
-                    <>
-                      <NavLink to="/general-settings" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                        <Settings size={18} />
-                        <span>إعدادات النظام</span>
-                      </NavLink>
-                      <NavLink to="/tracker-settings" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                        <Activity size={18} />
-                        <span>إعدادات التراكر</span>
-                      </NavLink>
-                    </>
-                  )}
                 </div>
               </li>
+
+              {(profile.role === 'SuperAdmin') && (
+                <li className="nav-group">
+                  <div
+                    className="nav-section-header"
+                    onClick={() => { setIsSettingsMenuOpen(!isSettingsMenuOpen); if (!isOpen) setIsOpen(true); }}
+                    title="الإعدادات"
+                  >
+                    <div className="section-title">
+                      <Settings size={18} className="section-icon" />
+                      <span>الإعدادات</span>
+                    </div>
+                    {isSettingsMenuOpen ? <ChevronUp size={14} className="section-chevron" /> : <ChevronDown size={14} className="section-chevron" />}
+                  </div>
+                  <div className={`sub-menu ${isSettingsMenuOpen ? 'open' : ''}`}>
+                    <NavLink to="/general-settings" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                      <Settings size={18} />
+                      <span>إعدادات النظام</span>
+                    </NavLink>
+                    <NavLink to="/tracker-settings" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                      <Activity size={18} />
+                      <span>إعدادات التراكر</span>
+                    </NavLink>
+                  </div>
+                </li>
+              )}
             </>
           )}
 

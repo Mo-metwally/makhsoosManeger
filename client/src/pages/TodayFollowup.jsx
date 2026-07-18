@@ -134,6 +134,8 @@ const TodayFollowup = () => {
       case 'Present':
       case 'Late': // Treating Late visually as Present/Active in this overview, or we can separate
         return { label: 'نشط', icon: <CheckCircle size={16} />, className: 'status-active' };
+      case 'DayOffWork':
+        return { label: 'عمل إضافي', icon: <CheckCircle size={16} />, className: 'status-active' };
       case 'Absent':
         return { label: 'غياب', icon: <XCircle size={16} />, className: 'status-absent' };
       case 'DayOff':
@@ -165,7 +167,7 @@ const TodayFollowup = () => {
 
     if (!emp.shifts || emp.shifts.length === 0) return false;
 
-    if (filter === 'Present') return ['Present', 'Late', 'بريك غداء', 'بريك صلاة', 'تدريب', 'CheckedOut', 'انصراف'].includes(emp.todayStatus);
+    if (filter === 'Present') return ['Present', 'Late', 'بريك غداء', 'بريك صلاة', 'تدريب', 'CheckedOut', 'انصراف', 'DayOffWork'].includes(emp.todayStatus);
     return emp.todayStatus === filter;
   });
 
@@ -179,7 +181,7 @@ const TodayFollowup = () => {
 
   const stats = {
     total: filteredByShift.filter(e => e.role === 'Supervisor').length,
-    active: filteredByShift.filter(e => e.shifts && e.shifts.length > 0 && ['Present', 'Late', 'بريك غداء', 'بريك صلاة', 'تدريب', 'CheckedOut', 'انصراف'].includes(e.todayStatus)).length,
+    active: filteredByShift.filter(e => e.shifts && e.shifts.length > 0 && ['Present', 'Late', 'بريك غداء', 'بريك صلاة', 'تدريب', 'CheckedOut', 'انصراف', 'DayOffWork'].includes(e.todayStatus)).length,
     absent: filteredByShift.filter(e => e.shifts && e.shifts.length > 0 && e.todayStatus === 'Absent').length,
     dayoff: filteredByShift.filter(e => e.shifts && e.shifts.length > 0 && e.todayStatus === 'DayOff').length,
     pending: filteredByShift.filter(e => e.shifts && e.shifts.length > 0 && e.todayStatus === 'Pending').length,
@@ -569,6 +571,11 @@ const TodayFollowup = () => {
                       <input type="radio" value="DayOff" checked={action === 'DayOff'} onChange={(e) => setAction(e.target.value)} />
                       <CalendarOff size={20} className="radio-icon" />
                       <span>تسجيل إجازة</span>
+                    </label>
+                    <label className={`tf-adv-radio-label ${action === 'DayOffWork' ? 'active checkin' : ''}`}>
+                      <input type="radio" value="DayOffWork" checked={action === 'DayOffWork'} onChange={(e) => setAction(e.target.value)} />
+                      <CheckCircle size={20} className="radio-icon" />
+                      <span>عمل في الإجازة</span>
                     </label>
                     <label className={`tf-adv-radio-label ${action === 'ResetCheckout' ? 'active checkin' : ''}`}>
                       <input type="radio" value="ResetCheckout" checked={action === 'ResetCheckout'} onChange={(e) => setAction(e.target.value)} />

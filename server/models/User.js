@@ -84,6 +84,11 @@ const User = sequelize.define('User', {
   trackerStatus: {
     type: DataTypes.ENUM('offline', 'active', 'idle'),
     defaultValue: 'offline'
+  },
+  baseSalary: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0
   }
 });
 

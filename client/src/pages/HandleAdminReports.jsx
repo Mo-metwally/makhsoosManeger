@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Activity, Search, Trash2, ChevronRight, ChevronLeft, Users, LogIn, LogOut, CheckCircle, Calendar, Edit2, X, Save } from 'lucide-react';
+import { Activity, Search, Trash2, ChevronRight, ChevronLeft, Users, LogIn, LogOut, CheckCircle, Calendar, Edit2, X, Save, Clock, XCircle } from 'lucide-react';
 import AdminGuard from '../components/AdminGuard';
 import CustomSelect from '../components/CustomSelect';
 import { getLogicalDateString } from '../utils/dateHelpers';
@@ -23,7 +23,7 @@ const HandleAdminReports = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 8; // Adjust if needed
 
-  const [editModal, setEditModal] = useState({ isOpen: false, log: null, checkInTime: '', checkOutTime: '' });
+  const [editModal, setEditModal] = useState({ isOpen: false, log: null, checkInTime: '', checkOutTime: '', status: '' });
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -46,10 +46,11 @@ const HandleAdminReports = () => {
     try {
       const res = await api.put(`/attendance/admin/log/${editModal.log.id}`, {
         checkInTime: editModal.checkInTime || undefined,
-        checkOutTime: editModal.checkOutTime || undefined
+        checkOutTime: editModal.checkOutTime || undefined,
+        status: editModal.status || undefined
       });
-      showToast('تم تحديث الوقت بنجاح', 'success');
-      setEditModal({ isOpen: false, log: null, checkInTime: '', checkOutTime: '' });
+      showToast('تم تحديث السجل بنجاح', 'success');
+      setEditModal({ isOpen: false, log: null, checkInTime: '', checkOutTime: '', status: '' });
       fetchAttendanceLogs();
     } catch (err) {
       console.error('Error updating log time:', err);
@@ -357,16 +358,12 @@ const HandleAdminReports = () => {
                     <td>
                       <button 
                         onClick={() => {
-                          const getHHMM = (dateStr) => {
-                            if (!dateStr) return '';
-                            const d = new Date(dateStr);
-                            return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
-                          };
                           setEditModal({
                             isOpen: true,
-                            log,
-                            checkInTime: getHHMM(log.checkInTime),
-                            checkOutTime: getHHMM(log.checkOutTime)
+                            log: log,
+                            checkInTime: log.checkInTime ? new Date(log.checkInTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '',
+                            checkOutTime: log.checkOutTime ? new Date(log.checkOutTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '',
+                            status: log.status
                           });
                         }}
                         style={{
@@ -456,6 +453,59 @@ const HandleAdminReports = () => {
               />
             </div>
 
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>حالة الحضور</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                <div 
+                  onClick={() => setEditModal({...editModal, status: 'Present'})}
+                  style={{
+                    padding: '0.75rem', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                    border: editModal.status === 'Present' ? '2px solid #10b981' : '1px solid rgba(255,255,255,0.1)',
+                    background: editModal.status === 'Present' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.02)',
+                    transition: 'all 0.2s ease'
+                  }}>
+                  <CheckCircle size={20} color={editModal.status === 'Present' ? '#10b981' : 'var(--text-secondary)'} />
+                  <span style={{ color: editModal.status === 'Present' ? '#10b981' : 'var(--text-primary)', fontWeight: editModal.status === 'Present' ? 'bold' : 'normal' }}>حضور</span>
+                </div>
+                
+                <div 
+                  onClick={() => setEditModal({...editModal, status: 'Absent'})}
+                  style={{
+                    padding: '0.75rem', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                    border: editModal.status === 'Absent' ? '2px solid #ef4444' : '1px solid rgba(255,255,255,0.1)',
+                    background: editModal.status === 'Absent' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255,255,255,0.02)',
+                    transition: 'all 0.2s ease'
+                  }}>
+                  <XCircle size={20} color={editModal.status === 'Absent' ? '#ef4444' : 'var(--text-secondary)'} />
+                  <span style={{ color: editModal.status === 'Absent' ? '#ef4444' : 'var(--text-primary)', fontWeight: editModal.status === 'Absent' ? 'bold' : 'normal' }}>غياب</span>
+                </div>
+                
+                <div 
+                  onClick={() => setEditModal({...editModal, status: 'Late'})}
+                  style={{
+                    padding: '0.75rem', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                    border: editModal.status === 'Late' ? '2px solid #f59e0b' : '1px solid rgba(255,255,255,0.1)',
+                    background: editModal.status === 'Late' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(255,255,255,0.02)',
+                    transition: 'all 0.2s ease'
+                  }}>
+                  <Clock size={20} color={editModal.status === 'Late' ? '#f59e0b' : 'var(--text-secondary)'} />
+                  <span style={{ color: editModal.status === 'Late' ? '#f59e0b' : 'var(--text-primary)', fontWeight: editModal.status === 'Late' ? 'bold' : 'normal' }}>تأخير</span>
+                </div>
+                
+                <div 
+                  onClick={() => setEditModal({...editModal, status: 'DayOffWork'})}
+                  style={{
+                    padding: '0.75rem', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                    border: editModal.status === 'DayOffWork' ? '2px solid #3b82f6' : '1px solid rgba(255,255,255,0.1)',
+                    background: editModal.status === 'DayOffWork' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255,255,255,0.02)',
+                    transition: 'all 0.2s ease'
+                  }}>
+                  <Calendar size={20} color={editModal.status === 'DayOffWork' ? '#3b82f6' : 'var(--text-secondary)'} />
+                  <span style={{ color: editModal.status === 'DayOffWork' ? '#3b82f6' : 'var(--text-primary)', fontWeight: editModal.status === 'DayOffWork' ? 'bold' : 'normal' }}>إجازة</span>
+                </div>
+              </div>
+            </div>
+
             <div style={{ display: 'flex', gap: '1rem' }}>
               <button 
                 onClick={handleEditTime}
@@ -464,7 +514,7 @@ const HandleAdminReports = () => {
                 <Save size={18} /> حفظ
               </button>
               <button 
-                onClick={() => setEditModal({ isOpen: false, log: null, checkInTime: '', checkOutTime: '' })}
+                onClick={() => setEditModal({ isOpen: false, log: null, checkInTime: '', checkOutTime: '', status: '' })}
                 style={{ flex: 1, background: 'rgba(255,255,255,0.1)', color: 'var(--text-primary)', padding: '0.8rem', borderRadius: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', border: 'none' }}
               >
                 <X size={18} /> إلغاء

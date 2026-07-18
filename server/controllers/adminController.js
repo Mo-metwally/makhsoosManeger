@@ -99,16 +99,17 @@ const getAllCalls = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
-    const { fullName, username, email, phone, jobTitle, cardUses } = req.body;
+    const { fullName, username, email, phone, jobTitle, cardUses, baseSalary } = req.body;
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ error: 'المستخدم غير موجود' });
 
-    user.fullName = fullName;
-    user.username = username;
-    user.email = email;
-    user.phone = phone;
+    if (fullName !== undefined) user.fullName = fullName;
+    if (username !== undefined) user.username = username;
+    if (email !== undefined) user.email = email;
+    if (phone !== undefined) user.phone = phone;
     if (jobTitle !== undefined) user.jobTitle = jobTitle;
     if (cardUses !== undefined) user.cardUses = cardUses;
+    if (baseSalary !== undefined) user.baseSalary = baseSalary;
 
     await user.save();
     res.json({ message: 'تم تحديث بيانات المستخدم بنجاح', user });

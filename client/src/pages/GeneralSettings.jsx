@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Target, Save, Loader2, CheckCircle2, Moon, Sun, Sunrise, Clock } from 'lucide-react';
+import { Settings, Target, Save, Loader2, CheckCircle2, Moon, Sun, Sunrise, Clock, AlertCircle } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../contexts/ToastContext';
+import './GeneralSettings.css';
 
 const GeneralSettings = () => {
   const { user } = useAuth();
@@ -10,8 +11,11 @@ const GeneralSettings = () => {
   
   const [targetCalls, setTargetCalls] = useState('');
   const [logicalDayCutoff, setLogicalDayCutoff] = useState('5');
-  const [autoCheckoutHours, setAutoCheckoutHours] = useState('1');
+  const [autoCheckoutHours, setAutoCheckoutHours] = useState(localStorage.getItem('autoCheckoutHours') || '14');
   const [allowedDelayMinutes, setAllowedDelayMinutes] = useState('15');
+  const [dayOffWorkMultiplier, setDayOffWorkMultiplier] = useState(localStorage.getItem('dayOffWorkMultiplier') || '1.5');
+  const [absencePenaltyMultiplier, setAbsencePenaltyMultiplier] = useState(localStorage.getItem('absencePenaltyMultiplier') || '2');
+  const [enableLatePenalty, setEnableLatePenalty] = useState(localStorage.getItem('enableLatePenalty') !== 'false');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -29,13 +33,22 @@ const GeneralSettings = () => {
         setLogicalDayCutoff(res.data.logicalDayCutoff || '5');
         setAutoCheckoutHours(res.data.autoCheckoutHours || '1');
         setAllowedDelayMinutes(res.data.allowedDelayMinutes || '15');
+        setDayOffWorkMultiplier(res.data.dayOffWorkMultiplier || '1.5');
+        setAbsencePenaltyMultiplier(res.data.absencePenaltyMultiplier || '2');
+        setEnableLatePenalty(res.data.enableLatePenalty !== 'false');
         localStorage.setItem('logicalDayCutoff', res.data.logicalDayCutoff || '5');
         localStorage.setItem('allowedDelayMinutes', res.data.allowedDelayMinutes || '15');
+        localStorage.setItem('dayOffWorkMultiplier', res.data.dayOffWorkMultiplier || '1.5');
+        localStorage.setItem('absencePenaltyMultiplier', res.data.absencePenaltyMultiplier || '2');
+        localStorage.setItem('enableLatePenalty', res.data.enableLatePenalty || 'true');
       } else {
         setTargetCalls('30');
         setLogicalDayCutoff('5');
         setAutoCheckoutHours('1');
         setAllowedDelayMinutes('15');
+        setDayOffWorkMultiplier('1.5');
+        setAbsencePenaltyMultiplier('2');
+        setEnableLatePenalty(true);
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
@@ -44,6 +57,9 @@ const GeneralSettings = () => {
       setLogicalDayCutoff('5');
       setAutoCheckoutHours('1');
       setAllowedDelayMinutes('15');
+      setDayOffWorkMultiplier('1.5');
+      setAbsencePenaltyMultiplier('2');
+      setEnableLatePenalty(true);
     } finally {
       setLoading(false);
     }
@@ -79,8 +95,27 @@ const GeneralSettings = () => {
         value: allowedDelayMinutes.toString()
       });
 
+      await api.put('/settings', {
+        key: 'dayOffWorkMultiplier',
+        value: dayOffWorkMultiplier.toString()
+      });
+
+      await api.put('/settings', {
+        key: 'absencePenaltyMultiplier',
+        value: absencePenaltyMultiplier.toString()
+      });
+
+      await api.put('/settings', {
+        key: 'enableLatePenalty',
+        value: enableLatePenalty.toString()
+      });
+
       localStorage.setItem('logicalDayCutoff', logicalDayCutoff.toString());
-      localStorage.setItem('allowedDelayMinutes', allowedDelayMinutes.toString());
+      localStorage.setItem('autoCheckoutHours', autoCheckoutHours);
+      localStorage.setItem('dayOffWorkMultiplier', dayOffWorkMultiplier);
+      localStorage.setItem('absencePenaltyMultiplier', absencePenaltyMultiplier);
+      localStorage.setItem('enableLatePenalty', enableLatePenalty);
+      
       showToast('تم حفظ الإعدادات بنجاح', 'success');
     } catch (error) {
       console.error('Error saving settings:', error);
@@ -102,75 +137,183 @@ const GeneralSettings = () => {
   }
 
   return (
-    <div className="general-settings-container">
-      <div className="page-title-wrapper">
-        <Settings size={32} className="title-icon" />
-        <div>
-          <h1 className="gradient-title">الإعدادات العامة</h1>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-            إدارة إعدادات النظام وتحديد الأهداف المطلوبة للموظفين
-          </p>
+    <div className="gs-container">
+      <div className="gs-header">
+        <div className="gs-header-content">
+          <div className="gs-icon-wrapper">
+            <Settings size={36} />
+          </div>
+          <div>
+            <h1 className="gs-title">الإعدادات العامة</h1>
+            <p className="gs-subtitle">
+              إدارة الإعدادات الأساسية للنظام وتحديد الأهداف المطلوبة
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="glass-panel fade-in" style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-        {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
-            <Loader2 className="spin" size={32} color="var(--theme-color)" />
-          </div>
-        ) : (
-          <form onSubmit={handleSave}>
-            <div className="form-section" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '2rem', marginBottom: '2rem' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--theme-color)' }}>
-                <Target size={24} />
-                تارجت المكالمات اليومي
-              </h3>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxWidth: '400px' }}>
-                <label style={{ color: 'var(--text-primary)', fontWeight: '600' }}>
-                  عدد المكالمات المستهدف يومياً
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={targetCalls}
-                  onChange={(e) => setTargetCalls(e.target.value)}
-                  style={{
-                    padding: '0.8rem 1rem',
-                    borderRadius: '12px',
-                    border: '1px solid var(--border-color)',
-                    background: 'var(--glass-bg)',
-                    color: 'var(--text-primary)',
-                    fontSize: '1.1rem',
-                    outline: 'none',
-                    transition: 'border-color 0.3s'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = 'var(--theme-color)'}
-                  onBlur={(e) => e.target.style.borderColor = 'var(--border-color)'}
-                />
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
-                  سيتم تطبيق هذا التارجت على جميع الموظفين في الصفحة الرئيسية لتقييم أدائهم.
-                </span>
+      {loading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '5rem' }}>
+          <Loader2 className="spin" size={40} color="#3b82f6" />
+        </div>
+      ) : (
+        <form onSubmit={handleSave}>
+          <div className="gs-grid">
+            
+            {/* Target Calls Card */}
+            <div className="gs-card">
+              <div className="gs-card-header">
+                <div className="gs-card-icon"><Target size={24} /></div>
+                <h3 className="gs-card-title">تارجت المكالمات اليومي</h3>
+              </div>
+              <div className="gs-input-group">
+                <label className="gs-label">عدد المكالمات المستهدف يومياً للموظفين</label>
+                <div className="gs-input-wrapper">
+                  <input
+                    type="number"
+                    min="1"
+                    className="gs-input"
+                    value={targetCalls}
+                    onChange={(e) => setTargetCalls(e.target.value)}
+                  />
+                </div>
+                <div className="gs-hint">
+                  يُستخدم هذا الهدف لتقييم أداء الموظفين في الصفحة الرئيسية.
+                </div>
               </div>
             </div>
 
-            <div className="form-section" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '2rem', marginBottom: '2rem' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--theme-color)' }}>
-                <Target size={24} />
-                موعد بداية اليوم الجديد (الفيصل الزمني)
-              </h3>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%' }}>
-                <label style={{ color: 'var(--text-primary)', fontWeight: '600', marginBottom: '0.5rem' }}>
-                  اختر وقت تجديد اليوم:
-                </label>
+            {/* Auto Checkout Card */}
+            <div className="gs-card">
+              <div className="gs-card-header">
+                <div className="gs-card-icon"><Clock size={24} /></div>
+                <h3 className="gs-card-title">الإغلاق التلقائي للوردية</h3>
+              </div>
+              <div className="gs-input-group">
+                <label className="gs-label">الساعات المسموحة بعد انتهاء الوردية (Auto Checkout)</label>
+                <div className="gs-input-wrapper">
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    className="gs-input"
+                    value={autoCheckoutHours}
+                    onChange={(e) => setAutoCheckoutHours(e.target.value)}
+                  />
+                </div>
+                <div className="gs-hint">
+                  إذا لم يُسجل الموظف انصراف، سيتم تسجيله تلقائياً بنهاية الوردية بعد هذه الساعات الإضافية (مثال: 1 يعني ساعة).
+                </div>
+              </div>
+            </div>
+
+            {/* Allowed Delay Minutes */}
+            <div className="gs-card">
+              <div className="gs-card-header">
+                <div className="gs-card-icon"><AlertCircle size={24} /></div>
+                <h3 className="gs-card-title">سماحية التأخير</h3>
+              </div>
+              <div className="gs-input-group">
+                <label className="gs-label">دقائق السماح قبل احتساب التأخير</label>
+                <div className="gs-input-wrapper">
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    className="gs-input"
+                    value={allowedDelayMinutes}
+                    onChange={(e) => setAllowedDelayMinutes(e.target.value)}
+                  />
+                </div>
                 
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', 
-                  gap: '12px',
-                  marginBottom: '1rem'
-                }}>
+                <div className="gs-toggle-container" style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div>
+                    <strong style={{ display: 'block', color: 'var(--text-primary)', marginBottom: '0.2rem' }}>تفعيل خصم التأخير</strong>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>في حال إيقافه، لن يتم خصم أموال بسبب التأخيرات.</span>
+                  </div>
+                  <label className="theme-switch" style={{ position: 'relative', display: 'inline-block', width: '50px', height: '28px' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={enableLatePenalty}
+                      onChange={(e) => setEnableLatePenalty(e.target.checked)}
+                      style={{ opacity: 0, width: 0, height: 0 }}
+                    />
+                    <span className="slider round" style={{ 
+                      position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, 
+                      backgroundColor: enableLatePenalty ? 'var(--theme-color)' : 'rgba(255,255,255,0.1)', 
+                      transition: '.4s', borderRadius: '34px' 
+                    }}>
+                      <span style={{
+                        position: 'absolute', content: '""', height: '20px', width: '20px', left: enableLatePenalty ? '26px' : '4px', bottom: '4px',
+                        backgroundColor: 'white', transition: '.4s', borderRadius: '50%'
+                      }}></span>
+                    </span>
+                  </label>
+                </div>
+
+                <div className="gs-hint" style={{ marginTop: '1rem' }}>
+                  الوقت المسموح به بعد بداية الوردية. الحضور بعد هذا الوقت يُسجل تأخير (مثال: 15 دقيقة).
+                </div>
+              </div>
+            </div>
+
+            {/* Day Off Work Multiplier */}
+            <div className="gs-card">
+              <div className="gs-card-header">
+                <div className="gs-card-icon"><Sun size={24} /></div>
+                <h3 className="gs-card-title">مضاعف العمل بالإجازة</h3>
+              </div>
+              <div className="gs-input-group">
+                <label className="gs-label">حساب أيام الحضور للموظف يوم إجازته</label>
+                <div className="gs-input-wrapper">
+                  <input
+                    type="number"
+                    min="1"
+                    step="0.5"
+                    className="gs-input"
+                    value={dayOffWorkMultiplier}
+                    onChange={(e) => setDayOffWorkMultiplier(e.target.value)}
+                  />
+                </div>
+                <div className="gs-hint">
+                  بكم يوم يُحسب الحضور يوم الإجازة في التصدير للإكسيل (مثال: 1.5 أو 2).
+                </div>
+              </div>
+            </div>
+
+            {/* Absence Penalty Multiplier */}
+            <div className="gs-card">
+              <div className="gs-card-header">
+                <div className="gs-card-icon"><Moon size={24} /></div>
+                <h3 className="gs-card-title">مضاعف خصم الغياب</h3>
+              </div>
+              <div className="gs-input-group">
+                <label className="gs-label">بكم يوم يُخصم غياب الموظف</label>
+                <div className="gs-input-wrapper">
+                  <input
+                    type="number"
+                    min="1"
+                    step="0.5"
+                    className="gs-input"
+                    value={absencePenaltyMultiplier}
+                    onChange={(e) => setAbsencePenaltyMultiplier(e.target.value)}
+                  />
+                </div>
+                <div className="gs-hint">
+                  العقوبة المطبقة على يوم الغياب في حساب التصدير للإكسيل (مثال: 2).
+                </div>
+              </div>
+            </div>
+
+            {/* Logical Day Cutoff - Full Width */}
+            <div className="gs-card full-width">
+              <div className="gs-card-header">
+                <div className="gs-card-icon"><Sunrise size={24} /></div>
+                <h3 className="gs-card-title">بداية اليوم التقني (Logical Day Cutoff)</h3>
+              </div>
+              <div className="gs-input-group">
+                <label className="gs-label">في أي ساعة نعتبر أن يوماً جديداً قد بدأ للإحصائيات؟</label>
+                <div className="gs-time-grid">
                   {[
                     { value: '0', label: '12:00', period: 'منتصف الليل', icon: <Moon size={18} /> },
                     { value: '1', label: '1:00', period: 'صباحاً', icon: <Moon size={18} /> },
@@ -189,153 +332,60 @@ const GeneralSettings = () => {
                     <div
                       key={opt.value}
                       onClick={() => setLogicalDayCutoff(opt.value)}
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '1rem 0.5rem',
-                        borderRadius: '16px',
-                        border: logicalDayCutoff === opt.value ? '2px solid var(--theme-color)' : '1px solid var(--border-color)',
-                        background: logicalDayCutoff === opt.value ? 'rgba(var(--theme-color-rgb, 59, 130, 246), 0.1)' : 'var(--glass-bg)',
-                        color: logicalDayCutoff === opt.value ? 'var(--theme-color)' : 'var(--text-secondary)',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                        boxShadow: logicalDayCutoff === opt.value ? '0 8px 20px rgba(var(--theme-color-rgb, 59, 130, 246), 0.2)' : 'none',
-                        transform: logicalDayCutoff === opt.value ? 'translateY(-3px)' : 'translateY(0)',
-                        position: 'relative',
-                        overflow: 'hidden'
-                      }}
+                      className={`gs-time-option ${logicalDayCutoff === opt.value ? 'active' : ''}`}
                     >
                       {logicalDayCutoff === opt.value && (
-                        <div style={{ position: 'absolute', top: '5px', right: '5px', color: 'var(--theme-color)' }}>
+                        <div style={{ position: 'absolute', top: '5px', right: '5px' }}>
                           <CheckCircle2 size={14} />
                         </div>
                       )}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
-                        {opt.icon}
-                        <span style={{ fontWeight: 'bold', fontSize: '1.25rem', color: logicalDayCutoff === opt.value ? 'var(--theme-color)' : 'var(--text-primary)' }}>
-                          {opt.label}
-                        </span>
-                      </div>
-                      <span style={{ fontSize: '0.8rem', fontWeight: '500' }}>{opt.period}</span>
+                      {opt.icon}
+                      <span className="gs-time-val">{opt.label}</span>
+                      <span className="gs-time-period">{opt.period}</span>
                     </div>
                   ))}
                 </div>
-                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.5rem', background: 'rgba(255, 255, 255, 0.03)', padding: '1rem', borderRadius: '8px', borderLeft: '4px solid var(--theme-color)' }}>
-                  <Clock size={16} style={{ display: 'inline', marginRight: '0.5rem', verticalAlign: 'middle', color: 'var(--theme-color)' }} />
-                  أي تقرير أداء أو مكالمات يتم تسجيله قبل هذه الساعة سيُحسب لليوم الذي قبله. 
-                  (يستخدم للملخصات والمكالمات فقط ولا يؤثر على وقت الحضور والانصراف الفعلي).
-                </span>
+                <div className="gs-hint" style={{ marginTop: '1.5rem' }}>
+                  أي تقرير أداء يتم تسجيله قبل هذه الساعة يُحسب لليوم الذي قبله. 
+                  هذا الخيار يُستخدم لتقفيل يوم المكالمات للموظفين الذين يعملون ليلاً بعد منتصف الليل.
+                </div>
               </div>
             </div>
 
-            <div className="form-section" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '2rem', marginBottom: '2rem' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--theme-color)' }}>
-                <Clock size={24} />
-                تقفيل إجباري للشيفت (Auto Checkout)
-              </h3>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxWidth: '400px' }}>
-                <label style={{ color: 'var(--text-primary)', fontWeight: '600' }}>
-                  عدد الساعات المسموحة بعد انتهاء الوردية لتسجيل الانصراف التلقائي
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.5"
-                  value={autoCheckoutHours}
-                  onChange={(e) => setAutoCheckoutHours(e.target.value)}
-                  style={{
-                    padding: '0.8rem 1rem',
-                    borderRadius: '12px',
-                    border: '1px solid var(--border-color)',
-                    background: 'var(--glass-bg)',
-                    color: 'var(--text-primary)',
-                    fontSize: '1.1rem',
-                    outline: 'none',
-                    transition: 'border-color 0.3s'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = 'var(--theme-color)'}
-                  onBlur={(e) => e.target.style.borderColor = 'var(--border-color)'}
-                />
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
-                  إذا سجل الموظف حضور ولم يسجل انصراف، سيقوم النظام تلقائياً بتسجيل انصرافه بميعاد نهاية الوردية الأصلي بعد مرور هذه الساعات من وقت انتهاء الوردية. (مثلاً: 1 ساعة).
-                </span>
-              </div>
-            </div>
+          </div>
 
-            <div className="form-section" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '2rem', marginBottom: '2rem' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--theme-color)' }}>
-                <Clock size={24} />
-                الحد الأقصي المسموح به للتأخير (دقيقة)
-              </h3>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxWidth: '400px' }}>
-                <label style={{ color: 'var(--text-primary)', fontWeight: '600' }}>
-                  عدد الدقائق المسموح بها قبل احتساب غرامة تأخير
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={allowedDelayMinutes}
-                  onChange={(e) => setAllowedDelayMinutes(e.target.value)}
-                  style={{
-                    padding: '0.8rem 1rem',
-                    borderRadius: '12px',
-                    border: '1px solid var(--border-color)',
-                    background: 'var(--glass-bg)',
-                    color: 'var(--text-primary)',
-                    fontSize: '1.1rem',
-                    outline: 'none',
-                    transition: 'border-color 0.3s'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = 'var(--theme-color)'}
-                  onBlur={(e) => e.target.style.borderColor = 'var(--border-color)'}
-                />
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
-                  إذا سجل الموظف حضوره بعد مرور هذا الوقت من بداية الشفت، سيتم اعتباره متأخراً (مثال: 15 دقيقة).
-                </span>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-              <button
-                type="submit"
-                disabled={saving}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.8rem 2rem',
-                  borderRadius: '12px',
-                  background: 'var(--theme-color)',
-                  color: 'var(--btn-text-color)',
-                  fontWeight: 'bold',
-                  fontSize: '1rem',
-                  border: 'none',
-                  cursor: saving ? 'not-allowed' : 'pointer',
-                  opacity: saving ? 0.7 : 1,
-                  boxShadow: '0 4px 15px var(--theme-glow)'
-                }}
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="spin" size={20} />
-                    جاري الحفظ...
-                  </>
-                ) : (
-                  <>
-                    <Save size={20} />
-                    حفظ التعديلات
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
+          <div className="gs-save-wrapper" style={{ 
+            position: 'fixed', 
+            bottom: '2rem', 
+            left: '2rem', 
+            zIndex: 1000 
+          }}>
+            <button
+              type="submit"
+              disabled={saving}
+              className="gs-save-btn"
+              style={{
+                boxShadow: '0 10px 25px rgba(0,0,0,0.4)',
+                padding: '1rem 2rem',
+                borderRadius: '50px',
+                fontSize: '1.1rem'
+              }}
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="spin" size={20} />
+                  جاري الحفظ...
+                </>
+              ) : (
+                <>
+                  <Save size={20} />
+                  حفظ إعدادات النظام
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      )}
     </div>
   );
 };

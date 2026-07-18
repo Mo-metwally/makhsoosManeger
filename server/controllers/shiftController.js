@@ -3,7 +3,7 @@ const { Op } = require('sequelize');
 
 exports.createShift = async (req, res) => {
   try {
-    const { name, startTime, endTime, workingDays, dayOffType, fixedDaysOff, variableDaysOffCount } = req.body;
+    const { name, startTime, endTime, workingDays, dayOffType, fixedDaysOff, variableDaysOffCount, baseSalary } = req.body;
     const newShift = await Shift.create({
       name,
       startTime,
@@ -11,7 +11,8 @@ exports.createShift = async (req, res) => {
       workingDays,
       dayOffType,
       fixedDaysOff,
-      variableDaysOffCount
+      variableDaysOffCount,
+      baseSalary
     });
     res.status(201).json(newShift);
   } catch (error) {
@@ -23,7 +24,7 @@ exports.createShift = async (req, res) => {
 exports.updateShift = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, startTime, endTime, workingDays, dayOffType, fixedDaysOff, variableDaysOffCount } = req.body;
+    const { name, startTime, endTime, workingDays, dayOffType, fixedDaysOff, variableDaysOffCount, baseSalary } = req.body;
     
     const shift = await Shift.findByPk(id);
     if (!shift) {
@@ -37,7 +38,8 @@ exports.updateShift = async (req, res) => {
       workingDays,
       dayOffType,
       fixedDaysOff,
-      variableDaysOffCount
+      variableDaysOffCount,
+      baseSalary
     });
 
     res.json(shift);
@@ -52,7 +54,7 @@ exports.getShifts = async (req, res) => {
     const shifts = await Shift.findAll({
       include: [{
         model: User,
-        attributes: ['id', 'fullName', 'username', 'role', 'avatar', 'jobTitle']
+        attributes: ['id', 'fullName', 'username', 'role', 'avatar', 'jobTitle', 'baseSalary']
       }],
       order: [['createdAt', 'DESC']]
     });
@@ -72,7 +74,7 @@ exports.getShiftStaffStats = async (req, res) => {
       include: [
         {
           model: User,
-          attributes: ['id', 'fullName', 'username', 'role', 'avatar', 'jobTitle'],
+          attributes: ['id', 'fullName', 'username', 'role', 'avatar', 'jobTitle', 'baseSalary'],
           include: [
             { model: AttendanceLog },
             { model: DayOffRequest },

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Users, ArrowRight, Loader, ShieldAlert, CheckCircle, XCircle, Clock, CalendarDays, PhoneCall, AlertTriangle, CalendarRange, Search, Filter, Activity, TrendingUp } from 'lucide-react';
+import { Users, ArrowRight, Loader, ShieldAlert, CheckCircle, XCircle, Clock, CalendarDays, PhoneCall, AlertTriangle, CalendarRange, Search, Filter, Activity, TrendingUp, DollarSign } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import api from '../services/api';
 import AvatarIcon from '../components/AvatarIcon';
@@ -24,6 +24,7 @@ const ShiftStaffDetails = () => {
   // Modals state
   const [actionModal, setActionModal] = useState({ show: false, type: '', userId: null, userName: '' });
   const [selectedDate, setSelectedDate] = useState('');
+  const [selectedSalary, setSelectedSalary] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
   // Search and Sort state
@@ -49,15 +50,17 @@ const ShiftStaffDetails = () => {
     }
   };
 
-  const openModal = (type, userId, userName) => {
+  const openModal = (type, userId, userName, currentSalary) => {
     const today = new Date().toISOString().split('T')[0];
     setSelectedDate(today);
+    setSelectedSalary(currentSalary || '');
     setActionModal({ show: true, type, userId, userName });
   };
 
   const closeModal = () => {
     setActionModal({ show: false, type: '', userId: null, userName: '' });
     setSelectedDate('');
+    setSelectedSalary('');
   };
 
   const handleActionSubmit = async (e) => {
@@ -76,6 +79,10 @@ const ShiftStaffDetails = () => {
           date: selectedDate,
           dayName: new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long' }),
           reason: 'تسجيل يدوي بواسطة الإدارة'
+        });
+      } else if (actionModal.type === 'salary') {
+        await api.put(`/admin/users/${actionModal.userId}`, {
+          baseSalary: selectedSalary
         });
       }
       
@@ -488,6 +495,15 @@ const ShiftStaffDetails = () => {
                         <CalendarRange size={18} />
                         <span>إجازة</span>
                       </button>
+                      <button 
+                        className="action-btn"
+                        onClick={() => openModal('salary', user.id, user.fullName, user.baseSalary || shift.baseSalary || '')}
+                        title="تعديل الراتب"
+                        style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', border: '1px solid rgba(34, 197, 94, 0.2)' }}
+                      >
+                        <DollarSign size={18} />
+                        <span>الراتب</span>
+                      </button>
                     </div>
                   </td>
                   </tr>
@@ -501,23 +517,37 @@ const ShiftStaffDetails = () => {
       {actionModal.show && (
         <div className="action-modal-overlay">
           <div className="action-modal">
-            <h3 className={`action-modal-title ${actionModal.type === 'absence' ? 'text-red' : 'text-orange'}`}>
-              {actionModal.type === 'absence' ? 'تسجيل غياب' : 'تسجيل إجازة'}
+            <h3 className={`action-modal-title ${actionModal.type === 'absence' ? 'text-red' : actionModal.type === 'salary' ? 'text-green' : 'text-orange'}`}>
+              {actionModal.type === 'absence' ? 'تسجيل غياب' : actionModal.type === 'salary' ? 'تعديل الراتب' : 'تسجيل إجازة'}
             </h3>
             <p className="action-modal-desc">
-              أنت تقوم بتسجيل {actionModal.type === 'absence' ? 'غياب' : 'إجازة'} للموظف: <strong>{actionModal.userName}</strong>
+              أنت تقوم بتسجيل {actionModal.type === 'absence' ? 'غياب' : actionModal.type === 'salary' ? 'تعديل راتب' : 'إجازة'} للموظف: <strong>{actionModal.userName}</strong>
             </p>
             
             <form onSubmit={handleActionSubmit}>
-              <div className="form-group">
-                <label>التاريخ:</label>
-                <input 
-                  type="date" 
-                  value={selectedDate} 
-                  onChange={(e) => setSelectedDate(e.target.value)} 
-                  required 
-                />
-              </div>
+              {actionModal.type === 'salary' ? (
+                <div className="form-group">
+                  <label>الراتب الشهري:</label>
+                  <input 
+                    type="number" 
+                    min="0"
+                    value={selectedSalary} 
+                    onChange={(e) => setSelectedSalary(e.target.value)} 
+                    placeholder="مثال: 5000"
+                    required 
+                  />
+                </div>
+              ) : (
+                <div className="form-group">
+                  <label>التاريخ:</label>
+                  <input 
+                    type="date" 
+                    value={selectedDate} 
+                    onChange={(e) => setSelectedDate(e.target.value)} 
+                    required 
+                  />
+                </div>
+              )}
               
               <div className="action-modal-footer">
                 <button type="button" className="cancel-btn" onClick={closeModal} disabled={actionLoading}>إلغاء</button>

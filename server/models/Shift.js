@@ -38,6 +38,11 @@ const Shift = sequelize.define('Shift', {
     type: DataTypes.INTEGER, // Number of days allowed per month
     allowNull: true,
     defaultValue: 0
+  },
+  baseSalary: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0
   }
 });
 

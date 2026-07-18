@@ -10,6 +10,7 @@ const DayOffRequest = require('./DayOffRequest');
 const Budget = require('./Budget')(sequelize);
 const Expense = require('./Expense')(sequelize);
 const AdvanceRequest = require('./AdvanceRequest')(sequelize);
+const SalaryAdjustment = require('./SalaryAdjustment')(sequelize);
 const Setting = require('./Setting');
 
 // Relationships
@@ -52,6 +53,9 @@ AdvanceRequest.belongsTo(User, { as: 'Requester', foreignKey: 'userId' });
 User.hasMany(AdvanceRequest, { as: 'ApprovedAdvances', foreignKey: 'adminId', onDelete: 'SET NULL' });
 AdvanceRequest.belongsTo(User, { as: 'Approver', foreignKey: 'adminId' });
 
+User.hasMany(SalaryAdjustment, { foreignKey: 'userId', onDelete: 'CASCADE' });
+SalaryAdjustment.belongsTo(User, { foreignKey: 'userId' });
+
 module.exports = {
   sequelize,
   User,
@@ -65,5 +69,6 @@ module.exports = {
   Budget,
   Expense,
   AdvanceRequest,
+  SalaryAdjustment,
   Setting
 };

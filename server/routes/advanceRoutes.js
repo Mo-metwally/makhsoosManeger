@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { submitRequest, getMyRequests, getAllRequests, updateStatus } = require('../controllers/advanceController');
+const { submitRequest, getMyRequests, getAllRequests, updateStatus, getUserRequests } = require('../controllers/advanceController');
 const authMiddleware = require('../middlewares/authMiddleware');
 
 const requireAdmin = (req, res, next) => {
@@ -19,6 +19,7 @@ router.get('/me', getMyRequests);
 
 // Admin routes
 router.get('/all', requireAdmin, getAllRequests);
+router.get('/user/:userId', requireAdmin, getUserRequests);
 router.put('/:id/status', requireAdmin, updateStatus);
 
 module.exports = router;

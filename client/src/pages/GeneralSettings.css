@@ -1,0 +1,280 @@
+/* GeneralSettings.css - Advanced Styling */
+
+.gs-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.gs-header {
+  margin-bottom: 2.5rem;
+  text-align: right;
+}
+
+.gs-header-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.gs-icon-wrapper {
+  background: var(--glass-bg);
+  padding: 1rem;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px var(--theme-glow);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+.gs-icon-wrapper svg {
+  color: var(--theme-color);
+  filter: drop-shadow(0 0 8px var(--theme-glow));
+}
+
+.gs-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin: 0;
+  background: linear-gradient(90deg, var(--text-primary), var(--theme-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+
+.gs-subtitle {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+.gs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 2rem;
+}
+
+.gs-card {
+  background: var(--bg-main);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color);
+  border-radius: 24px;
+  padding: 2rem;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.gs-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--theme-color), transparent);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.gs-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 0 0 20px var(--theme-glow);
+  border-color: var(--theme-color);
+}
+
+.gs-card:hover::before {
+  opacity: 1;
+}
+
+.gs-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.gs-card-icon {
+  background: var(--glass-bg);
+  padding: 0.8rem;
+  border-radius: 14px;
+  color: var(--theme-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gs-card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.gs-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  flex: 1;
+}
+
+.gs-label {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.gs-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.gs-input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.gs-input:focus {
+  outline: none;
+  border-color: var(--theme-color);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 3px var(--theme-glow);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.gs-hint {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-top: 1rem;
+  line-height: 1.6;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 1rem;
+  border-radius: 12px;
+  border-right: 3px solid var(--theme-color);
+}
+
+/* Logical Day Cutoff special grid */
+.gs-time-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+  margin-top: 1rem;
+}
+
+.gs-time-option {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 1rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.gs-time-option:hover {
+  background: var(--glass-bg);
+  transform: translateY(-2px);
+}
+
+.gs-time-option.active {
+  background: var(--glass-bg-hover);
+  border-color: var(--theme-color);
+  box-shadow: 0 8px 20px var(--theme-glow);
+}
+
+.gs-time-option.active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-shadow: inset 0 0 0 1px var(--theme-color);
+  border-radius: 16px;
+  pointer-events: none;
+}
+
+.gs-time-val {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0.4rem 0 0.2rem 0;
+  transition: color 0.3s ease;
+}
+
+.gs-time-option.active .gs-time-val,
+.gs-time-option.active svg {
+  color: var(--theme-color);
+}
+
+.gs-time-period {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.gs-save-wrapper {
+  margin-top: 3rem;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 2rem;
+}
+
+.gs-save-btn {
+  background: var(--theme-color);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  padding: 1rem 2.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 25px var(--theme-glow);
+}
+
+.gs-save-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px var(--theme-glow);
+}
+
+.gs-save-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.gs-save-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: #475569;
+  box-shadow: none;
+}
+
+.gs-card.full-width {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+  .gs-grid {
+    grid-template-columns: 1fr;
+  }
+}

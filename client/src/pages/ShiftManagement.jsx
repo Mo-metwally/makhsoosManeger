@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, Plus, Users, Trash2, Calendar, Check, Save, TriangleAlert, Search, User as UserIcon, Edit, ShieldCheck, Crown, Shield, Cat, Star, Smile, Briefcase, Flame, Zap, Heart, Moon, Activity } from 'lucide-react';
+import { Clock, Plus, Users, Trash2, Calendar, Check, Save, TriangleAlert, Search, User as UserIcon, Edit, ShieldCheck, Crown, Shield, Cat, Star, Smile, Briefcase, Flame, Zap, Heart, Moon, Activity, DollarSign } from 'lucide-react';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import './Account.css'; // Reuse form styles
 
 const DAYS_OF_WEEK = [
@@ -17,6 +18,7 @@ const DAYS_OF_WEEK = [
 import AvatarIcon from '../components/AvatarIcon';
 
 const ShiftManagement = () => {
+  const { user: currentUser } = useAuth();
   const [shifts, setShifts] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
 
@@ -28,7 +30,8 @@ const ShiftManagement = () => {
     workingDays: [],
     dayOffType: 'Fixed',
     fixedDaysOff: [],
-    variableDaysOffCount: 0
+    variableDaysOffCount: 0,
+    baseSalary: ''
   });
   const [editingShiftId, setEditingShiftId] = useState(null);
 
@@ -38,6 +41,10 @@ const ShiftManagement = () => {
   const [selectedShift, setSelectedShift] = useState(null);
   const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [modalSearchTerm, setModalSearchTerm] = useState('');
+
+  // Salary Modal State
+  const [salaryModal, setSalaryModal] = useState({ show: false, userId: null, userName: '', baseSalary: '' });
+  const [selectedSalary, setSelectedSalary] = useState('');
   const [modalScheduleFilter, setModalScheduleFilter] = useState('All');
 
   // Shift-specific search terms
@@ -68,6 +75,21 @@ const ShiftManagement = () => {
       setAllUsers(activeUsers);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleSalarySubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await api.put(`/admin/users/${salaryModal.userId}`, {
+        baseSalary: selectedSalary
+      });
+      fetchShifts();
+      fetchAllUsers();
+      setSalaryModal({ show: false, userId: null, userName: '', baseSalary: '' });
+      setSelectedSalary('');
+    } catch (err) {
+      console.error('Error updating salary:', err);
     }
   };
 
@@ -128,7 +150,8 @@ const ShiftManagement = () => {
       workingDays: [],
       dayOffType: 'Fixed',
       fixedDaysOff: [],
-      variableDaysOffCount: 0
+      variableDaysOffCount: 0,
+      baseSalary: ''
     });
     setEditingShiftId(null);
     setIsFormModalOpen(false);
@@ -142,7 +165,8 @@ const ShiftManagement = () => {
       workingDays: shift.workingDays,
       dayOffType: shift.dayOffType || 'Fixed',
       fixedDaysOff: shift.fixedDaysOff || [],
-      variableDaysOffCount: shift.variableDaysOffCount || 0
+      variableDaysOffCount: shift.variableDaysOffCount || 0,
+      baseSalary: shift.baseSalary || ''
     });
     setEditingShiftId(shift.id);
     setIsFormModalOpen(true);
@@ -252,6 +276,14 @@ const ShiftManagement = () => {
                   return a.fullName.localeCompare(b.fullName, 'ar');
                 });
 
+                // Calculate salary stats for SuperAdmin
+                const baseShiftSalary = shift.baseSalary || 0;
+                const actualSalaries = shiftUsers.map(u => Number(u.baseSalary) > 0 ? Number(u.baseSalary) : Number(baseShiftSalary));
+                const allSalaries = actualSalaries.length > 0 ? actualSalaries : [Number(baseShiftSalary)];
+                const minSalary = Math.min(...allSalaries);
+                const maxSalary = Math.max(...allSalaries);
+                const hasVariableSalaries = minSalary !== maxSalary;
+
                 return (
                   <div key={shift.id} className="account-card" style={{ padding: '0', overflow: 'hidden' }}>
                     {/* Shift Header */}
@@ -298,6 +330,23 @@ const ShiftManagement = () => {
                             </span>
                           )}
                         </div>
+                        {currentUser?.role === 'SuperAdmin' && (
+                          <div style={{ marginTop: '0.8rem', padding: '0.8rem', background: 'rgba(34, 197, 94, 0.05)', borderRadius: '6px', border: '1px solid rgba(34, 197, 94, 0.1)' }}>
+                            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#22c55e', margin: '0 0 0.5rem 0', fontSize: '0.95rem' }}>
+                              <DollarSign size={16} /> بيانات الراتب
+                            </h4>
+                            {hasVariableSalaries ? (
+                              <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                                <span style={{ background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px' }}><strong>أقل راتب:</strong> {minSalary}</span>
+                                <span style={{ background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px' }}><strong>أعلى راتب:</strong> {maxSalary}</span>
+                              </div>
+                            ) : (
+                              <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                                <span style={{ background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px' }}><strong>الراتب الموحد:</strong> {baseShiftSalary}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                       <div style={{ display: 'flex', gap: '0.8rem' }}>
                         <button
@@ -371,7 +420,7 @@ const ShiftManagement = () => {
                           {searchTerm ? 'لا توجد نتائج مطابقة للبحث.' : 'لا يوجد موظفين معينين لهذه الوردية حتى الآن.'}
                         </div>
                       ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
                           {filteredShiftUsers.map(user => {
                             const isAdmin = user.role === 'Admin' || user.role === 'SuperAdmin';
                             const isSuperAdmin = user.role === 'SuperAdmin';
@@ -414,28 +463,58 @@ const ShiftManagement = () => {
                                   <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>{user.jobTitle || 'موظف'}</div>
                                 </div>
 
-                                <Link
-                                  to={`/personal-followup/${user.id}`}
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.4rem',
-                                    padding: '0.5rem 0.8rem',
-                                    background: 'rgba(59, 130, 246, 0.15)',
-                                    color: '#60a5fa',
-                                    borderRadius: '6px',
-                                    textDecoration: 'none',
-                                    fontSize: '0.85rem',
-                                    fontWeight: 'bold',
-                                    transition: 'background 0.2s',
-                                  }}
-                                  onMouseOver={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.25)'}
-                                  onMouseOut={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)'}
-                                  title="عرض إحصائيات الموظف"
-                                >
-                                  <Activity size={16} />
-                                  متابعة
-                                </Link>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                  {currentUser?.role === 'SuperAdmin' && (
+                                    <button
+                                      onClick={() => {
+                                        setSalaryModal({ show: true, userId: user.id, userName: user.fullName, baseSalary: user.baseSalary || shift.baseSalary || '' });
+                                        setSelectedSalary(user.baseSalary || shift.baseSalary || '');
+                                      }}
+                                      style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.4rem',
+                                        padding: '0.5rem 0.8rem',
+                                        background: 'rgba(34, 197, 94, 0.1)',
+                                        color: '#22c55e',
+                                        border: '1px solid rgba(34, 197, 94, 0.2)',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        fontSize: '0.85rem',
+                                        fontWeight: 'bold',
+                                        transition: 'background 0.2s',
+                                      }}
+                                      onMouseOver={e => e.currentTarget.style.background = 'rgba(34, 197, 94, 0.2)'}
+                                      onMouseOut={e => e.currentTarget.style.background = 'rgba(34, 197, 94, 0.1)'}
+                                      title="تعديل الراتب الخاص"
+                                    >
+                                      <DollarSign size={16} />
+                                      تعديل الراتب
+                                    </button>
+                                  )}
+                                  <Link
+                                    to={`/personal-followup/${user.id}`}
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '0.4rem',
+                                      padding: '0.5rem 0.8rem',
+                                      background: 'rgba(59, 130, 246, 0.15)',
+                                      color: '#60a5fa',
+                                      borderRadius: '6px',
+                                      textDecoration: 'none',
+                                      fontSize: '0.85rem',
+                                      fontWeight: 'bold',
+                                      transition: 'background 0.2s',
+                                    }}
+                                    onMouseOver={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.25)'}
+                                    onMouseOut={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)'}
+                                    title="عرض إحصائيات الموظف"
+                                  >
+                                    <Activity size={16} />
+                                    متابعة
+                                  </Link>
+                                </div>
                               </div>
                             )
                           })}
@@ -450,6 +529,47 @@ const ShiftManagement = () => {
         </div>
 
       </div>
+
+      {/* Salary Edit Modal */}
+      {salaryModal.show && (
+        <div className="modal-overlay" onClick={() => setSalaryModal({ show: false, userId: null, userName: '', baseSalary: '' })}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', width: '90%' }}>
+            <div className="modal-header" style={{ paddingBottom: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, fontSize: '1.2rem', color: '#22c55e' }}>
+                <DollarSign size={20} />
+                تعديل الراتب
+              </h2>
+              <button className="close-btn" type="button" onClick={() => setSalaryModal({ show: false, userId: null, userName: '', baseSalary: '' })}>&times;</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                تعديل الراتب الخاص للموظف: <strong>{salaryModal.userName}</strong>
+              </p>
+              <form onSubmit={handleSalarySubmit}>
+                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ color: 'var(--text-secondary)' }}>الراتب الشهري</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={selectedSalary}
+                    onChange={(e) => setSelectedSalary(e.target.value)}
+                    required
+                    style={{ width: '100%', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '0.8rem', borderRadius: '8px' }}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                  <button type="button" onClick={() => setSalaryModal({ show: false, userId: null, userName: '', baseSalary: '' })} style={{ padding: '0.6rem 1rem', background: 'transparent', color: 'var(--text-secondary)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', cursor: 'pointer' }}>
+                    إلغاء
+                  </button>
+                  <button type="submit" style={{ padding: '0.6rem 1.5rem', background: '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                    حفظ الراتب
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Create/Edit Shift Modal */}
       {isFormModalOpen && (
@@ -473,6 +593,18 @@ const ShiftManagement = () => {
                       onChange={(e) => setShiftForm({ ...shiftForm, name: e.target.value })}
                       placeholder="مثال: الوردية الصباحية"
                       required
+                      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '1rem', borderRadius: '8px' }}
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ flex: '1 1 100%' }}>
+                    <label style={{ color: 'var(--text-secondary)' }}>الراتب الشهري (لكل موظف في الوردية)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={shiftForm.baseSalary}
+                      onChange={(e) => setShiftForm({ ...shiftForm, baseSalary: e.target.value })}
+                      placeholder="مثال: 5000"
                       style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '1rem', borderRadius: '8px' }}
                     />
                   </div>

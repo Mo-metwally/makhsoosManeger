@@ -15,6 +15,7 @@ import HandleAdmin from './pages/HandleAdmin';
 import HandleAdminReports from './pages/HandleAdminReports';
 import HandleAdminPerformance from './pages/HandleAdminPerformance';
 import HandleAdminExport from './pages/HandleAdminExport';
+import EmployeesAccounts from './pages/EmployeesAccounts';
 import Summary from './pages/Summary';
 import PerformanceLog from './pages/PerformanceLog';
 import ReportEditor from './pages/ReportEditor';
@@ -67,6 +68,8 @@ function AppContent() {
         if (res.data) {
           if (res.data.logicalDayCutoff) localStorage.setItem('logicalDayCutoff', res.data.logicalDayCutoff);
           if (res.data.allowedDelayMinutes) localStorage.setItem('allowedDelayMinutes', res.data.allowedDelayMinutes);
+          if (res.data.dayOffWorkMultiplier) localStorage.setItem('dayOffWorkMultiplier', res.data.dayOffWorkMultiplier);
+          if (res.data.absencePenaltyMultiplier) localStorage.setItem('absencePenaltyMultiplier', res.data.absencePenaltyMultiplier);
         }
       }).catch(console.error);
 
@@ -223,7 +226,7 @@ function AppContent() {
         </div>
       );
     }
-    return <CheckInPage onCheckedIn={() => setNeedsCheckIn(false)} shift={todayShift} userName={user.fullName} />;
+    return <CheckInPage onCheckedIn={() => setNeedsCheckIn(false)} shift={todayShift} userName={user.fullName} isDayOffWork={leaveStatus === 'DayOff'} />;
   }
 
   return (
@@ -238,6 +241,7 @@ function AppContent() {
           )}
           <Route path="/my-monitoring" element={<Monitoring isMyMonitoring={true} />} />
           <Route path="/account" element={<Account />} />
+          <Route path="/employees-accounts" element={<EmployeesAccounts />} />
           {/* <Route path="/handleAdminAdd" element={<HandleAdminAdd />} /> */}
           <Route path="/allcontacts" element={<HandleAdmin />} />
           <Route path="/attendancereports" element={<HandleAdminReports />} />
@@ -260,6 +264,9 @@ function AppContent() {
           <Route path="/expenses" element={<Expenses />} />
           <Route path="/expenses-add" element={<ExpensesAdd />} />
           <Route path="/my-advances" element={<MyAdvances />} />
+          {(user?.role === 'Admin' || user?.role === 'SuperAdmin') && (
+            <Route path="/my-advances/:userId" element={<MyAdvances />} />
+          )}
           <Route path="/general-settings" element={<GeneralSettings />} />
           <Route path="/tracker-settings" element={<TrackerSettings />} />
           <Route path="/report-editor/permissions" element={<ReportEditorPermissions />} />

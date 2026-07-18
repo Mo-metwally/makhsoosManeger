@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Fingerprint, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import api from '../services/api';
 
-const CheckInPage = ({ onCheckedIn, shift, userName }) => {
+const CheckInPage = ({ onCheckedIn, shift, userName, isDayOffWork }) => {
   const [time, setTime] = useState(new Date());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -16,7 +16,7 @@ const CheckInPage = ({ onCheckedIn, shift, userName }) => {
     setLoading(true);
     setError('');
     try {
-      await api.post('/attendance/checkin');
+      await api.post('/attendance/checkin', { isDayOffWork });
       onCheckedIn(); // Notify parent to dismiss the page
     } catch (err) {
       setError(err.response?.data?.error || 'حدث خطأ أثناء تسجيل الحضور');

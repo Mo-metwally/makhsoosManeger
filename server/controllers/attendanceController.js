@@ -79,12 +79,19 @@ exports.checkIn = async (req, res) => {
       return res.status(400).json({ error: 'لقد قمت بتسجيل الحضور مسبقاً لهذا اليوم' });
     }
 
-    // Get today's day name in English
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const dayName = days[new Date().getDay()];
 
-    const activeShift = await getActiveShiftForDay(userId, dayName);
+    let activeShift = await getActiveShiftForDay(userId, dayName);
     
+    // If they bypass the day-off blockage, allow them to check in to their first available shift
+    if (!activeShift && req.body.isDayOffWork) {
+      const user = await User.findByPk(userId, { include: [Shift] });
+      if (user && user.Shifts && user.Shifts.length > 0) {
+        activeShift = user.Shifts[0];
+      }
+    }
+
     if (!activeShift) {
       return res.status(400).json({ error: 'ليس لديك وردية عمل مخصصة لهذا اليوم' });
     }
@@ -96,7 +103,8 @@ exports.checkIn = async (req, res) => {
       userId,
       shiftId: activeShift.id,
       date: today,
-      checkInTime
+      checkInTime,
+      status: req.body.isDayOffWork ? 'DayOffWork' : 'Present'
     });
 
     res.status(201).json({ message: 'تم تسجيل الحضور بنجاح', log });
@@ -499,18 +507,19 @@ exports.adminUpdateStatus = async (req, res) => {
       case 'CheckIn':
       case 'CheckOut':
       case 'EditTimes':
+      case 'DayOffWork':
         if (dayOff) await dayOff.destroy();
         if (!attendance) {
           await AttendanceLog.create({
-            userId, shiftId, date: today, status: 'Present', 
-            checkInTime: checkInDate || (action === 'CheckIn' ? new Date() : null),
+            userId, shiftId, date: today, status: action === 'DayOffWork' ? 'DayOffWork' : 'Present', 
+            checkInTime: checkInDate || (action === 'CheckIn' || action === 'DayOffWork' ? new Date() : null),
             checkOutTime: checkOutDate || (action === 'CheckOut' ? new Date() : null),
             notes
           });
         } else {
-          attendance.status = 'Present';
+          attendance.status = action === 'DayOffWork' ? 'DayOffWork' : 'Present';
           if (manualCheckInTime) attendance.checkInTime = checkInDate;
-          else if (action === 'CheckIn' && !attendance.checkInTime) attendance.checkInTime = new Date();
+          else if ((action === 'CheckIn' || action === 'DayOffWork') && !attendance.checkInTime) attendance.checkInTime = new Date();
 
           if (manualCheckOutTime) attendance.checkOutTime = checkOutDate;
           else if (action === 'CheckOut' && !attendance.checkOutTime) attendance.checkOutTime = new Date();
@@ -574,7 +583,7 @@ exports.adminUpdateStatus = async (req, res) => {
 exports.updateLogTime = async (req, res) => {
   try {
     const { id } = req.params;
-    const { checkInTime, checkOutTime } = req.body;
+    const { checkInTime, checkOutTime, status } = req.body;
 
     const log = await AttendanceLog.findByPk(id);
     if (!log) {
@@ -592,6 +601,10 @@ exports.updateLogTime = async (req, res) => {
     
     if (checkOutTime !== undefined) {
       log.checkOutTime = getValidDate(checkOutTime, log.date);
+    }
+    
+    if (status) {
+      log.status = status;
     }
 
     if (log.checkInTime && log.checkOutTime && log.checkOutTime < log.checkInTime) {

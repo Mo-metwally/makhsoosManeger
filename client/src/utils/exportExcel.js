@@ -809,13 +809,22 @@ export const getPayrollSummarySheet = (attendanceData, advancesData = []) => {
         present: 0,
         absent: 0,
         dayOff: 0,
+        dayOffWork: 0,
         delayMinutes: 0,
-        totalAdvances: 0
+        totalAdvances: 0,
+        baseSalary: log.User?.baseSalary || log.Shift?.baseSalary || ''
       };
     }
 
-    if (log.status === 'Present') {
-      userStats[uId].present += 1;
+    // Update baseSalary if not set and we encounter it
+    if (!userStats[uId].baseSalary) {
+      if (log.User?.baseSalary) userStats[uId].baseSalary = log.User.baseSalary;
+      else if (log.Shift?.baseSalary) userStats[uId].baseSalary = log.Shift.baseSalary;
+    }
+
+    if (log.status === 'Present' || log.status === 'DayOffWork') {
+      if (log.status === 'Present') userStats[uId].present += 1;
+      if (log.status === 'DayOffWork') userStats[uId].dayOffWork += 1;
       
       if (log.checkInTime && log.Shift && log.Shift.startTime) {
         const checkInDate = new Date(log.checkInTime);
@@ -828,9 +837,10 @@ export const getPayrollSummarySheet = (attendanceData, advancesData = []) => {
           const diffMs = checkInDate - shiftStart;
           const diffMins = Math.floor(diffMs / 60000);
           const allowedDelay = Number(localStorage.getItem('allowedDelayMinutes') || '15');
+          const enableLatePenalty = localStorage.getItem('enableLatePenalty') !== 'false';
           const actualDelayMins = diffMins - allowedDelay;
 
-          if (actualDelayMins > 0) {
+          if (enableLatePenalty && actualDelayMins > 0) {
             userStats[uId].delayMinutes += actualDelayMins;
           }
         }
@@ -853,6 +863,7 @@ export const getPayrollSummarySheet = (attendanceData, advancesData = []) => {
         present: 0,
         absent: 0,
         dayOff: 0,
+        dayOffWork: 0,
         delayMinutes: 0,
         totalAdvances: Number(adv.amount) || 0
       };
@@ -866,11 +877,16 @@ export const getPayrollSummarySheet = (attendanceData, advancesData = []) => {
     'أيام الإجازات',
     'إجازات غير مدفوعة',
     'أيام الغياب',
+    'أيام الخصم',
+    'أيام الإضافي',
     'إجمالي ساعات التأخير',
     'إجمالي السلف',
     'الراتب',
     'الصافي'
   ];
+
+  const absencePenaltyMultiplier = Number(localStorage.getItem('absencePenaltyMultiplier') || '2');
+  const dayOffWorkMultiplier = Number(localStorage.getItem('dayOffWorkMultiplier') || '1.5');
 
   const dataRows = Object.values(userStats).map(stat => {
     let delayStr = '0';
@@ -883,16 +899,21 @@ export const getPayrollSummarySheet = (attendanceData, advancesData = []) => {
       delayStr = toArabicNumbers(delayStr);
     }
 
+    const deductionDays = stat.absent * absencePenaltyMultiplier;
+    const bonusDays = stat.dayOffWork * dayOffWorkMultiplier;
+
     return [
       stat.name,
       stat.jobTitle,
-      stat.present,
+      stat.present + stat.dayOffWork,
       stat.dayOff,
       0, // Unpaid Day Offs (manual entry, default 0)
       stat.absent,
+      deductionDays,
+      bonusDays,
       delayStr,
       stat.totalAdvances,
-      '', // Salary
+      stat.baseSalary, // Salary
       ''  // Net Salary
     ];
   });

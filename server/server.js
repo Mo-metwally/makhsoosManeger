@@ -33,6 +33,8 @@ const attendanceRoutes = require('./routes/attendanceRoutes');
 const dayOffRoutes = require('./routes/dayOffRoutes');
 const budgetRoutes = require('./routes/budgetRoutes');
 const advanceRoutes = require('./routes/advanceRoutes');
+const salaryAdjustmentRoutes = require('./routes/salaryAdjustmentRoutes');
+// const backupRoutes = require('./routes/backupRoutes');
 const settingRoutes = require('./routes/settingRoutes');
 
 const app = express();
@@ -64,8 +66,10 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/shifts', shiftRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/dayoff', dayOffRoutes);
-app.use('/api/budgets', budgetRoutes);
+app.use('/api/budget', budgetRoutes);
 app.use('/api/advances', advanceRoutes);
+app.use('/api/salary-adjustments', salaryAdjustmentRoutes);
+// app.use('/api/backup', backupRoutes);
 app.use('/api/settings', settingRoutes);
 
 // Determine the path to the frontend dist folder

@@ -1,4 +1,5 @@
-const { AdvanceRequest, User, Expense, Budget } = require('../models');
+const { AdvanceRequest, User, Notification, Shift, AttendanceLog, SalaryAdjustment } = require('../models');
+const { Op } = require('sequelize');
 
 // Submit new advance request
 exports.submitRequest = async (req, res) => {
@@ -40,7 +41,147 @@ exports.getMyRequests = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
-    res.json(requests);
+    const userWithShift = await User.findByPk(userId, {
+      include: [{ model: Shift, through: { attributes: [] } }]
+    });
+
+    let salary = userWithShift.baseSalary;
+    let shift = null;
+    if (userWithShift.Shifts && userWithShift.Shifts.length > 0) {
+      shift = userWithShift.Shifts[0];
+      if (!salary || salary <= 0) {
+        salary = shift.baseSalary;
+      }
+    }
+
+    const logs = await AttendanceLog.findAll({
+      where: {
+        userId,
+        date: { [Op.startsWith]: monthKey }
+      }
+    });
+
+    let lateMins = 0;
+    let absentCount = 0;
+    let dayOffWorkCount = 0;
+    let presentCount = 0;
+    let dayOffCount = 0;
+
+    logs.forEach(log => {
+      if (log.status === 'Absent') absentCount++;
+      if (log.status === 'DayOffWork') dayOffWorkCount++;
+      if (log.status === 'Present' || log.status === 'Late') presentCount++;
+      if (log.status === 'DayOff') dayOffCount++;
+      if (log.status === 'Late' && log.checkInTime && shift && shift.startTime) {
+        const checkIn = new Date(log.checkInTime);
+        const expectedStr = `${log.date}T${shift.startTime}`;
+        const expectedStart = new Date(expectedStr);
+        const diff = Math.floor((checkIn - expectedStart) / 60000);
+        if (diff > 0) lateMins += diff;
+      }
+    });
+
+    res.json({
+      requests,
+      salary: salary || 0,
+      workingHours: shift ? shift.workingHours || 8 : 8,
+      shiftStartTime: shift ? shift.startTime : null,
+      logs: logs,
+      stats: {
+        absentCount,
+        dayOffWorkCount,
+        presentCount,
+        dayOffCount
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching user advance requests:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Get requests for a specific user (Admin only)
+exports.getUserRequests = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { monthKey } = req.query;
+    
+    let whereClause = { userId };
+    if (monthKey) {
+      whereClause.monthKey = monthKey;
+    }
+
+    const requests = await AdvanceRequest.findAll({
+      where: whereClause,
+      order: [['createdAt', 'DESC']]
+    });
+
+    const userWithShift = await User.findByPk(userId, {
+      include: [{ model: Shift, through: { attributes: [] } }]
+    });
+
+    if (!userWithShift) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    let salary = userWithShift.baseSalary;
+    let shift = null;
+    if (userWithShift.Shifts && userWithShift.Shifts.length > 0) {
+      shift = userWithShift.Shifts[0];
+      if (!salary || salary <= 0) {
+        salary = shift.baseSalary;
+      }
+    }
+
+    const logs = await AttendanceLog.findAll({
+      where: {
+        userId,
+        date: { [Op.startsWith]: monthKey }
+      }
+    });
+
+    let lateMins = 0;
+    let absentCount = 0;
+    let dayOffWorkCount = 0;
+    let presentCount = 0;
+    let dayOffCount = 0;
+
+    logs.forEach(log => {
+      if (log.status === 'Absent') absentCount++;
+      if (log.status === 'DayOffWork') dayOffWorkCount++;
+      if (log.status === 'Present' || log.status === 'Late') presentCount++;
+      if (log.status === 'DayOff') dayOffCount++;
+      if (log.status === 'Late' && log.checkInTime && shift && shift.startTime) {
+        const checkIn = new Date(log.checkInTime);
+        const expectedStr = `${log.date}T${shift.startTime}`;
+        const expectedStart = new Date(expectedStr);
+        const diff = Math.floor((checkIn - expectedStart) / 60000);
+        if (diff > 0) lateMins += diff;
+      }
+    });
+
+    const adjustments = await SalaryAdjustment.findAll({
+      where: { userId, monthKey }
+    });
+
+    res.json({
+      requests,
+      salary: salary || 0,
+      workingHours: shift ? shift.workingHours || 8 : 8,
+      shiftStartTime: shift ? shift.startTime : null,
+      logs: logs,
+      stats: {
+        absentCount,
+        dayOffWorkCount,
+        lateMins,
+        presentCount,
+        dayOffCount
+      },
+      adjustments,
+      userProfile: {
+        name: userWithShift.fullName || userWithShift.username
+      }
+    });
   } catch (error) {
     console.error('Error fetching user advance requests:', error);
     res.status(500).json({ error: 'Internal server error' });
