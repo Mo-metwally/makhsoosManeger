@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Activity, Search, Trash2, ChevronRight, ChevronLeft, Users, LogIn, LogOut, CheckCircle, Calendar, Edit2, X, Save, Clock, XCircle } from 'lucide-react';
+import { Activity, Search, Trash2, ChevronRight, ChevronLeft, Users, LogIn, LogOut, CheckCircle, Calendar, Edit2, X, Save, Clock, XCircle, Briefcase } from 'lucide-react';
 import AdminGuard from '../components/AdminGuard';
 import CustomSelect from '../components/CustomSelect';
 import { getLogicalDateString } from '../utils/dateHelpers';
@@ -354,9 +354,13 @@ const HandleAdminReports = () => {
                         <span className="status-badge" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
                           <X size={14} /> غياب
                         </span>
-                      ) : log.status === 'DayOffWork' || log.status === 'DayOff' ? (
+                      ) : log.status === 'DayOff' ? (
                         <span className="status-badge" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
-                          <Calendar size={14} /> إجازة
+                          <Calendar size={14} /> إجازة عادية
+                        </span>
+                      ) : log.status === 'DayOffWork' ? (
+                        <span className="status-badge" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' }}>
+                          <Briefcase size={14} /> عمل بإجازة
                         </span>
                       ) : log.status === 'Late' ? (
                         <span className="status-badge" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
@@ -506,15 +510,27 @@ const HandleAdminReports = () => {
                 </div>
                 
                 <div 
+                  onClick={() => setEditModal({...editModal, status: 'DayOff'})}
+                  style={{
+                    padding: '0.75rem', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                    border: editModal.status === 'DayOff' ? '2px solid #3b82f6' : '1px solid rgba(255,255,255,0.1)',
+                    background: editModal.status === 'DayOff' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255,255,255,0.02)',
+                    transition: 'all 0.2s ease'
+                  }}>
+                  <Calendar size={20} color={editModal.status === 'DayOff' ? '#3b82f6' : 'var(--text-secondary)'} />
+                  <span style={{ color: editModal.status === 'DayOff' ? '#3b82f6' : 'var(--text-primary)', fontWeight: editModal.status === 'DayOff' ? 'bold' : 'normal' }}>إجازة عادية</span>
+                </div>
+
+                <div 
                   onClick={() => setEditModal({...editModal, status: 'DayOffWork'})}
                   style={{
                     padding: '0.75rem', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
-                    border: editModal.status === 'DayOffWork' ? '2px solid #3b82f6' : '1px solid rgba(255,255,255,0.1)',
-                    background: editModal.status === 'DayOffWork' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255,255,255,0.02)',
+                    border: editModal.status === 'DayOffWork' ? '2px solid #8b5cf6' : '1px solid rgba(255,255,255,0.1)',
+                    background: editModal.status === 'DayOffWork' ? 'rgba(139, 92, 246, 0.15)' : 'rgba(255,255,255,0.02)',
                     transition: 'all 0.2s ease'
                   }}>
-                  <Calendar size={20} color={editModal.status === 'DayOffWork' ? '#3b82f6' : 'var(--text-secondary)'} />
-                  <span style={{ color: editModal.status === 'DayOffWork' ? '#3b82f6' : 'var(--text-primary)', fontWeight: editModal.status === 'DayOffWork' ? 'bold' : 'normal' }}>إجازة</span>
+                  <Briefcase size={20} color={editModal.status === 'DayOffWork' ? '#8b5cf6' : 'var(--text-secondary)'} />
+                  <span style={{ color: editModal.status === 'DayOffWork' ? '#8b5cf6' : 'var(--text-primary)', fontWeight: editModal.status === 'DayOffWork' ? 'bold' : 'normal' }}>عمل بإجازة</span>
                 </div>
               </div>
             </div>

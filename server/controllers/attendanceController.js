@@ -550,7 +550,18 @@ exports.adminUpdateStatus = async (req, res) => {
         break;
 
       case 'DayOff':
-        if (attendance) await attendance.destroy();
+        if (!attendance) {
+          await AttendanceLog.create({
+            userId, shiftId, date: today, status: 'DayOff', notes
+          });
+        } else {
+          attendance.status = 'DayOff';
+          attendance.checkInTime = null;
+          attendance.checkOutTime = null;
+          if (notes) attendance.notes = (attendance.notes ? attendance.notes + '\n' + notes : notes);
+          await attendance.save();
+        }
+        
         if (!dayOff) {
           await DayOffRequest.create({
             userId, date: today, dayName, status: 'Approved', reason: 'إجازة مسجلة من الإدارة'
