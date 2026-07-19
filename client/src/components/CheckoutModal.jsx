@@ -25,7 +25,7 @@ const CheckoutModal = () => {
         const shift = res.data.log.Shift;
         if (shift && shift.endTime) {
           setShiftData(shift);
-          checkIfShouldOpen(shift, res.data.log.date);
+          checkIfShouldOpen(shift, res.data.log.date, res.data.log.checkInTime);
         }
       } else if (res.data.log && res.data.log.checkOutTime) {
         setCheckedOut(true);
@@ -36,7 +36,7 @@ const CheckoutModal = () => {
     }
   };
 
-  const checkIfShouldOpen = (shift, logDate) => {
+  const checkIfShouldOpen = (shift, logDate, checkInTimeStr) => {
     const now = new Date();
     const [hours, minutes] = shift.endTime.split(':').map(Number);
     const shiftEndTime = new Date(logDate);
@@ -46,6 +46,16 @@ const CheckoutModal = () => {
     const [startH] = shift.startTime.split(':').map(Number);
     if (hours < startH) {
       shiftEndTime.setDate(shiftEndTime.getDate() + 1);
+    }
+
+    if (checkInTimeStr) {
+      const checkInDate = new Date(checkInTimeStr);
+      // If checkInDate is significantly AFTER the initially calculated shiftEndTime 
+      // (e.g. checked in at 00:55 on Mon, but logical date made shiftEndTime Sun 10:00),
+      // it means they checked in early for the next day's shift, so we add 1 day.
+      if (checkInDate.getTime() > shiftEndTime.getTime() && (checkInDate.getTime() - shiftEndTime.getTime()) > 4 * 60 * 60 * 1000) {
+        shiftEndTime.setDate(shiftEndTime.getDate() + 1);
+      }
     }
 
     const diffMs = shiftEndTime.getTime() - now.getTime();

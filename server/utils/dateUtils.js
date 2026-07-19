@@ -9,11 +9,8 @@
 const getLogicalDate = (dateParam = new Date()) => {
   const d = new Date(dateParam);
   
-  // Cutoff is 1:00 AM. 
-  // By subtracting 1 hour, anything between 00:00 and 00:59 becomes 23:xx of the previous day.
-  // Anything 01:00 or later remains on the current calendar day.
-  d.setHours(d.getHours() - 1);
-  
+  // Cutoff is exactly at midnight.
+  // This ensures checking in early for a 1:00 AM shift is assigned to the correct calendar day.
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');

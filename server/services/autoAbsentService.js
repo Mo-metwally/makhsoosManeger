@@ -1,11 +1,8 @@
 const { User, Shift, AttendanceLog, Setting } = require('../models');
 
-// Adjusts the given date based on a 5 AM logical day start
+// Logical date is now standardized to midnight (00:00) across the entire application
 const getLogicalDateStr = (dateInput = new Date()) => {
   const d = new Date(dateInput);
-  if (d.getHours() < 5) {
-    d.setDate(d.getDate() - 1);
-  }
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
