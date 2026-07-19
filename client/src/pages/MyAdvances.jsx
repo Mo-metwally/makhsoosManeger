@@ -596,7 +596,7 @@ const MyAdvances = () => {
       </div>
 
       {showModal && (
-        <div className="modal-overlay fade-in">
+        <div className="modal-overlay active">
           <div className="advance-modal">
             <div className="modal-header-advanced">
               <div>
