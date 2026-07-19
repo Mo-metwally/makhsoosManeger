@@ -525,7 +525,7 @@ const Home = () => {
 
       {/* Create Report Modal */}
       {isModalOpen && (
-        <div className="modal-overlay" onClick={() => { setIsModalOpen(false); setReportMethod(null); setPhoneInput(''); setPhoneStatus('empty'); }}>
+        <div className="modal-overlay active" onClick={() => { setIsModalOpen(false); setReportMethod(null); setPhoneInput(''); setPhoneStatus('empty'); }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
@@ -717,7 +717,7 @@ const Home = () => {
 
       {/* Confirm Duplicate Modal */}
       {showConfirmDuplicate && (
-        <div className="modal-overlay" style={{ zIndex: 1000 }} onClick={() => setShowConfirmDuplicate(false)}>
+        <div className="modal-overlay active" style={{ zIndex: 1000 }} onClick={() => setShowConfirmDuplicate(false)}>
           <div className="modal-content" style={{ maxWidth: '400px', textAlign: 'center', padding: '2rem' }} onClick={e => e.stopPropagation()}>
             <div style={{ color: '#ef4444', marginBottom: '1rem' }}>
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto' }}>
@@ -752,7 +752,7 @@ const Home = () => {
 
       {/* Date Warning Modal */}
       {isDateWarningOpen && (
-        <div className="modal-overlay" onClick={() => setIsDateWarningOpen(false)}>
+        <div className="modal-overlay active" onClick={() => setIsDateWarningOpen(false)}>
           <div className="modal-content warning-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2 style={{ color: '#f59e0b' }}>تحذير تاريخ قديم</h2>

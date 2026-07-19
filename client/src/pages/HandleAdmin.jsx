@@ -370,7 +370,7 @@ const HandleAdmin = () => {
 
       {/* Phone History Modal */}
       {phoneHistoryModal.isOpen && (
-        <div className="modal-overlay" onClick={() => setPhoneHistoryModal({ ...phoneHistoryModal, isOpen: false })}>
+        <div className="modal-overlay active" onClick={() => setPhoneHistoryModal({ ...phoneHistoryModal, isOpen: false })}>
           <div className="modal-content advanced-history-modal" style={{ width: '90%', maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
               <h2>

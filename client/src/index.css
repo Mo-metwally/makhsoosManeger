@@ -519,9 +519,6 @@ ul {
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.7);
-  background-image: radial-gradient(circle at center, var(--bg-active-menu), transparent 80%);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -530,20 +527,12 @@ ul {
 }
 
 @keyframes overlayFadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modal-content {
-  background-color: var(--bg-main);
-  background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(0, 0, 0, 0.7) 100%);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
+  background-color: #0f172a;
   border: 1px solid var(--border-color);
   border-top: 2px solid var(--theme-color);
   width: 90%;
@@ -557,15 +546,8 @@ ul {
 }
 
 @keyframes modalScaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .modal-header {

@@ -107,12 +107,21 @@ const TodayFollowup = () => {
 
     try {
       setUpdating(true);
+      
+      const createIso = (timeStr) => {
+        if (!timeStr) return null;
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        const d = new Date();
+        d.setHours(hours, minutes, 0, 0);
+        return d.toISOString();
+      };
+
       await api.post('/attendance/admin/update-status', {
         userId: selectedEmp.id,
         action,
         notes,
-        manualCheckInTime: manualCheckIn,
-        manualCheckOutTime: manualCheckOut
+        manualCheckInTime: createIso(manualCheckIn),
+        manualCheckOutTime: createIso(manualCheckOut)
       });
       showToast('تم تحديث حالة الموظف بنجاح', 'success');
       closeModal();

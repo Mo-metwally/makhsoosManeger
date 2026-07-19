@@ -225,8 +225,7 @@
 
 /* Modal */
 .advance-modal {
-  background: rgba(15, 20, 35, 0.85);
-  backdrop-filter: blur(25px);
+  background: #0f172a;
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 20px 40px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.05);
   border-radius: 24px;

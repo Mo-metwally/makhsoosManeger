@@ -44,9 +44,18 @@ const HandleAdminReports = () => {
   const handleEditTime = async () => {
     if (!editModal.log) return;
     try {
+      const createIso = (timeStr) => {
+        if (!timeStr) return null;
+        if (timeStr.includes('T')) return timeStr; // Already ISO
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        const d = new Date();
+        d.setHours(hours, minutes, 0, 0);
+        return d.toISOString();
+      };
+
       const res = await api.put(`/attendance/admin/log/${editModal.log.id}`, {
-        checkInTime: editModal.checkInTime || undefined,
-        checkOutTime: editModal.checkOutTime || undefined,
+        checkInTime: editModal.checkInTime ? createIso(editModal.checkInTime) : undefined,
+        checkOutTime: editModal.checkOutTime ? createIso(editModal.checkOutTime) : undefined,
         status: editModal.status || undefined
       });
       showToast('تم تحديث السجل بنجاح', 'success');
@@ -345,9 +354,13 @@ const HandleAdminReports = () => {
                         <span className="status-badge" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
                           <X size={14} /> غياب
                         </span>
-                      ) : log.status === 'DayOff' ? (
+                      ) : log.status === 'DayOffWork' || log.status === 'DayOff' ? (
                         <span className="status-badge" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
                           <Calendar size={14} /> إجازة
+                        </span>
+                      ) : log.status === 'Late' ? (
+                        <span className="status-badge" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
+                          <Clock size={14} /> تأخير
                         </span>
                       ) : (
                         <span className="status-badge" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>

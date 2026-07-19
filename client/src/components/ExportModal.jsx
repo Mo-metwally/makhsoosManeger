@@ -24,7 +24,7 @@ const ExportModal = ({ isOpen, onClose, onExport, title }) => {
   };
 
   return ReactDOM.createPortal(
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay active" onClick={onClose}>
       <div className="modal-content" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2 style={{ color: 'var(--theme-color)' }}>{title}</h2>

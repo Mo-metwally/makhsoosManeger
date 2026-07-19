@@ -492,7 +492,7 @@ const Account = () => {
       </div>
 
       {isResetModalOpen && (
-        <div className="modal-overlay" onClick={() => setIsResetModalOpen(false)}>
+        <div className="modal-overlay active" onClick={() => setIsResetModalOpen(false)}>
           <div className="modal-content warning-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2 style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -522,7 +522,7 @@ const Account = () => {
       )}
 
       {isPwdModalOpen && (
-        <div className="modal-overlay" onClick={() => setIsPwdModalOpen(false)}>
+        <div className="modal-overlay active" onClick={() => setIsPwdModalOpen(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
             <div className="modal-header">
               <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

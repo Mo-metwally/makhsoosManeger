@@ -532,7 +532,7 @@ const ShiftManagement = () => {
 
       {/* Salary Edit Modal */}
       {salaryModal.show && (
-        <div className="modal-overlay" onClick={() => setSalaryModal({ show: false, userId: null, userName: '', baseSalary: '' })}>
+        <div className="modal-overlay active" onClick={() => setSalaryModal({ show: false, userId: null, userName: '', baseSalary: '' })}>
           <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', width: '90%' }}>
             <div className="modal-header" style={{ paddingBottom: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
               <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, fontSize: '1.2rem', color: '#22c55e' }}>
@@ -573,7 +573,7 @@ const ShiftManagement = () => {
 
       {/* Create/Edit Shift Modal */}
       {isFormModalOpen && (
-        <div className="modal-overlay" onClick={() => resetForm()}>
+        <div className="modal-overlay active" onClick={() => resetForm()}>
           <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '650px', width: '90%' }}>
             <div className="modal-header" style={{ paddingBottom: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
               <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, fontSize: '1.4rem' }}>
@@ -809,7 +809,7 @@ const ShiftManagement = () => {
 
       {/* Assign Users Modal */}
       {isModalOpen && selectedShift && (
-        <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
+        <div className="modal-overlay active" onClick={() => setIsModalOpen(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', width: '90%' }}>
             <div className="modal-header">
               <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

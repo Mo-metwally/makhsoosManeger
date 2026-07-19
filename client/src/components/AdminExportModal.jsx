@@ -36,7 +36,7 @@ const AdminExportModal = ({ isOpen, onClose, filters }) => {
   };
 
   return (
-    <div className="modal-overlay" style={{ zIndex: 99999 }}>
+    <div className="modal-overlay active" style={{ zIndex: 99999 }}>
       <div className="modal-content" style={{ maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
         <button className="modal-close" onClick={onClose}>
           <X size={24} />

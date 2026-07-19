@@ -476,6 +476,7 @@ exports.adminUpdateStatus = async (req, res) => {
 
     const getValidDate = (timeString) => {
       if (!timeString) return null;
+      if (timeString.includes('T')) return new Date(timeString);
       return new Date(`${today}T${timeString}:00`);
     };
 
@@ -575,6 +576,7 @@ exports.adminUpdateStatus = async (req, res) => {
 
     res.json({ message: 'تم تحديث حالة الموظف بنجاح' });
   } catch (error) {
+    require('fs').writeFileSync('error_log.txt', String(error.stack));
     console.error('Error in adminUpdateStatus:', error);
     res.status(500).json({ error: 'حدث خطأ في الخادم' });
   }
@@ -592,6 +594,7 @@ exports.updateLogTime = async (req, res) => {
 
     const getValidDate = (timeString, baseDateString) => {
       if (!timeString) return null;
+      if (timeString.includes('T')) return new Date(timeString);
       return new Date(`${baseDateString}T${timeString}:00`);
     };
 
@@ -605,16 +608,21 @@ exports.updateLogTime = async (req, res) => {
     
     if (status) {
       log.status = status;
+      if (status === 'Absent' || status === 'DayOffWork' || status === 'DayOff') {
+        log.checkInTime = null;
+        log.checkOutTime = null;
+      }
     }
 
-    if (log.checkInTime && log.checkOutTime && log.checkOutTime < log.checkInTime) {
-      log.checkOutTime = new Date(log.checkOutTime.getTime() + 24 * 60 * 60 * 1000);
+    if (log.checkInTime && log.checkOutTime && new Date(log.checkOutTime) < new Date(log.checkInTime)) {
+      log.checkOutTime = new Date(new Date(log.checkOutTime).getTime() + 24 * 60 * 60 * 1000);
     }
 
     await log.save();
     res.json({ message: 'تم تحديث أوقات السجل بنجاح', log });
   } catch (error) {
+    require('fs').writeFileSync('update_error_log.txt', String(error.stack));
     console.error('Error in updateLogTime:', error);
-    res.status(500).json({ error: 'حدث خطأ أثناء تحديث السجل' });
+    res.status(500).json({ error: 'حدث خطأ في الخادم' });
   }
 };
