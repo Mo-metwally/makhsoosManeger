@@ -97,10 +97,13 @@ const login = async (req, res) => {
         status: user.status,
         workingHours: user.workingHours,
         avatar: user.avatar,
+        avatar: user.avatar,
         tasks: user.tasks,
         isTrackerOnline: user.isTrackerOnline,
         trackerStatus: user.trackerStatus,
-        notes: user.notes
+        notes: user.notes,
+        walletNumber: user.walletNumber,
+        walletType: user.walletType
       }
     });
 
@@ -201,7 +204,9 @@ const me = (req, res) => {
       tasks: req.user.tasks,
       isTrackerOnline: req.user.isTrackerOnline,
       trackerStatus: req.user.trackerStatus,
-      notes: req.user.notes
+      notes: req.user.notes,
+      walletNumber: req.user.walletNumber,
+      walletType: req.user.walletType
     }
   });
 };
@@ -221,9 +226,24 @@ const checkUsername = async (req, res) => {
   }
 };
 
+const verifyPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    if (!password) {
+      return res.status(400).json({ error: 'كلمة المرور مطلوبة' });
+    }
+    if (req.user.password !== password) {
+      return res.status(400).json({ valid: false, error: 'كلمة المرور غير صحيحة' });
+    }
+    return res.json({ valid: true });
+  } catch (error) {
+    res.status(500).json({ error: 'حدث خطأ' });
+  }
+};
+
 const updateProfile = async (req, res) => {
   try {
-    const { name, fullName, email, phone, jobTitle, password, avatar, tasks, notes, username } = req.body;
+    const { name, fullName, email, phone, walletNumber, walletType, jobTitle, password, avatar, tasks, notes, username } = req.body;
     const user = req.user;
 
     if (username && username !== user.username) {
@@ -238,6 +258,8 @@ const updateProfile = async (req, res) => {
     if (fullName) user.fullName = fullName;
     if (email) user.email = email;
     if (phone) user.phone = phone;
+    if (walletNumber !== undefined) user.walletNumber = walletNumber;
+    if (walletType !== undefined) user.walletType = walletType;
     if (jobTitle !== undefined) user.jobTitle = jobTitle;
     if (password) user.password = password; // Only if they typed a new one
     if (avatar) user.avatar = avatar;
@@ -431,6 +453,7 @@ module.exports = {
   logout,
   me,
   updateProfile,
+  verifyPassword,
   signup,
   forgotPassword,
   verifyOtp,

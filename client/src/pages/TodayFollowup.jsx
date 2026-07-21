@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Loader, ShieldAlert, CheckCircle, XCircle, Clock, CalendarRange, HelpCircle, Activity, Edit2, Shield, Cat, Crown, Star, Smile, Briefcase, Flame, Zap, Heart, Moon, User, RefreshCw, LogIn, LogOut, UserX, CalendarOff, AlertTriangle } from 'lucide-react';
+import { Users, Loader, ShieldAlert, CheckCircle, XCircle, Clock, CalendarRange, HelpCircle, Activity, Edit2, Shield, Cat, Crown, Star, Smile, Briefcase, Flame, Zap, Heart, Moon, User, RefreshCw, LogIn, LogOut, UserX, CalendarOff, AlertTriangle, Plane, Info } from 'lucide-react';
 import api from '../services/api';
 import AvatarIcon from '../components/AvatarIcon';
 import './TodayFollowup.css';
@@ -24,6 +24,7 @@ const TodayFollowup = () => {
   const [notes, setNotes] = useState('');
   const [isEarlyCheckout, setIsEarlyCheckout] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [expandedRowId, setExpandedRowId] = useState(null);
 
   useEffect(() => {
     document.title = "متابعة اليوم | مخصوص";
@@ -147,6 +148,8 @@ const TodayFollowup = () => {
         return { label: 'عمل إضافي', icon: <CheckCircle size={16} />, className: 'status-active' };
       case 'Absent':
         return { label: 'غياب', icon: <XCircle size={16} />, className: 'status-absent' };
+      case 'BusinessTrip':
+        return { label: 'سفر عمل', icon: <Plane size={16} />, className: 'status-businesstrip' };
       case 'DayOff':
         return { label: 'إجازة', icon: <CalendarRange size={16} />, className: 'status-dayoff' };
       case 'بريك صلاة':
@@ -192,6 +195,7 @@ const TodayFollowup = () => {
     total: filteredByShift.filter(e => e.role === 'Supervisor').length,
     active: filteredByShift.filter(e => e.shifts && e.shifts.length > 0 && ['Present', 'Late', 'بريك غداء', 'بريك صلاة', 'تدريب', 'CheckedOut', 'انصراف', 'DayOffWork'].includes(e.todayStatus)).length,
     absent: filteredByShift.filter(e => e.shifts && e.shifts.length > 0 && e.todayStatus === 'Absent').length,
+    businesstrip: filteredByShift.filter(e => e.shifts && e.shifts.length > 0 && e.todayStatus === 'BusinessTrip').length,
     dayoff: filteredByShift.filter(e => e.shifts && e.shifts.length > 0 && e.todayStatus === 'DayOff').length,
     pending: filteredByShift.filter(e => e.shifts && e.shifts.length > 0 && e.todayStatus === 'Pending').length,
     admins: filteredByShift.filter(e => e.role === 'Admin' || e.role === 'SuperAdmin').length
@@ -335,6 +339,13 @@ const TodayFollowup = () => {
             <p>{stats.absent}</p>
           </div>
         </div>
+        <div className={`tf-stat-card ${filter === 'BusinessTrip' ? 'active blue' : ''}`} onClick={() => setFilter('BusinessTrip')}>
+          <div className="tf-stat-icon bg-blue"><Plane size={24} /></div>
+          <div className="tf-stat-info">
+            <h3>سفر عمل</h3>
+            <p>{stats.businesstrip}</p>
+          </div>
+        </div>
         <div className={`tf-stat-card ${filter === 'DayOff' ? 'active orange' : ''}`} onClick={() => setFilter('DayOff')}>
           <div className="tf-stat-icon bg-orange"><CalendarRange size={24} /></div>
           <div className="tf-stat-info">
@@ -403,8 +414,15 @@ const TodayFollowup = () => {
                   const userAvatar = emp.avatar || 'User';
                   const isAdmin = emp.role === 'Admin' || emp.role === 'SuperAdmin';
                   return (
-                    <tr key={emp.id} className={isAdmin ? 'tf-admin-row' : ''}>
-                      <td>
+                    <React.Fragment key={emp.id}>
+                      <tr 
+                        className={isAdmin ? 'tf-admin-row' : ''}
+                        onClick={() => {
+                          if (emp.notes) setExpandedRowId(expandedRowId === emp.id ? null : emp.id);
+                        }}
+                        style={{ cursor: emp.notes ? 'pointer' : 'default' }}
+                      >
+                        <td>
                         <div className="tf-user-info-table">
                           <div className="tf-avatar">
                             <AvatarIcon name={userAvatar} size={24} className="tf-avatar-icon" />
@@ -467,6 +485,11 @@ const TodayFollowup = () => {
                               {emp.checkOutTime && <div><span style={{ color: 'var(--orange)' }}>↓</span> إنصراف: {new Date(emp.checkOutTime).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</div>}
                             </div>
                           )}
+                          {emp.notes && (
+                            <div style={{ fontSize: '0.75rem', color: 'var(--theme-color)', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <Info size={12} /> اضغط لعرض السبب
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td>
@@ -496,7 +519,7 @@ const TodayFollowup = () => {
                         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', justifyContent: 'center' }}>
                           <button
                             className="tf-edit-btn"
-                            onClick={() => openModal(emp)}
+                            onClick={(e) => { e.stopPropagation(); openModal(emp); }}
                             title="تعديل الحالة"
                             style={{ padding: '0.4rem 0.6rem', flex: 1 }}
                           >
@@ -504,7 +527,7 @@ const TodayFollowup = () => {
                             تعديل
                           </button>
                           <button
-                            onClick={() => navigate(`/personal-followup/${emp.id}`)}
+                            onClick={(e) => { e.stopPropagation(); navigate(`/personal-followup/${emp.id}`); }}
                             title="ملف الموظف"
                             style={{
                               background: 'rgba(59, 130, 246, 0.1)',
@@ -524,6 +547,20 @@ const TodayFollowup = () => {
                         </div>
                       </td>
                     </tr>
+                    {expandedRowId === emp.id && emp.notes && (
+                      <tr className="tf-expanded-row">
+                        <td colSpan="6" style={{ padding: '0 1.5rem 1.5rem 1.5rem', borderTop: 'none' }}>
+                          <div style={{ padding: '1rem 1.5rem', background: 'rgba(255, 255, 255, 0.04)', borderRadius: '0 0 12px 12px', borderRight: '3px solid var(--theme-color)', color: 'var(--text-secondary)', textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '-0.8rem', boxShadow: 'inset 0 4px 6px -4px rgba(0,0,0,0.1)' }}>
+                            <strong style={{ color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem' }}>
+                              <Info size={16} style={{ color: 'var(--theme-color)' }} />
+                              السبب المرفق:
+                            </strong>
+                            <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '0.9rem', marginRight: '24px', color: 'rgba(255,255,255,0.7)' }}>{emp.notes}</div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                   );
                 })}
               </tbody>
@@ -576,6 +613,11 @@ const TodayFollowup = () => {
                       <UserX size={20} className="radio-icon" />
                       <span>تسجيل غياب</span>
                     </label>
+                    <label className={`tf-adv-radio-label ${action === 'BusinessTrip' ? 'active businesstrip' : ''}`}>
+                      <input type="radio" value="BusinessTrip" checked={action === 'BusinessTrip'} onChange={(e) => setAction(e.target.value)} />
+                      <Plane size={20} className="radio-icon" />
+                      <span>سفر عمل</span>
+                    </label>
                     <label className={`tf-adv-radio-label ${action === 'DayOff' ? 'active dayoff' : ''}`}>
                       <input type="radio" value="DayOff" checked={action === 'DayOff'} onChange={(e) => setAction(e.target.value)} />
                       <CalendarOff size={20} className="radio-icon" />
@@ -618,7 +660,7 @@ const TodayFollowup = () => {
                   </div>
                 )}
 
-                {(action === 'CheckOut' || action === 'Absent' || action === 'CheckIn') && (
+                {action !== 'ResetCheckout' && (
                   <div className="tf-form-group">
                     <label>
                       ملاحظة

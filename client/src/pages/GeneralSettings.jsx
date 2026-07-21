@@ -16,6 +16,8 @@ const GeneralSettings = () => {
   const [dayOffWorkMultiplier, setDayOffWorkMultiplier] = useState(localStorage.getItem('dayOffWorkMultiplier') || '1.5');
   const [absencePenaltyMultiplier, setAbsencePenaltyMultiplier] = useState(localStorage.getItem('absencePenaltyMultiplier') || '2');
   const [enableLatePenalty, setEnableLatePenalty] = useState(localStorage.getItem('enableLatePenalty') !== 'false');
+  const [allowedLunchBreakMinutes, setAllowedLunchBreakMinutes] = useState(localStorage.getItem('allowedLunchBreakMinutes') || '30');
+  const [allowedPrayerBreakMinutes, setAllowedPrayerBreakMinutes] = useState(localStorage.getItem('allowedPrayerBreakMinutes') || '15');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -36,11 +38,15 @@ const GeneralSettings = () => {
         setDayOffWorkMultiplier(res.data.dayOffWorkMultiplier || '1.5');
         setAbsencePenaltyMultiplier(res.data.absencePenaltyMultiplier || '2');
         setEnableLatePenalty(res.data.enableLatePenalty !== 'false');
+        setAllowedLunchBreakMinutes(res.data.allowedLunchBreakMinutes || '30');
+        setAllowedPrayerBreakMinutes(res.data.allowedPrayerBreakMinutes || '15');
         localStorage.setItem('logicalDayCutoff', res.data.logicalDayCutoff || '5');
         localStorage.setItem('allowedDelayMinutes', res.data.allowedDelayMinutes || '15');
         localStorage.setItem('dayOffWorkMultiplier', res.data.dayOffWorkMultiplier || '1.5');
         localStorage.setItem('absencePenaltyMultiplier', res.data.absencePenaltyMultiplier || '2');
         localStorage.setItem('enableLatePenalty', res.data.enableLatePenalty || 'true');
+        localStorage.setItem('allowedLunchBreakMinutes', res.data.allowedLunchBreakMinutes || '30');
+        localStorage.setItem('allowedPrayerBreakMinutes', res.data.allowedPrayerBreakMinutes || '15');
       } else {
         setTargetCalls('30');
         setLogicalDayCutoff('5');
@@ -49,6 +55,8 @@ const GeneralSettings = () => {
         setDayOffWorkMultiplier('1.5');
         setAbsencePenaltyMultiplier('2');
         setEnableLatePenalty(true);
+        setAllowedLunchBreakMinutes('30');
+        setAllowedPrayerBreakMinutes('15');
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
@@ -60,6 +68,8 @@ const GeneralSettings = () => {
       setDayOffWorkMultiplier('1.5');
       setAbsencePenaltyMultiplier('2');
       setEnableLatePenalty(true);
+      setAllowedLunchBreakMinutes('30');
+      setAllowedPrayerBreakMinutes('15');
     } finally {
       setLoading(false);
     }
@@ -110,11 +120,23 @@ const GeneralSettings = () => {
         value: enableLatePenalty.toString()
       });
 
+      await api.put('/settings', {
+        key: 'allowedLunchBreakMinutes',
+        value: allowedLunchBreakMinutes.toString()
+      });
+
+      await api.put('/settings', {
+        key: 'allowedPrayerBreakMinutes',
+        value: allowedPrayerBreakMinutes.toString()
+      });
+
       localStorage.setItem('logicalDayCutoff', logicalDayCutoff.toString());
       localStorage.setItem('autoCheckoutHours', autoCheckoutHours);
       localStorage.setItem('dayOffWorkMultiplier', dayOffWorkMultiplier);
       localStorage.setItem('absencePenaltyMultiplier', absencePenaltyMultiplier);
       localStorage.setItem('enableLatePenalty', enableLatePenalty);
+      localStorage.setItem('allowedLunchBreakMinutes', allowedLunchBreakMinutes.toString());
+      localStorage.setItem('allowedPrayerBreakMinutes', allowedPrayerBreakMinutes.toString());
       
       showToast('تم حفظ الإعدادات بنجاح', 'success');
     } catch (error) {
@@ -253,6 +275,41 @@ const GeneralSettings = () => {
 
                 <div className="gs-hint" style={{ marginTop: '1rem' }}>
                   الوقت المسموح به بعد بداية الوردية. الحضور بعد هذا الوقت يُسجل تأخير (مثال: 15 دقيقة).
+                </div>
+              </div>
+            </div>
+
+            {/* Break Time Limits */}
+            <div className="gs-card">
+              <div className="gs-card-header">
+                <div className="gs-card-icon"><Clock size={24} /></div>
+                <div className="gs-card-title">
+                  <h3>إعدادات الاستراحات (بالدقائق)</h3>
+                  <p>حدد المدة المسموح بها لكل استراحة. الوقت الإضافي يُسجل كتأخير.</p>
+                </div>
+              </div>
+              <div className="gs-card-content">
+                <div className="gs-input-group" style={{ display: 'flex', gap: '1rem', flexDirection: 'column' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>بريك الغداء المسموح (دقائق)</label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      className="gs-input" 
+                      value={allowedLunchBreakMinutes}
+                      onChange={(e) => setAllowedLunchBreakMinutes(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>بريك الصلاة المسموح (دقائق)</label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      className="gs-input" 
+                      value={allowedPrayerBreakMinutes}
+                      onChange={(e) => setAllowedPrayerBreakMinutes(e.target.value)}
+                    />
+                  </div>
                 </div>
               </div>
             </div>

@@ -24,7 +24,7 @@ export const ToastProvider = ({ children }) => {
             bottom: '2rem', 
             left: '2rem', 
             padding: '1rem 2rem', 
-            background: 'var(--bg-main)', 
+            background: 'var(--solid-bg)', 
             border: `1px solid ${toast.type === 'success' ? '#22c55e' : '#ef4444'}`, 
             borderRadius: '12px', 
             color: 'var(--text-primary)', 

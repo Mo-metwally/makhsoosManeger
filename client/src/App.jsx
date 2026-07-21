@@ -58,6 +58,8 @@ function AppContent() {
   const [showSummaryReminder, setShowSummaryReminder] = useState(false);
   const [activeWorkShift, setActiveWorkShift] = useState(null);
 
+  const [showWalletWarning, setShowWalletWarning] = useState(true);
+
   const [leaveStatus, setLeaveStatus] = useState(null); // 'Absent' | 'DayOff'
   const [overrideLeave, setOverrideLeave] = useState(false);
 
@@ -313,6 +315,38 @@ function AppContent() {
                 style={{ flex: 1, background: 'rgba(255,255,255,0.1)', color: 'var(--text-primary)', padding: '1rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem' }}
               >
                 تخطي
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Wallet Warning Modal */}
+      {user && !user.walletNumber && showWalletWarning && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
+          <div className="fade-in" style={{ background: 'var(--solid-bg)', padding: '2.5rem', borderRadius: '16px', maxWidth: '450px', width: '90%', textAlign: 'center', border: '1px solid #ef4444', boxShadow: '0 10px 40px rgba(239, 68, 68, 0.3)' }}>
+            <div style={{ color: '#ef4444', marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+              <TriangleAlert size={64} />
+            </div>
+            <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem', fontSize: '1.8rem' }}>البيانات المالية غير مكتملة!</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '1.1rem', lineHeight: '1.6' }}>
+              برجاء تسجيل <strong>رقم المحفظة الإلكترونية</strong> الخاص بك لتتمكن من استلام مستحقاتك وسلفك. لن تتمكن من استلام أي مبالغ بدون تسجيل رقم المحفظة.
+            </p>
+            <div style={{ display: 'flex', gap: '1rem', flexDirection: 'column' }}>
+              <button 
+                onClick={() => {
+                  setShowWalletWarning(false);
+                  window.location.href = '/account';
+                }}
+                style={{ background: '#ef4444', color: 'white', padding: '1rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem' }}
+              >
+                الذهاب لتسجيل البيانات المالية
+              </button>
+              <button 
+                onClick={() => setShowWalletWarning(false)}
+                style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', padding: '0.8rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                تذكيري لاحقاً
               </button>
             </div>
           </div>

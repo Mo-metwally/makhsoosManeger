@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Calendar, Briefcase, LogIn, LogOut, CheckCircle, Info, Users } from 'lucide-react';
+import { Clock, Calendar, Briefcase, LogIn, LogOut, CheckCircle, Info, Users, XCircle, Plane } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import './Account.css'; // Reuse container styles
@@ -18,6 +18,7 @@ const Attendance = () => {
   const { user } = useAuth();
   const [logs, setLogs] = useState([]);
   const [myShifts, setMyShifts] = useState([]);
+  const [expandedRowId, setExpandedRowId] = useState(null);
 
   useEffect(() => {
     document.title = "الحضور والانصراف | مخصوص";
@@ -165,7 +166,13 @@ const Attendance = () => {
               </thead>
               <tbody>
                 {logs.map(log => (
-                  <tr key={log.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <React.Fragment key={log.id}>
+                  <tr 
+                    style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', cursor: log.notes ? 'pointer' : 'default' }}
+                    onClick={() => {
+                      if (log.notes) setExpandedRowId(expandedRowId === log.id ? null : log.id);
+                    }}
+                  >
                     <td style={{ padding: '1rem' }}>{formatDate(log.date)}</td>
                     <td style={{ padding: '1rem', fontWeight: 'bold' }}>{user ? user.fullName : '---'}</td>
                     <td style={{ padding: '1rem' }}>{log.Shift ? log.Shift.name : '---'}</td>
@@ -177,11 +184,52 @@ const Attendance = () => {
                       {calculateDelay(log.checkInTime, log.Shift?.startTime)}
                     </td>
                     <td style={{ padding: '1rem' }}>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', borderRadius: '20px', fontSize: '0.85rem' }}>
-                        <CheckCircle size={14} /> مسجل
-                      </span>
+                      {log.status === 'Absent' ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderRadius: '20px', fontSize: '0.85rem' }}>
+                          <XCircle size={14} /> غياب
+                        </span>
+                      ) : log.status === 'BusinessTrip' ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: 'rgba(14, 165, 233, 0.1)', color: '#0ea5e9', borderRadius: '20px', fontSize: '0.85rem' }}>
+                          <Plane size={14} /> سفر عمل
+                        </span>
+                      ) : log.status === 'DayOff' ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', borderRadius: '20px', fontSize: '0.85rem' }}>
+                          <Calendar size={14} /> إجازة عادية
+                        </span>
+                      ) : log.status === 'DayOffWork' ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', borderRadius: '20px', fontSize: '0.85rem' }}>
+                          <Briefcase size={14} /> عمل بإجازة
+                        </span>
+                      ) : log.status === 'Late' ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', borderRadius: '20px', fontSize: '0.85rem' }}>
+                          <Clock size={14} /> تأخير
+                        </span>
+                      ) : (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', borderRadius: '20px', fontSize: '0.85rem' }}>
+                          <CheckCircle size={14} /> حضور
+                        </span>
+                      )}
+                      {log.notes && (
+                        <div style={{ fontSize: '0.75rem', color: 'var(--theme-color)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Info size={12} /> اضغط لعرض السبب
+                        </div>
+                      )}
                     </td>
                   </tr>
+                  {expandedRowId === log.id && log.notes && (
+                    <tr className="tf-expanded-row">
+                      <td colSpan="7" style={{ padding: '0 1.5rem 1.5rem 1.5rem', borderTop: 'none' }}>
+                        <div style={{ padding: '1rem 1.5rem', background: 'rgba(255, 255, 255, 0.04)', borderRadius: '0 0 12px 12px', borderRight: '3px solid var(--theme-color)', color: 'var(--text-secondary)', textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '-0.8rem', boxShadow: 'inset 0 4px 6px -4px rgba(0,0,0,0.1)' }}>
+                          <strong style={{ color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem' }}>
+                            <Info size={16} style={{ color: 'var(--theme-color)' }} />
+                            السبب المرفق:
+                          </strong>
+                          <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '0.9rem', marginRight: '24px', color: 'rgba(255,255,255,0.7)' }}>{log.notes}</div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>

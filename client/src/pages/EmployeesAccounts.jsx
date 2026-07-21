@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { DollarSign, Search, Calendar, ChevronDown, CheckCircle, Clock, Edit, Eye, User, TrendingUp, TrendingDown, Award, Trash2, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import AvatarIcon from '../components/AvatarIcon';
 import './EmployeesAccounts.css';
 import { useToast } from '../contexts/ToastContext';
@@ -9,8 +9,11 @@ import { useToast } from '../contexts/ToastContext';
 const EmployeesAccounts = () => {
   const date = new Date();
   const todayMonthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialMonth = searchParams.get('monthKey') || todayMonthKey;
 
-  const [selectedMonth, setSelectedMonth] = useState(todayMonthKey);
+  const [selectedMonth, setSelectedMonth] = useState(initialMonth);
   const [loading, setLoading] = useState(true);
   const [accounts, setAccounts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,10 +25,15 @@ const EmployeesAccounts = () => {
   const [adjustmentReason, setAdjustmentReason] = useState('');
   const [editingAdjustmentId, setEditingAdjustmentId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [filterType, setFilterType] = useState('active');
+  const [settlementModal, setSettlementModal] = useState({ isOpen: false, account: null });
   const { showToast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (selectedMonth) {
+      setSearchParams({ monthKey: selectedMonth }, { replace: true });
+    }
     fetchData();
   }, [selectedMonth]);
 
@@ -33,18 +41,20 @@ const EmployeesAccounts = () => {
     setLoading(true);
     try {
       // Fetch users, advances, and logs concurrently
-      const [usersRes, advancesRes, logsRes, settingsRes, adjustmentsRes] = await Promise.all([
+      const [usersRes, advancesRes, logsRes, settingsRes, adjustmentsRes, settlementsRes] = await Promise.all([
         api.get('/admin/users'),
         api.get('/advances/all', { params: { monthKey: selectedMonth } }),
         api.get('/attendance/all-logs', { params: { monthKey: selectedMonth } }),
         api.get('/settings'),
-        api.get('/salary-adjustments/all', { params: { monthKey: selectedMonth } })
+        api.get('/salary-adjustments/all', { params: { monthKey: selectedMonth } }),
+        api.get('/settlements', { params: { monthKey: selectedMonth } }).catch(() => ({ data: [] }))
       ]);
 
       const users = Array.isArray(usersRes.data) ? usersRes.data.filter(u => u.Shifts && u.Shifts.length > 0) : [];
       const advances = Array.isArray(advancesRes.data) ? advancesRes.data : (advancesRes.data?.advances || []);
       const logs = Array.isArray(logsRes.data) ? logsRes.data : (logsRes.data?.logs || []);
       const adjustments = Array.isArray(adjustmentsRes.data) ? adjustmentsRes.data : [];
+      const settlements = Array.isArray(settlementsRes.data) ? settlementsRes.data : [];
 
       const settingsMap = {};
       if (settingsRes.data && Array.isArray(settingsRes.data)) {
@@ -74,10 +84,20 @@ const EmployeesAccounts = () => {
           dayOffWorkCount: 0,
           lateMins: 0,
           totalAdvances: 0,
+          totalAdvances: 0,
           manualAdditions: 0,
           manualDeductions: 0,
+          settlementStatus: 'Active',
+          settledAt: null,
           details: []
         };
+      });
+
+      settlements.forEach(s => {
+        if (userStats[s.userId]) {
+          userStats[s.userId].settlementStatus = s.status;
+          userStats[s.userId].settledAt = s.settledAt;
+        }
       });
 
       // Calculate Advances
@@ -210,9 +230,12 @@ const EmployeesAccounts = () => {
           totalDeductions,
           totalAdvances: stat.totalAdvances,
           netSalary,
+          settlementStatus: stat.settlementStatus,
+          settledAt: stat.settledAt,
           details: sortedDetails,
           absentCount: stat.absentCount,
-          lateMins: stat.lateMins
+          lateMins: stat.lateMins,
+          user: stat.user
         };
       });
 
@@ -242,7 +265,7 @@ const EmployeesAccounts = () => {
     setSelectedAccount(acc);
     setAdjustmentType(det.type);
     setAdjustmentAmount(det.amount);
-    
+
     if (!det.id.startsWith('adj-')) {
       setAdjustmentReason(`تعديل على: ${det.category} (${det.date})`);
       setEditingAdjustmentId('AUTO_OFFSET_' + det.id);
@@ -250,17 +273,17 @@ const EmployeesAccounts = () => {
       setAdjustmentReason(det.reason || '');
       setEditingAdjustmentId(det.id.replace('adj-', ''));
     }
-    
+
     setShowAdjustmentModal(true);
   };
 
   const handleDeleteAdjustmentRow = async (e, det) => {
     e.stopPropagation();
-    
+
     if (!det.id.startsWith('adj-')) {
       const isConfirmed = window.confirm('هذه عملية تلقائية ناتجة من الحضور والانصراف. حذفها سيقوم بإضافة عملية تعويضية يدوية لإلغاء تأثيرها. هل تريد الاستمرار؟');
       if (!isConfirmed) return;
-      
+
       try {
         await api.post('/salary-adjustments/add', {
           userId: selectedAccount ? selectedAccount.id : det.userId,
@@ -314,7 +337,7 @@ const EmployeesAccounts = () => {
         });
         showToast('تمت إضافة العملية بنجاح', 'success');
       }
-      
+
       setShowAdjustmentModal(false);
       setEditingAdjustmentId(null);
       fetchData(); // Refresh data
@@ -326,7 +349,41 @@ const EmployeesAccounts = () => {
     }
   };
 
-  const filteredAccounts = accounts.filter(acc =>
+  const handleToggleSettlement = async (status) => {
+    try {
+      await api.post('/settlements/toggle', {
+        userId: settlementModal.account.id,
+        monthKey: selectedMonth,
+        status: status,
+        accountDetails: {
+          netSalary: settlementModal.account.netSalary,
+          baseEarnings: settlementModal.account.baseEarnings,
+          totalAdditions: settlementModal.account.totalAdditions,
+          totalDeductions: settlementModal.account.totalDeductions,
+          totalAdvances: settlementModal.account.totalAdvances,
+          presentCount: settlementModal.account.presentCount,
+          dayOffCount: settlementModal.account.dayOffCount,
+          absentCount: settlementModal.account.absentCount,
+          walletNumber: settlementModal.account.user?.walletNumber || 'غير محدد',
+          walletType: settlementModal.account.user?.walletType || 'غير محدد',
+          employeeEmail: settlementModal.account.user?.email,
+          employeeName: settlementModal.account.name
+        }
+      });
+      showToast('تم تحديث حالة التسوية بنجاح', 'success');
+      setSettlementModal({ isOpen: false, account: null });
+      fetchData(); // Reload data
+    } catch (err) {
+      console.error(err);
+      showToast('حدث خطأ أثناء التحديث', 'error');
+    }
+  };
+
+  const filteredAccounts = accounts.filter(acc => {
+    if (filterType === 'settled' && acc.settlementStatus !== 'Settled') return false;
+    if (filterType === 'active' && acc.settlementStatus === 'Settled') return false;
+    return true;
+  }).filter(acc =>
     acc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     acc.username.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -335,39 +392,65 @@ const EmployeesAccounts = () => {
 
   return (
     <div className="employees-accounts-page fade-in">
-      <div className="accounts-header">
-        <div className="header-title">
-          <DollarSign className="theme-color" size={32} />
-          <h1>حسابات الموظفين</h1>
-        </div>
-        <div className="header-actions">
-          <div className="search-bar">
-            <Search size={18} className="search-icon" />
+
+      {/* Top Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', padding: '1.5rem', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.05)', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)' }}>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <input
+            type="month"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            style={{ padding: '0.8rem 1.2rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: '1rem', outline: 'none' }}
+          />
+          <div style={{ position: 'relative' }}>
+            <Search size={18} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
             <input
               type="text"
               placeholder="بحث باسم الموظف..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ padding: '0.8rem 1.2rem 0.8rem 2.5rem', paddingRight: '2.5rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: '1rem', outline: 'none', width: '250px' }}
             />
           </div>
-          <input
-            type="month"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="month-picker"
-          />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: 0, color: 'var(--text-primary)', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>حسابات الموظفين</h1>
+          <DollarSign color="var(--theme-color)" size={36} style={{ filter: 'drop-shadow(0 0 8px var(--theme-color))' }} />
         </div>
       </div>
 
-      <div className="accounts-summary-card">
-        <div className="summary-info">
-          <h3>إجمالي الرواتب الصافية المطلوبة</h3>
-          <p>هذا الرقم يمثل المجموع الكلي للرواتب المتوقع دفعها للموظفين أعلاه بعد كل الخصومات والإضافات والسلف.</p>
+      {/* Advanced Summary Card */}
+      <div style={{ background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '24px', padding: '2.5rem', marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 20px 50px rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)' }}>
+        <div style={{ background: 'rgba(0, 0, 0, 0.3)', padding: '1.5rem 2.5rem', borderRadius: '16px', border: '1px solid rgba(59, 130, 246, 0.2)', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.5)' }}>
+          <span style={{ fontSize: '2.5rem', fontWeight: '900', color: '#3b82f6', textShadow: '0 0 15px rgba(59,130,246,0.5)', fontFamily: 'system-ui' }}>{totalNetSalaries.toLocaleString()}</span>
+          <span style={{ fontSize: '1.2rem', color: '#60a5fa', fontWeight: 'bold', marginTop: '10px' }}>ج.م</span>
         </div>
-        <div className="summary-value">
-          <span className="amount">{totalNetSalaries.toLocaleString()}</span>
-          <span className="currency">ج.م</span>
+        <div style={{ textAlign: 'right', maxWidth: '500px' }}>
+          <h2 style={{ fontSize: '1.8rem', margin: '0 0 1rem 0', color: '#fff', fontWeight: 'bold' }}>إجمالي الرواتب الصافية المطلوبة</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', margin: 0, lineHeight: '1.6' }}>هذا الرقم يمثل المجموع الكلي للرواتب المتوقع دفعها للموظفين أعلاه بعد كل الخصومات والإضافات والسلف.</p>
         </div>
+      </div>
+
+      {/* Filter Tabs (Moved below summary as requested) */}
+      <div style={{ display: 'flex', gap: '1rem', width: '100%', maxWidth: '600px', margin: '0 auto 2rem auto', background: 'rgba(255,255,255,0.03)', padding: '0.5rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+        <button
+          onClick={() => setFilterType('all')}
+          style={{ flex: 1, padding: '1rem', borderRadius: '12px', border: 'none', cursor: 'pointer', background: filterType === 'all' ? 'linear-gradient(135deg, var(--theme-color) 0%, rgba(245, 158, 11, 0.8) 100%)' : 'transparent', color: filterType === 'all' ? '#000' : 'var(--text-secondary)', fontWeight: 'bold', fontSize: '1.1rem', transition: 'all 0.3s', boxShadow: filterType === 'all' ? '0 5px 15px rgba(245, 158, 11, 0.3)' : 'none' }}
+        >
+          الكل
+        </button>
+        <button
+          onClick={() => setFilterType('active')}
+          style={{ flex: 1, padding: '1rem', borderRadius: '12px', border: 'none', cursor: 'pointer', background: filterType === 'active' ? 'linear-gradient(135deg, var(--theme-color) 0%, rgba(245, 158, 11, 0.8) 100%)' : 'transparent', color: filterType === 'active' ? '#000' : 'var(--text-secondary)', fontWeight: 'bold', fontSize: '1.1rem', transition: 'all 0.3s', boxShadow: filterType === 'active' ? '0 5px 15px rgba(245, 158, 11, 0.3)' : 'none' }}
+        >
+          حسابات جارية
+        </button>
+        <button
+          onClick={() => setFilterType('settled')}
+          style={{ flex: 1, padding: '1rem', borderRadius: '12px', border: 'none', cursor: 'pointer', background: filterType === 'settled' ? 'linear-gradient(135deg, var(--theme-color) 0%, rgba(245, 158, 11, 0.8) 100%)' : 'transparent', color: filterType === 'settled' ? '#000' : 'var(--text-secondary)', fontWeight: 'bold', fontSize: '1.1rem', transition: 'all 0.3s', boxShadow: filterType === 'settled' ? '0 5px 15px rgba(245, 158, 11, 0.3)' : 'none' }}
+        >
+          تم التسوية
+        </button>
       </div>
 
       <div className="accounts-table-container">
@@ -397,8 +480,8 @@ const EmployeesAccounts = () => {
               ) : (
                 filteredAccounts.map((acc, index) => (
                   <React.Fragment key={acc.id}>
-                    <tr 
-                      className="account-row clickable-row" 
+                    <tr
+                      className="account-row clickable-row"
                       onClick={() => setExpandedRow(expandedRow === acc.id ? null : acc.id)}
                       style={{ cursor: 'pointer', animationDelay: `${index * 0.05}s` }}
                     >
@@ -449,6 +532,14 @@ const EmployeesAccounts = () => {
                       <td>
                         <div className="action-buttons">
                           <button
+                            className="action-btn"
+                            style={{ background: acc.settlementStatus === 'Settled' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)', color: acc.settlementStatus === 'Settled' ? '#10b981' : '#3b82f6', border: '1px solid currentColor', borderRadius: '8px', padding: '0.4rem', cursor: 'pointer', transition: 'all 0.3s' }}
+                            onClick={(e) => { e.stopPropagation(); setSettlementModal({ isOpen: true, account: acc }); }}
+                            title={acc.settlementStatus === 'Settled' ? "تم التسوية (اضغط للتعديل)" : "إجراء تسوية"}
+                          >
+                            <CheckCircle size={22} style={{ opacity: acc.settlementStatus === 'Settled' ? 1 : 0.5 }} />
+                          </button>
+                          <button
                             className="action-btn edit-btn2"
                             onClick={(e) => { e.stopPropagation(); handleEditClick(acc); }}
                             title="تعديل الحساب (إضافة خصم أو إضافي)"
@@ -457,7 +548,7 @@ const EmployeesAccounts = () => {
                           </button>
                           <button
                             className="action-btn view-btn"
-                            onClick={(e) => { e.stopPropagation(); navigate(`/my-advances/${acc.id}`); }}
+                            onClick={(e) => { e.stopPropagation(); navigate(`/my-advances/${acc.id}?monthKey=${selectedMonth}`); }}
                             title="عرض التفاصيل المالية"
                           >
                             <Eye size={22} />
@@ -474,83 +565,84 @@ const EmployeesAccounts = () => {
                             </h4>
                             <div style={{ overflowX: 'auto', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
                               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
-                              <thead style={{ background: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                                <tr>
-                                  <th style={{ padding: '0.8rem', textAlign: 'right', color: 'var(--text-secondary)' }}>التاريخ</th>
-                                  <th style={{ padding: '0.8rem', textAlign: 'right', color: 'var(--text-secondary)' }}>الوقت</th>
-                                  <th style={{ padding: '0.8rem', textAlign: 'right', color: 'var(--text-secondary)' }}>التصنيف</th>
-                                  <th style={{ padding: '0.8rem', textAlign: 'center', color: 'var(--text-secondary)' }}>النوع</th>
-                                  <th style={{ padding: '0.8rem', textAlign: 'center', color: 'var(--text-secondary)' }}>المبلغ</th>
-                                  <th style={{ padding: '0.8rem', textAlign: 'right', color: 'var(--text-secondary)' }}>السبب</th>
-                                  <th style={{ padding: '0.8rem', textAlign: 'center', color: 'var(--text-secondary)' }}>إجراءات</th>
-                                </tr>
-                              </thead>
-                              <tbody style={{ background: 'transparent' }}>
-                                {acc.details.map(det => {
-                                  const isAuto = !det.id.startsWith('adj-');
-                                  return (
-                                  <tr key={det.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.2s' }} className="hover-row">
-                                    <td style={{ padding: '0.8rem', color: 'var(--text-primary)' }}>{det.date}</td>
-                                    <td style={{ padding: '0.8rem', color: 'var(--text-primary)' }}>{det.time || '-'}</td>
-                                    <td style={{ padding: '0.8rem', color: 'var(--text-primary)' }}>{det.category}</td>
-                                    <td style={{ padding: '0.8rem', textAlign: 'center' }}>
-                                      <span style={{ 
-                                        background: det.type === 'Addition' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                                        color: det.type === 'Addition' ? '#10b981' : '#ef4444',
-                                        padding: '0.3rem 0.8rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 'bold',
-                                        display: 'inline-block'
-                                      }}>
-                                        {det.type === 'Addition' ? 'إضافي' : 'خصم'} {isAuto ? '(تلقائي)' : ''}
-                                      </span>
-                                    </td>
-                                    <td style={{ padding: '0.8rem', textAlign: 'center', fontWeight: 'bold', color: det.type === 'Addition' ? '#10b981' : '#ef4444' }}>
-                                      <span dir="ltr">{det.type === 'Addition' ? '+' : '-'}{det.amount.toLocaleString()}</span> ج.م
-                                    </td>
-                                    <td style={{ padding: '0.8rem', color: 'var(--text-secondary)' }}>{det.reason}</td>
-                                    <td style={{ padding: '0.8rem', textAlign: 'center' }}>
-                                      {isAuto ? (
-                                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                                          <button 
-                                            style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: '0.4rem', borderRadius: '6px' }}
-                                            onClick={(e) => handleEditAdjustmentRow(e, acc, det)}
-                                            title="تعديل قيمة العملية التلقائية"
-                                            className="hover-bg-blue"
-                                          >
-                                            <Edit size={18} />
-                                          </button>
-                                          <button 
-                                            style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.4rem', borderRadius: '6px' }}
-                                            onClick={(e) => handleDeleteAdjustmentRow(e, det)}
-                                            title="إلغاء العملية التلقائية"
-                                            className="hover-bg-red"
-                                          >
-                                            <Trash2 size={18} />
-                                          </button>
-                                        </div>
-                                      ) : (
-                                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                                          <button 
-                                            style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: '0.4rem', borderRadius: '6px' }}
-                                            onClick={(e) => handleEditAdjustmentRow(e, acc, det)}
-                                            title="تعديل"
-                                            className="hover-bg-blue"
-                                          >
-                                            <Edit size={18} />
-                                          </button>
-                                          <button 
-                                            style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.4rem', borderRadius: '6px' }}
-                                            onClick={(e) => handleDeleteAdjustmentRow(e, det)}
-                                            title="حذف"
-                                            className="hover-bg-red"
-                                          >
-                                            <Trash2 size={18} />
-                                          </button>
-                                        </div>
-                                      )}
-                                    </td>
+                                <thead style={{ background: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                  <tr>
+                                    <th style={{ padding: '0.8rem', textAlign: 'right', color: 'var(--text-secondary)' }}>التاريخ</th>
+                                    <th style={{ padding: '0.8rem', textAlign: 'right', color: 'var(--text-secondary)' }}>الوقت</th>
+                                    <th style={{ padding: '0.8rem', textAlign: 'right', color: 'var(--text-secondary)' }}>التصنيف</th>
+                                    <th style={{ padding: '0.8rem', textAlign: 'center', color: 'var(--text-secondary)' }}>النوع</th>
+                                    <th style={{ padding: '0.8rem', textAlign: 'center', color: 'var(--text-secondary)' }}>المبلغ</th>
+                                    <th style={{ padding: '0.8rem', textAlign: 'right', color: 'var(--text-secondary)' }}>السبب</th>
+                                    <th style={{ padding: '0.8rem', textAlign: 'center', color: 'var(--text-secondary)' }}>إجراءات</th>
                                   </tr>
-                                )})}
-                              </tbody>
+                                </thead>
+                                <tbody style={{ background: 'transparent' }}>
+                                  {acc.details.map(det => {
+                                    const isAuto = !det.id.startsWith('adj-');
+                                    return (
+                                      <tr key={det.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.2s' }} className="hover-row">
+                                        <td style={{ padding: '0.8rem', color: 'var(--text-primary)' }}>{det.date}</td>
+                                        <td style={{ padding: '0.8rem', color: 'var(--text-primary)' }}>{det.time || '-'}</td>
+                                        <td style={{ padding: '0.8rem', color: 'var(--text-primary)' }}>{det.category}</td>
+                                        <td style={{ padding: '0.8rem', textAlign: 'center' }}>
+                                          <span style={{
+                                            background: det.type === 'Addition' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                                            color: det.type === 'Addition' ? '#10b981' : '#ef4444',
+                                            padding: '0.3rem 0.8rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 'bold',
+                                            display: 'inline-block'
+                                          }}>
+                                            {det.type === 'Addition' ? 'إضافي' : 'خصم'} {isAuto ? '(تلقائي)' : ''}
+                                          </span>
+                                        </td>
+                                        <td style={{ padding: '0.8rem', textAlign: 'center', fontWeight: 'bold', color: det.type === 'Addition' ? '#10b981' : '#ef4444' }}>
+                                          <span dir="ltr">{det.type === 'Addition' ? '+' : '-'}{det.amount.toLocaleString()}</span> ج.م
+                                        </td>
+                                        <td style={{ padding: '0.8rem', color: 'var(--text-secondary)' }}>{det.reason}</td>
+                                        <td style={{ padding: '0.8rem', textAlign: 'center' }}>
+                                          {isAuto ? (
+                                            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                              <button
+                                                style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: '0.4rem', borderRadius: '6px' }}
+                                                onClick={(e) => handleEditAdjustmentRow(e, acc, det)}
+                                                title="تعديل قيمة العملية التلقائية"
+                                                className="hover-bg-blue"
+                                              >
+                                                <Edit size={18} />
+                                              </button>
+                                              <button
+                                                style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.4rem', borderRadius: '6px' }}
+                                                onClick={(e) => handleDeleteAdjustmentRow(e, det)}
+                                                title="إلغاء العملية التلقائية"
+                                                className="hover-bg-red"
+                                              >
+                                                <Trash2 size={18} />
+                                              </button>
+                                            </div>
+                                          ) : (
+                                            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                              <button
+                                                style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: '0.4rem', borderRadius: '6px' }}
+                                                onClick={(e) => handleEditAdjustmentRow(e, acc, det)}
+                                                title="تعديل"
+                                                className="hover-bg-blue"
+                                              >
+                                                <Edit size={18} />
+                                              </button>
+                                              <button
+                                                style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.4rem', borderRadius: '6px' }}
+                                                onClick={(e) => handleDeleteAdjustmentRow(e, det)}
+                                                title="حذف"
+                                                className="hover-bg-red"
+                                              >
+                                                <Trash2 size={18} />
+                                              </button>
+                                            </div>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    )
+                                  })}
+                                </tbody>
                               </table>
                             </div>
                           </div>
@@ -651,6 +743,71 @@ const EmployeesAccounts = () => {
           </div>
         </div>
       )}
+      {/* Settlement Modal */}
+      {settlementModal.isOpen && settlementModal.account && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'var(--solid-bg)', padding: '2rem', borderRadius: '16px', width: '90%', maxWidth: '400px', border: '1px solid var(--border-color)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+            <h3 style={{ color: 'var(--text-primary)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <CheckCircle size={24} className="text-blue" />
+              تأكيد التسوية المالية
+            </h3>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+              الموظف: <strong>{settlementModal.account.name}</strong>
+            </p>
+            <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>صافي المستحقات:</span>
+                <strong style={{ color: 'var(--text-primary)' }}>{settlementModal.account.netSalary.toLocaleString()} ج.م</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>نوع حساب الاستلام:</span>
+                <strong style={{ color: settlementModal.account.user?.walletType === 'InstaPay' ? '#a855f7' : 'var(--theme-color)' }}>
+                  {settlementModal.account.user?.walletType === 'InstaPay' ? 'انستا باي (InstaPay)' : 'محفظة إلكترونية (كاش)'}
+                </strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>
+                  {settlementModal.account.user?.walletType === 'InstaPay' ? 'عنوان / رقم انستا باي:' : 'رقم المحفظة الإلكترونية:'}
+                </span>
+                <strong style={{ color: 'var(--text-primary)' }}>
+                  {settlementModal.account.user?.walletNumber || settlementModal.account.user?.phone || 'غير مسجل'}
+                </strong>
+              </div>
+            </div>
+
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+              {settlementModal.account.settlementStatus === 'Settled'
+                ? 'هذا الحساب تم تسويته بالفعل. هل تريد إلغاء التسوية وإعادته كحساب جاري؟'
+                : 'هل أنت متأكد من تسوية هذا الحساب؟ لن يظهر في الحسابات الجارية بعد الآن إلا إذا قمت بإلغاء التسوية.'}
+            </p>
+
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              {settlementModal.account.settlementStatus !== 'Settled' ? (
+                <button
+                  onClick={() => handleToggleSettlement('Settled')}
+                  style={{ flex: 1, background: '#10b981', color: 'white', padding: '0.8rem', borderRadius: '8px', cursor: 'pointer', border: 'none', fontWeight: 'bold' }}
+                >
+                  تأكيد التسوية
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleToggleSettlement('Active')}
+                  style={{ flex: 1, background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', color: '#ef4444', padding: '0.8rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  إلغاء التسوية
+                </button>
+              )}
+              <button
+                onClick={() => setSettlementModal({ isOpen: false, account: null })}
+                style={{ flex: 1, background: 'rgba(255,255,255,0.1)', color: 'var(--text-primary)', padding: '0.8rem', borderRadius: '8px', cursor: 'pointer', border: 'none' }}
+              >
+                تراجع
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

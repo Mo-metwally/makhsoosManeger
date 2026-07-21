@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Wallet, PlusCircle, Clock, CheckCircle, XCircle, DollarSign, Calendar, X, Send, Trash2, Edit } from 'lucide-react';
+import { Wallet, PlusCircle, Clock, CheckCircle, XCircle, DollarSign, Calendar, X, Send, Trash2, Edit, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../contexts/ToastContext';
+import { useParams, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import './MyAdvances.css';
 import './Expenses.css'; // For advanced table styles
-
-import { useParams } from 'react-router-dom';
 
 const MyAdvances = () => {
   const { user } = useAuth();
@@ -30,16 +30,26 @@ const MyAdvances = () => {
   const [editAdjReason, setEditAdjReason] = useState('');
   const [adjCurrentPage, setAdjCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [showAddModal, setShowAddModal] = useState(false);
 
-  const todayMonthKey = new Date().toISOString().slice(0, 7);
-  const [selectedMonth, setSelectedMonth] = useState(todayMonthKey);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const date = new Date();
+  const todayMonthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  const initialMonth = searchParams.get('monthKey') || todayMonthKey;
+
+  const [selectedMonth, setSelectedMonth] = useState(initialMonth);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
 
   useEffect(() => {
+    if (selectedMonth) {
+      setSearchParams({ monthKey: selectedMonth }, { replace: true });
+    }
     fetchRequests();
     // eslint-disable-next-line
   }, [selectedMonth]);
 
   const fetchRequests = () => {
+    setIsDataLoaded(false);
     const endpoint = userId ? `/advances/user/${userId}?monthKey=${selectedMonth}` : `/advances/me?monthKey=${selectedMonth}`;
     api.get(endpoint)
       .then(res => {
@@ -70,7 +80,6 @@ const MyAdvances = () => {
         const allowedDelayMinutes = Number(localStorage.getItem('allowedDelayMinutes') || '15');
         const enableLatePenalty = localStorage.getItem('enableLatePenalty') !== 'false';
         const dailyRate = salary / 30;
-        
         const earnings = (localPresentCount + localDayOffCount) * dailyRate;
         setBaseEarnings(Math.round(earnings));
 
@@ -157,8 +166,12 @@ const MyAdvances = () => {
 
         setTotalDeductions(autoDeductions + manualDeds);
         setTotalAdditions(autoAdditions + manualAdds);
+        setIsDataLoaded(true);
       })
-      .catch(err => console.error('Error fetching advance requests:', err));
+      .catch(err => {
+        console.error('Error fetching advance requests:', err);
+        setIsDataLoaded(true);
+      });
   };
 
   const formatTime12Hour = (dateStr) => {
@@ -272,6 +285,18 @@ const MyAdvances = () => {
           )}
         </div>
       </div>
+
+      {isDataLoaded && baseSalary === 0 && (
+        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '12px', padding: '1.5rem', marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', animation: 'fadeIn 0.5s ease-out' }}>
+          <AlertTriangle color="#ef4444" size={32} style={{ flexShrink: 0 }} />
+          <div>
+            <h3 style={{ color: '#ef4444', marginBottom: '0.5rem', fontSize: '1.1rem' }}>تنبيه هام: البيانات المالية غير مكتملة</h3>
+            <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.95rem', lineHeight: '1.5' }}>
+              يجب تسجيل البيانات المالية الخاصة بالحساب (مثل الراتب الأساسي) حتى يعمل النظام بشكل صحيح وتتمكن من رؤية تفاصيل مستحقاتك بدقة. يرجى مراجعة الإدارة لاستكمال إعداد الحساب.
+            </p>
+          </div>
+        </div>
+      )}
 
       <section className="expenses-hero-section" style={{ position: 'relative', marginTop: '2rem', marginBottom: '2rem' }}>
         <div className="expenses-main-row">

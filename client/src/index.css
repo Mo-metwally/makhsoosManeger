@@ -22,6 +22,8 @@
   --accent-blue: var(--theme-color);
   --theme-glow: rgba(59, 130, 246, 0.4);
   --btn-text-color: #ffffff;
+  
+  --solid-bg: color-mix(in srgb, var(--theme-color) 12%, var(--base-bg));
 }
 
 /* 1. User - Default Blue Dark */

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Activity, Search, Trash2, ChevronRight, ChevronLeft, Users, LogIn, LogOut, CheckCircle, Calendar, Edit2, X, Save, Clock, XCircle, Briefcase } from 'lucide-react';
+import { Activity, Search, Trash2, ChevronRight, ChevronLeft, Users, LogIn, LogOut, CheckCircle, Calendar, Edit2, X, Save, Clock, XCircle, Briefcase, Plane, Info } from 'lucide-react';
 import AdminGuard from '../components/AdminGuard';
 import CustomSelect from '../components/CustomSelect';
 import { getLogicalDateString } from '../utils/dateHelpers';
@@ -23,7 +23,8 @@ const HandleAdminReports = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 8; // Adjust if needed
 
-  const [editModal, setEditModal] = useState({ isOpen: false, log: null, checkInTime: '', checkOutTime: '', status: '' });
+  const [editModal, setEditModal] = useState({ isOpen: false, log: null, checkInTime: '', checkOutTime: '', status: '', notes: '' });
+  const [expandedRowId, setExpandedRowId] = useState(null);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -56,10 +57,11 @@ const HandleAdminReports = () => {
       const res = await api.put(`/attendance/admin/log/${editModal.log.id}`, {
         checkInTime: editModal.checkInTime ? createIso(editModal.checkInTime) : undefined,
         checkOutTime: editModal.checkOutTime ? createIso(editModal.checkOutTime) : undefined,
-        status: editModal.status || undefined
+        status: editModal.status || undefined,
+        notes: editModal.notes
       });
       showToast('تم تحديث السجل بنجاح', 'success');
-      setEditModal({ isOpen: false, log: null, checkInTime: '', checkOutTime: '', status: '' });
+      setEditModal({ isOpen: false, log: null, checkInTime: '', checkOutTime: '', status: '', notes: '' });
       fetchAttendanceLogs();
     } catch (err) {
       console.error('Error updating log time:', err);
@@ -286,123 +288,155 @@ const HandleAdminReports = () => {
               </thead>
               <tbody>
                 {currentLogs.map(log => (
-                  <tr key={log.id}>
-                    <td>
-                      <div style={{ fontWeight: 'bold', color: 'var(--theme-color)', fontSize: '1.1rem' }}>{log.User ? log.User.fullName : '---'}</div>
-                      <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.2rem', marginBottom: '0.5rem' }}>{log.User ? log.User.jobTitle : ''}</div>
-                      {log.userId && (
-                        <Link
-                          to={`/personal-followup/${log.userId}`}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.3rem',
-                            padding: '0.3rem 0.6rem',
-                            background: 'rgba(59, 130, 246, 0.15)',
-                            color: '#60a5fa',
-                            borderRadius: '4px',
-                            textDecoration: 'none',
-                            fontSize: '0.75rem',
-                            fontWeight: 'bold',
-                            transition: 'background 0.2s',
+                  <React.Fragment key={log.id}>
+                    <tr
+                      onClick={() => {
+                        if (log.notes) setExpandedRowId(expandedRowId === log.id ? null : log.id);
+                      }}
+                      style={{ cursor: log.notes ? 'pointer' : 'default' }}
+                    >
+                      <td>
+                        <div style={{ fontWeight: 'bold', color: 'var(--theme-color)', fontSize: '1.1rem' }}>{log.User ? log.User.fullName : '---'}</div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.2rem', marginBottom: '0.5rem' }}>{log.User ? log.User.jobTitle : ''}</div>
+                        {log.userId && (
+                          <Link
+                            to={`/personal-followup/${log.userId}`}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.3rem',
+                              padding: '0.3rem 0.6rem',
+                              background: 'rgba(59, 130, 246, 0.15)',
+                              color: '#60a5fa',
+                              borderRadius: '4px',
+                              textDecoration: 'none',
+                              fontSize: '0.75rem',
+                              fontWeight: 'bold',
+                              transition: 'background 0.2s',
+                            }}
+                            onMouseOver={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.25)'}
+                            onMouseOut={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)'}
+                            title="عرض إحصائيات الموظف"
+                          >
+                            <Activity size={14} />
+                            متابعة الأداء
+                          </Link>
+                        )}
+                      </td>
+                      <td>{formatDate(log.date)}</td>
+                      <td>{log.Shift ? log.Shift.name : '---'}</td>
+                      <td style={{ color: log.checkInTime ? '#10b981' : 'var(--text-secondary)' }}>
+                        {log.checkInTime ? <><LogIn size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> {formatTime(log.checkInTime)}</> : '---'}
+                      </td>
+                      <td style={{ color: log.checkOutTime ? '#ef4444' : 'var(--text-secondary)' }}>
+                        {log.checkOutTime ? <><LogOut size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> {formatTime(log.checkOutTime)}</> : (log.status === 'Present' ? 'لم ينصرف بعد' : '---')}
+                      </td>
+                      <td>
+                        <div style={{ fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                          {log.breakDetails && log.breakDetails['بريك صلاة'] > 0 && (
+                            <div style={{ color: 'var(--text-secondary)' }}><span style={{ marginRight: '4px' }}>🕋</span>صلاة: {(() => {
+                              const totalMins = Math.floor(log.breakDetails['بريك صلاة'] / 60000);
+                              const hours = Math.floor(totalMins / 60);
+                              const mins = totalMins % 60;
+                              return hours > 0 ? `${hours} س ${mins} د` : `${mins} دقيقة`;
+                            })()}</div>
+                          )}
+                          {log.breakDetails && log.breakDetails['بريك غداء'] > 0 && (
+                            <div style={{ color: 'var(--text-secondary)' }}><span style={{ marginRight: '4px' }}>🍔</span>غداء: {(() => {
+                              const totalMins = Math.floor(log.breakDetails['بريك غداء'] / 60000);
+                              const hours = Math.floor(totalMins / 60);
+                              const mins = totalMins % 60;
+                              return hours > 0 ? `${hours} س ${mins} د` : `${mins} دقيقة`;
+                            })()}</div>
+                          )}
+                          {(!log.breakDetails || (log.breakDetails['بريك صلاة'] === 0 && log.breakDetails['بريك غداء'] === 0)) && (
+                            <span style={{ color: 'var(--text-secondary)' }}>لا يوجد</span>
+                          )}
+                        </div>
+                      </td>
+                      <td style={{ color: '#f59e0b', fontWeight: 'bold' }}>
+                        {calculateDelay(log.checkInTime, log.Shift?.startTime)}
+                      </td>
+                      <td>
+                        {log.status === 'Absent' ? (
+                          <span className="status-badge" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
+                            <X size={14} /> غياب
+                          </span>
+                        ) : log.status === 'BusinessTrip' ? (
+                          <span className="status-badge" style={{ background: 'rgba(14, 165, 233, 0.1)', color: '#0ea5e9' }}>
+                            <Plane size={14} /> سفر عمل
+                          </span>
+                        ) : log.status === 'DayOff' ? (
+                          <span className="status-badge" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
+                            <Calendar size={14} /> إجازة عادية
+                          </span>
+                        ) : log.status === 'DayOffWork' ? (
+                          <span className="status-badge" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' }}>
+                            <Briefcase size={14} /> عمل بإجازة
+                          </span>
+                        ) : log.status === 'Late' ? (
+                          <span className="status-badge" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
+                            <Clock size={14} /> تأخير
+                          </span>
+                        ) : (
+                          <span className="status-badge" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+                            <CheckCircle size={14} /> حضور
+                          </span>
+                        )}
+                        {log.notes && (
+                          <div style={{ fontSize: '0.75rem', color: 'var(--theme-color)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Info size={12} /> اضغط لعرض السبب
+                          </div>
+                        )}
+                      </td>
+                      <td>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditModal({
+                              isOpen: true,
+                              log: log,
+                              checkInTime: log.checkInTime ? new Date(new Date(log.checkInTime).getTime() - (new Date(log.checkInTime).getTimezoneOffset() * 60000)).toISOString().slice(11, 16) : '',
+                              checkOutTime: log.checkOutTime ? new Date(new Date(log.checkOutTime).getTime() - (new Date(log.checkOutTime).getTimezoneOffset() * 60000)).toISOString().slice(11, 16) : '',
+                              status: log.status,
+                              notes: log.notes || ''
+                            });
                           }}
-                          onMouseOver={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.25)'}
-                          onMouseOut={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)'}
-                          title="عرض إحصائيات الموظف"
+                          style={{
+                            background: 'rgba(255, 255, 255, 0.1)',
+                            border: 'none',
+                            color: 'var(--text-secondary)',
+                            padding: '0.5rem',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: '0.3s'
+                          }}
+                          title="تعديل الوقت"
+                          onMouseOver={(e) => e.currentTarget.style.color = 'var(--theme-color)'}
+                          onMouseOut={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
                         >
-                          <Activity size={14} />
-                          متابعة الأداء
-                        </Link>
-                      )}
-                    </td>
-                    <td>{formatDate(log.date)}</td>
-                    <td>{log.Shift ? log.Shift.name : '---'}</td>
-                    <td style={{ color: log.checkInTime ? '#10b981' : 'var(--text-secondary)' }}>
-                      {log.checkInTime ? <><LogIn size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> {formatTime(log.checkInTime)}</> : '---'}
-                    </td>
-                    <td style={{ color: log.checkOutTime ? '#ef4444' : 'var(--text-secondary)' }}>
-                      {log.checkOutTime ? <><LogOut size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> {formatTime(log.checkOutTime)}</> : (log.status === 'Present' ? 'لم ينصرف بعد' : '---')}
-                    </td>
-                    <td>
-                      <div style={{ fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                        {log.breakDetails && log.breakDetails['بريك صلاة'] > 0 && (
-                          <div style={{ color: 'var(--text-secondary)' }}><span style={{ marginRight: '4px' }}>🕋</span>صلاة: {(() => {
-                            const totalMins = Math.floor(log.breakDetails['بريك صلاة'] / 60000);
-                            const hours = Math.floor(totalMins / 60);
-                            const mins = totalMins % 60;
-                            return hours > 0 ? `${hours} س ${mins} د` : `${mins} دقيقة`;
-                          })()}</div>
-                        )}
-                        {log.breakDetails && log.breakDetails['بريك غداء'] > 0 && (
-                          <div style={{ color: 'var(--text-secondary)' }}><span style={{ marginRight: '4px' }}>🍔</span>غداء: {(() => {
-                            const totalMins = Math.floor(log.breakDetails['بريك غداء'] / 60000);
-                            const hours = Math.floor(totalMins / 60);
-                            const mins = totalMins % 60;
-                            return hours > 0 ? `${hours} س ${mins} د` : `${mins} دقيقة`;
-                          })()}</div>
-                        )}
-                        {(!log.breakDetails || (log.breakDetails['بريك صلاة'] === 0 && log.breakDetails['بريك غداء'] === 0)) && (
-                          <span style={{ color: 'var(--text-secondary)' }}>لا يوجد</span>
-                        )}
-                      </div>
-                    </td>
-                    <td style={{ color: '#f59e0b', fontWeight: 'bold' }}>
-                      {calculateDelay(log.checkInTime, log.Shift?.startTime)}
-                    </td>
-                    <td>
-                      {log.status === 'Absent' ? (
-                        <span className="status-badge" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
-                          <X size={14} /> غياب
-                        </span>
-                      ) : log.status === 'DayOff' ? (
-                        <span className="status-badge" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
-                          <Calendar size={14} /> إجازة عادية
-                        </span>
-                      ) : log.status === 'DayOffWork' ? (
-                        <span className="status-badge" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' }}>
-                          <Briefcase size={14} /> عمل بإجازة
-                        </span>
-                      ) : log.status === 'Late' ? (
-                        <span className="status-badge" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
-                          <Clock size={14} /> تأخير
-                        </span>
-                      ) : (
-                        <span className="status-badge" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
-                          <CheckCircle size={14} /> حضور
-                        </span>
-                      )}
-                    </td>
-                    <td>
-                      <button 
-                        onClick={() => {
-                          setEditModal({
-                            isOpen: true,
-                            log: log,
-                            checkInTime: log.checkInTime ? new Date(log.checkInTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '',
-                            checkOutTime: log.checkOutTime ? new Date(log.checkOutTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '',
-                            status: log.status
-                          });
-                        }}
-                        style={{
-                          background: 'rgba(255, 255, 255, 0.1)',
-                          border: 'none',
-                          color: 'var(--text-secondary)',
-                          padding: '0.5rem',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: '0.3s'
-                        }}
-                        title="تعديل الوقت"
-                        onMouseOver={(e) => e.currentTarget.style.color = 'var(--theme-color)'}
-                        onMouseOut={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
-                      >
-                        <Edit2 size={18} />
-                      </button>
-                    </td>
-                  </tr>
+                          <Edit2 size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                    {expandedRowId === log.id && log.notes && (
+                      <tr className="tf-expanded-row">
+                        <td colSpan="9" style={{ padding: '0 1.5rem 1.5rem 1.5rem', borderTop: 'none' }}>
+                          <div style={{ padding: '1rem 1.5rem', background: 'rgba(255, 255, 255, 0.04)', borderRadius: '0 0 12px 12px', borderRight: '3px solid var(--theme-color)', color: 'var(--text-secondary)', textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '-0.8rem', boxShadow: 'inset 0 4px 6px -4px rgba(0,0,0,0.1)' }}>
+                            <strong style={{ color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem' }}>
+                              <Info size={16} style={{ color: 'var(--theme-color)' }} />
+                              السبب المرفق:
+                            </strong>
+                            <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '0.9rem', marginRight: '24px', color: 'rgba(255,255,255,0.7)' }}>{log.notes}</div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))}
               </tbody>
             </table>
@@ -440,41 +474,42 @@ const HandleAdminReports = () => {
       {/* Edit Time Modal */}
       {editModal.isOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'var(--bg-main)', padding: '2rem', borderRadius: '16px', width: '90%', maxWidth: '400px', border: '1px solid var(--border-color)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+          <div style={{ background: 'var(--solid-bg)', padding: '2rem', borderRadius: '16px', width: '90%', maxWidth: '700px', border: '1px solid var(--border-color)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', maxHeight: '90vh', overflowY: 'auto' }}>
             <h3 style={{ color: 'var(--text-primary)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Edit2 size={24} className="text-blue" />
               تعديل أوقات السجل
             </h3>
             <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-              موظف: <strong>{editModal.log?.User?.fullName}</strong><br/>
+              موظف: <strong>{editModal.log?.User?.fullName}</strong><br />
               تاريخ: {formatDate(editModal.log?.date)}
             </p>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>وقت الحضور</label>
-              <input 
-                type="time" 
-                value={editModal.checkInTime} 
-                onChange={(e) => setEditModal({...editModal, checkInTime: e.target.value})}
-                style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
-              />
-            </div>
-            
-            <div style={{ marginBottom: '2rem' }}>
-              <label style={{ display: 'block', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>وقت الانصراف</label>
-              <input 
-                type="time" 
-                value={editModal.checkOutTime} 
-                onChange={(e) => setEditModal({...editModal, checkOutTime: e.target.value})}
-                style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
-              />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+              <div>
+                <label style={{ display: 'block', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>وقت الحضور</label>
+                <input
+                  type="time"
+                  value={editModal.checkInTime}
+                  onChange={(e) => setEditModal({ ...editModal, checkInTime: e.target.value })}
+                  style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>وقت الانصراف</label>
+                <input
+                  type="time"
+                  value={editModal.checkOutTime}
+                  onChange={(e) => setEditModal({ ...editModal, checkOutTime: e.target.value })}
+                  style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+                />
+              </div>
             </div>
 
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={{ display: 'block', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>حالة الحضور</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                <div 
-                  onClick={() => setEditModal({...editModal, status: 'Present'})}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.75rem' }}>
+                <div
+                  onClick={() => setEditModal({ ...editModal, status: 'Present' })}
                   style={{
                     padding: '0.75rem', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
                     border: editModal.status === 'Present' ? '2px solid #10b981' : '1px solid rgba(255,255,255,0.1)',
@@ -484,9 +519,9 @@ const HandleAdminReports = () => {
                   <CheckCircle size={20} color={editModal.status === 'Present' ? '#10b981' : 'var(--text-secondary)'} />
                   <span style={{ color: editModal.status === 'Present' ? '#10b981' : 'var(--text-primary)', fontWeight: editModal.status === 'Present' ? 'bold' : 'normal' }}>حضور</span>
                 </div>
-                
-                <div 
-                  onClick={() => setEditModal({...editModal, status: 'Absent'})}
+
+                <div
+                  onClick={() => setEditModal({ ...editModal, status: 'Absent' })}
                   style={{
                     padding: '0.75rem', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
                     border: editModal.status === 'Absent' ? '2px solid #ef4444' : '1px solid rgba(255,255,255,0.1)',
@@ -496,9 +531,21 @@ const HandleAdminReports = () => {
                   <XCircle size={20} color={editModal.status === 'Absent' ? '#ef4444' : 'var(--text-secondary)'} />
                   <span style={{ color: editModal.status === 'Absent' ? '#ef4444' : 'var(--text-primary)', fontWeight: editModal.status === 'Absent' ? 'bold' : 'normal' }}>غياب</span>
                 </div>
-                
-                <div 
-                  onClick={() => setEditModal({...editModal, status: 'Late'})}
+
+                <div
+                  onClick={() => setEditModal({ ...editModal, status: 'BusinessTrip' })}
+                  style={{
+                    padding: '0.75rem', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                    border: editModal.status === 'BusinessTrip' ? '2px solid #0ea5e9' : '1px solid rgba(255,255,255,0.1)',
+                    background: editModal.status === 'BusinessTrip' ? 'rgba(14, 165, 233, 0.15)' : 'rgba(255,255,255,0.02)',
+                    transition: 'all 0.2s ease'
+                  }}>
+                  <Plane size={20} color={editModal.status === 'BusinessTrip' ? '#0ea5e9' : 'var(--text-secondary)'} />
+                  <span style={{ color: editModal.status === 'BusinessTrip' ? '#0ea5e9' : 'var(--text-primary)', fontWeight: editModal.status === 'BusinessTrip' ? 'bold' : 'normal' }}>سفر عمل</span>
+                </div>
+
+                <div
+                  onClick={() => setEditModal({ ...editModal, status: 'Late' })}
                   style={{
                     padding: '0.75rem', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
                     border: editModal.status === 'Late' ? '2px solid #f59e0b' : '1px solid rgba(255,255,255,0.1)',
@@ -508,9 +555,9 @@ const HandleAdminReports = () => {
                   <Clock size={20} color={editModal.status === 'Late' ? '#f59e0b' : 'var(--text-secondary)'} />
                   <span style={{ color: editModal.status === 'Late' ? '#f59e0b' : 'var(--text-primary)', fontWeight: editModal.status === 'Late' ? 'bold' : 'normal' }}>تأخير</span>
                 </div>
-                
-                <div 
-                  onClick={() => setEditModal({...editModal, status: 'DayOff'})}
+
+                <div
+                  onClick={() => setEditModal({ ...editModal, status: 'DayOff' })}
                   style={{
                     padding: '0.75rem', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
                     border: editModal.status === 'DayOff' ? '2px solid #3b82f6' : '1px solid rgba(255,255,255,0.1)',
@@ -521,8 +568,8 @@ const HandleAdminReports = () => {
                   <span style={{ color: editModal.status === 'DayOff' ? '#3b82f6' : 'var(--text-primary)', fontWeight: editModal.status === 'DayOff' ? 'bold' : 'normal' }}>إجازة عادية</span>
                 </div>
 
-                <div 
-                  onClick={() => setEditModal({...editModal, status: 'DayOffWork'})}
+                <div
+                  onClick={() => setEditModal({ ...editModal, status: 'DayOffWork' })}
                   style={{
                     padding: '0.75rem', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
                     border: editModal.status === 'DayOffWork' ? '2px solid #8b5cf6' : '1px solid rgba(255,255,255,0.1)',
@@ -535,15 +582,38 @@ const HandleAdminReports = () => {
               </div>
             </div>
 
+            <div style={{ marginBottom: '1.5rem', background: 'rgba(0,0,0,0.15)', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h3 style={{ margin: 0, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)' }}>
+                  <Edit2 size={18} /> ملاحظة (السبب)
+                </h3>
+                {editModal.notes && (
+                  <button
+                    onClick={() => setEditModal({ ...editModal, notes: '' })}
+                    style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', borderRadius: '6px', padding: '0.3rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                    title="حذف الملاحظة"
+                  >
+                    <X size={14} /> حذف
+                  </button>
+                )}
+              </div>
+              <textarea
+                value={editModal.notes}
+                onChange={(e) => setEditModal({ ...editModal, notes: e.target.value })}
+                placeholder="أدخل سبب التعديل أو تفاصيل الإجازة/سفر العمل..."
+                style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'white', minHeight: '80px', fontFamily: 'inherit', resize: 'vertical' }}
+              />
+            </div>
+
             <div style={{ display: 'flex', gap: '1rem' }}>
-              <button 
+              <button
                 onClick={handleEditTime}
                 style={{ flex: 1, background: 'var(--theme-color)', color: 'white', padding: '0.8rem', borderRadius: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', border: 'none', fontWeight: 'bold' }}
               >
                 <Save size={18} /> حفظ
               </button>
-              <button 
-                onClick={() => setEditModal({ isOpen: false, log: null, checkInTime: '', checkOutTime: '', status: '' })}
+              <button
+                onClick={() => setEditModal({ isOpen: false, log: null, checkInTime: '', checkOutTime: '', status: '', notes: '' })}
                 style={{ flex: 1, background: 'rgba(255,255,255,0.1)', color: 'var(--text-primary)', padding: '0.8rem', borderRadius: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', border: 'none' }}
               >
                 <X size={18} /> إلغاء

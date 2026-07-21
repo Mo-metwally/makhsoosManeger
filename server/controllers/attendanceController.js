@@ -1,4 +1,4 @@
-const { AttendanceLog, Shift, User, DayOffRequest, InactivityLog, PerformanceLog } = require('../models');
+const { AttendanceLog, Shift, User, DayOffRequest, InactivityLog, PerformanceLog, Setting } = require('../models');
 const { getLogicalDate } = require('../utils/dateUtils');
 const { Op } = require('sequelize');
 
@@ -168,7 +168,14 @@ exports.getLogs = async (req, res) => {
 
 exports.getAllLogs = async (req, res) => {
   try {
+    const { monthKey } = req.query;
+    let whereClause = {};
+    if (monthKey) {
+      whereClause.date = { [Op.startsWith]: monthKey };
+    }
+
     const logs = await AttendanceLog.findAll({
+      where: whereClause,
       include: [
         { model: Shift },
         { model: User, attributes: ['id', 'fullName', 'username', 'jobTitle'] }
@@ -176,7 +183,11 @@ exports.getAllLogs = async (req, res) => {
       order: [['date', 'DESC'], ['createdAt', 'DESC']]
     });
 
-    const inactivityLogs = await InactivityLog.findAll();
+
+
+    const inactivityLogs = await InactivityLog.findAll(
+      monthKey ? { where: { startTime: { [Op.startsWith]: monthKey } } } : {}
+    );
     const breakMap = {}; // Key: "userId-YYYY-MM-DD"
 
     inactivityLogs.forEach(log => {
@@ -199,12 +210,19 @@ exports.getAllLogs = async (req, res) => {
       return logData;
     });
 
+    let dayOffWhereClause = { status: 'Approved' };
+    if (monthKey) {
+      dayOffWhereClause.date = { [Op.startsWith]: monthKey };
+    }
+
     const dayOffs = await DayOffRequest.findAll({
-      where: { status: 'Approved' },
+      where: dayOffWhereClause,
       include: [{ model: User, attributes: ['id', 'fullName', 'username', 'jobTitle'] }]
     });
 
-    const dayOffLogs = dayOffs.map(d => ({
+    const dayOffLogs = dayOffs
+      .filter(d => !resultLogs.some(log => log.userId === d.userId && log.date === d.date))
+      .map(d => ({
       id: d.id,
       userId: d.userId,
       date: d.date,
@@ -233,7 +251,7 @@ exports.getAllLogs = async (req, res) => {
 
 exports.registerAbsence = async (req, res) => {
   try {
-    const { userId, date } = req.body;
+    const { userId, date, notes } = req.body;
     if (!userId || !date) {
       return res.status(400).json({ error: 'يجب تحديد الموظف والتاريخ' });
     }
@@ -259,15 +277,12 @@ exports.registerAbsence = async (req, res) => {
     const activeShift = user.Shifts && user.Shifts.find(shift => shift.workingDays.includes(dayName));
     const shiftId = activeShift ? activeShift.id : (user.Shifts && user.Shifts.length > 0 ? user.Shifts[0].id : null);
     
-    if (!shiftId) {
-      return res.status(400).json({ error: 'لا يمكن تسجيل الغياب: الموظف غير مرتبط بأي وردية' });
-    }
-
     const log = await AttendanceLog.create({
       userId,
-      shiftId,
+      shiftId: shiftId || null,
       date,
-      status: 'Absent'
+      status: 'Absent',
+      notes
     });
 
     res.status(201).json({ message: 'تم تسجيل غياب الموظف بنجاح', log });
@@ -360,18 +375,26 @@ exports.getTodayStatus = async (req, res) => {
     const summaryMap = {};
     performanceLogs.forEach(p => summaryMap[p.userId] = true);
 
+    // Fetch Settings
+    const settings = await Setting.findAll();
+    const settingsMap = {};
+    settings.forEach(s => settingsMap[s.key] = s.value);
+    const allowedLunchBreakMinutes = parseInt(settingsMap['allowedLunchBreakMinutes'] || '30', 10);
+    const allowedPrayerBreakMinutes = parseInt(settingsMap['allowedPrayerBreakMinutes'] || '15', 10);
+
     const attendanceMap = {};
     attendances.forEach(a => {
       attendanceMap[a.userId] = {
         status: a.status || (a.checkOutTime ? 'CheckedOut' : 'Present'),
         checkInTime: a.checkInTime,
-        checkOutTime: a.checkOutTime
+        checkOutTime: a.checkOutTime,
+        notes: a.notes
       };
     });
 
     const dayoffMap = {};
     dayoffs.forEach(d => {
-      dayoffMap[d.userId] = 'DayOff';
+      dayoffMap[d.userId] = { status: 'DayOff', reason: d.reason };
     });
 
     // Get today's inactivity (break) logs
@@ -407,7 +430,7 @@ exports.getTodayStatus = async (req, res) => {
       
       if (attendanceMap[user.id]) {
         todayStatus = attendanceMap[user.id].status || 'Present';
-        if (attendanceMap[user.id].checkOutTime) {
+        if (attendanceMap[user.id].checkOutTime && attendanceMap[user.id].status !== 'BusinessTrip') {
           todayStatus = 'CheckedOut';
         }
         checkInTime = attendanceMap[user.id].checkInTime;
@@ -430,8 +453,17 @@ exports.getTodayStatus = async (req, res) => {
            const expected = new Date(checkInDate);
            expected.setHours(sh, sm, 0, 0);
            const diff = Math.floor((checkInDate - expected) / 60000);
-           if (diff > 0) lateMinutes = diff;
+           if (diff > 0) lateMinutes += diff;
         }
+      }
+
+      // Add break overages to lateMinutes
+      const userBreaks = breakMap[user.id] || { 'بريك صلاة': 0, 'بريك غداء': 0 };
+      if (userBreaks['بريك غداء'] > allowedLunchBreakMinutes) {
+        lateMinutes += (userBreaks['بريك غداء'] - allowedLunchBreakMinutes);
+      }
+      if (userBreaks['بريك صلاة'] > allowedPrayerBreakMinutes) {
+        lateMinutes += (userBreaks['بريك صلاة'] - allowedPrayerBreakMinutes);
       }
 
       return {
@@ -446,6 +478,7 @@ exports.getTodayStatus = async (req, res) => {
         checkInTime,
         checkOutTime,
         lateMinutes,
+        notes: attendanceMap[user.id] ? attendanceMap[user.id].notes : (dayoffMap[user.id] ? dayoffMap[user.id].reason : ''),
         breakDetails: breakMap[user.id] || { 'بريك صلاة': 0, 'بريك غداء': 0 },
         hasSummary: !!summaryMap[user.id]
       };
@@ -496,7 +529,7 @@ exports.adminUpdateStatus = async (req, res) => {
     const activeShift = user.Shifts && user.Shifts.find(shift => shift.workingDays.includes(dayName));
     const shiftId = activeShift ? activeShift.id : (user.Shifts && user.Shifts.length > 0 ? user.Shifts[0].id : null);
 
-    if (!shiftId && action !== 'DayOff') {
+    if (!shiftId && !['DayOff', 'BusinessTrip', 'Absent'].includes(action)) {
       return res.status(400).json({ error: 'الموظف غير مرتبط بوردية' });
     }
 
@@ -535,16 +568,17 @@ exports.adminUpdateStatus = async (req, res) => {
         break;
 
       case 'Absent':
+      case 'BusinessTrip':
         if (dayOff) await dayOff.destroy();
         if (!attendance) {
           await AttendanceLog.create({
-            userId, shiftId, date: today, status: 'Absent', notes
+            userId, shiftId, date: today, status: action, notes
           });
         } else {
-          attendance.status = 'Absent';
+          attendance.status = action;
           attendance.checkInTime = null;
           attendance.checkOutTime = null;
-          if (notes) attendance.notes = (attendance.notes ? attendance.notes + '\\n' + notes : notes);
+          if (notes) attendance.notes = (attendance.notes ? attendance.notes + '\n' + notes : notes);
           await attendance.save();
         }
         break;
@@ -596,7 +630,7 @@ exports.adminUpdateStatus = async (req, res) => {
 exports.updateLogTime = async (req, res) => {
   try {
     const { id } = req.params;
-    const { checkInTime, checkOutTime, status } = req.body;
+    const { checkInTime, checkOutTime, status, notes } = req.body;
 
     const log = await AttendanceLog.findByPk(id);
     if (!log) {
@@ -619,7 +653,7 @@ exports.updateLogTime = async (req, res) => {
     
     if (status) {
       log.status = status;
-      if (status === 'Absent' || status === 'DayOffWork' || status === 'DayOff') {
+      if (status === 'Absent' || status === 'DayOffWork' || status === 'DayOff' || status === 'BusinessTrip') {
         log.checkInTime = null;
         log.checkOutTime = null;
       }
@@ -627,6 +661,10 @@ exports.updateLogTime = async (req, res) => {
 
     if (log.checkInTime && log.checkOutTime && new Date(log.checkOutTime) < new Date(log.checkInTime)) {
       log.checkOutTime = new Date(new Date(log.checkOutTime).getTime() + 24 * 60 * 60 * 1000);
+    }
+
+    if (notes !== undefined) {
+      log.notes = notes;
     }
 
     await log.save();

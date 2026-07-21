@@ -33,7 +33,7 @@
 
 .tf-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2.5rem;
 }
@@ -90,6 +90,10 @@
   align-items: center;
   justify-content: center;
   color: white;
+}
+
+.bg-blue {
+  background: #3b82f6;
 }
 
 .bg-gray {
@@ -166,9 +170,11 @@
 .tf-admin-row td {
   background: rgba(249, 115, 22, 0.04);
 }
+
 .tf-admin-row td:first-child {
   border-right: 4px solid var(--primary-color);
 }
+
 .tf-admin-row:hover td {
   background: rgba(249, 115, 22, 0.08) !important;
 }
@@ -234,6 +240,12 @@
   background: rgba(239, 68, 68, 0.15);
   color: #f87171;
   border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.status-businesstrip {
+  background: rgba(14, 165, 233, 0.15);
+  color: #0ea5e9;
+  border: 1px solid rgba(14, 165, 233, 0.3);
 }
 
 .status-dayoff {
@@ -312,7 +324,7 @@
 }
 
 .tf-modal-content {
-  background: var(--bg-main);
+  background: var(--solid-bg);
   border: 1px solid var(--border-color);
   border-radius: 16px;
   width: 90%;
@@ -492,6 +504,12 @@
   background: rgba(239, 68, 68, 0.15);
   border-color: #ef4444;
   color: #ef4444;
+}
+
+.tf-adv-radio-label.active.businesstrip {
+  background: rgba(14, 165, 233, 0.15);
+  border-color: #0ea5e9;
+  color: #0ea5e9;
 }
 
 .tf-adv-radio-label.active.dayoff {

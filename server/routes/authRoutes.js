@@ -16,6 +16,7 @@ router.get('/check-username', authController.checkUsername);
 
 router.get('/me', authMiddleware, deviceLock, authController.me);
 router.put('/profile', authMiddleware, deviceLock, authController.updateProfile);
+router.post('/verify-password', authMiddleware, deviceLock, authController.verifyPassword);
 router.put('/change-password', authMiddleware, deviceLock, authController.changePassword);
 
 module.exports = router;

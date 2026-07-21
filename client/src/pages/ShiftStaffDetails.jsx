@@ -23,6 +23,7 @@ const ShiftStaffDetails = () => {
   
   // Modals state
   const [actionModal, setActionModal] = useState({ show: false, type: '', userId: null, userName: '' });
+  const [actionReason, setActionReason] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedSalary, setSelectedSalary] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
@@ -51,10 +52,12 @@ const ShiftStaffDetails = () => {
   };
 
   const openModal = (type, userId, userName, currentSalary) => {
-    const today = new Date().toISOString().split('T')[0];
-    setSelectedDate(today);
-    setSelectedSalary(currentSalary || '');
     setActionModal({ show: true, type, userId, userName });
+    setSelectedDate(new Date().toISOString().split('T')[0]);
+    setActionReason('');
+    if (type === 'salary') {
+      setSelectedSalary(currentSalary || '');
+    }
   };
 
   const closeModal = () => {
@@ -71,14 +74,15 @@ const ShiftStaffDetails = () => {
       if (actionModal.type === 'absence') {
         await api.post('/attendance/admin/absence', {
           userId: actionModal.userId,
-          date: selectedDate
+          date: selectedDate,
+          notes: actionReason || 'تسجيل يدوي بواسطة الإدارة'
         });
       } else if (actionModal.type === 'dayoff') {
         await api.post('/dayoff/admin/register', {
           userId: actionModal.userId,
           date: selectedDate,
           dayName: new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long' }),
-          reason: 'تسجيل يدوي بواسطة الإدارة'
+          reason: actionReason || 'تسجيل يدوي بواسطة الإدارة'
         });
       } else if (actionModal.type === 'salary') {
         await api.put(`/admin/users/${actionModal.userId}`, {
@@ -488,12 +492,11 @@ const ShiftStaffDetails = () => {
                         <span>غياب</span>
                       </button>
                       <button 
-                        className="action-btn dayoff-btn"
+                        className="action-btn dayoff-btn" 
                         onClick={() => openModal('dayoff', user.id, user.fullName)}
                         title="تسجيل إجازة"
                       >
-                        <CalendarRange size={18} />
-                        <span>إجازة</span>
+                        <Calendar size={16} />
                       </button>
                       <button 
                         className="action-btn"
@@ -538,15 +541,26 @@ const ShiftStaffDetails = () => {
                   />
                 </div>
               ) : (
-                <div className="form-group">
-                  <label>التاريخ:</label>
-                  <input 
-                    type="date" 
-                    value={selectedDate} 
-                    onChange={(e) => setSelectedDate(e.target.value)} 
-                    required 
-                  />
-                </div>
+                <>
+                  <div className="form-group">
+                    <label>التاريخ:</label>
+                    <input 
+                      type="date" 
+                      value={selectedDate} 
+                      onChange={(e) => setSelectedDate(e.target.value)} 
+                      required 
+                    />
+                  </div>
+                  <div className="form-group" style={{ marginTop: '1rem' }}>
+                    <label>السبب / الملاحظة (اختياري):</label>
+                    <textarea 
+                      value={actionReason}
+                      onChange={(e) => setActionReason(e.target.value)}
+                      placeholder="اكتب سبب الإجازة أو الغياب..."
+                      style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'white', minHeight: '80px', fontFamily: 'inherit', resize: 'vertical' }}
+                    />
+                  </div>
+                </>
               )}
               
               <div className="action-modal-footer">

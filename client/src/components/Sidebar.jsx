@@ -176,7 +176,7 @@ const Sidebar = () => {
               )}
             </button>
             {isNotifOpen && (
-              <div className="notif-dropdown glass-panel">
+              <div className="notif-dropdown glass-panel" style={{ background: "var(--solid-bg)" }}>
                 <div className="notif-header">
                   <h4>الإشعارات</h4>
                   {unreadCount > 0 && <span className="unread-text">{unreadCount} جديد</span>}

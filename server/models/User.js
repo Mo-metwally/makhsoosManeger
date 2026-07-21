@@ -37,6 +37,15 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: true
   },
+  walletNumber: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  walletType: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: 'E-Wallet'
+  },
   role: {
     type: DataTypes.ENUM('SuperAdmin', 'Admin', 'Supervisor'),
     defaultValue: 'Supervisor'

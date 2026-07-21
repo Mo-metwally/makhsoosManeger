@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Shield, Cat, Crown, Star, Smile, Briefcase, Check, Save, Flame, Zap, Heart, Moon, Sun, TriangleAlert, KeyRound, Loader2, XCircle, Eye, EyeOff, Info, Clock, Calendar, Users } from 'lucide-react';
+import { User, Shield, Cat, Crown, Star, Smile, Briefcase, Check, Save, Flame, Zap, Heart, Moon, Sun, TriangleAlert, KeyRound, Loader2, XCircle, Eye, EyeOff, Info, Clock, Calendar, Users, Wallet, CheckCircle, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import api from '../services/api';
@@ -26,6 +26,8 @@ const Account = () => {
     username: '',
     email: '',
     phone: '',
+    walletNumber: '',
+    walletType: 'E-Wallet',
     jobTitle: '',
     password: ''
   });
@@ -44,6 +46,12 @@ const Account = () => {
   const [appMode, setAppMode] = useState(localStorage.getItem('app-mode') || 'dark');
   const [myShifts, setMyShifts] = useState([]);
 
+  // Wallet Lock State
+  const [isWalletLocked, setIsWalletLocked] = useState(true);
+  const [showVerifyPwdModal, setShowVerifyPwdModal] = useState(false);
+  const [verifyPwdStr, setVerifyPwdStr] = useState('');
+  const [verifyPwdError, setVerifyPwdError] = useState('');
+
   const handleModeChange = (mode) => {
     setAppMode(mode);
     localStorage.setItem('app-mode', mode);
@@ -59,6 +67,8 @@ const Account = () => {
         username: user.username || '',
         email: user.email || '',
         phone: user.phone || '',
+        walletNumber: user.walletNumber || '',
+        walletType: user.walletType || 'E-Wallet',
         jobTitle: user.jobTitle || '',
         password: ''
       });
@@ -113,6 +123,21 @@ const Account = () => {
   const handleAvatarClick = (id) => {
     setSelectedAvatar(id);
     document.documentElement.setAttribute('data-theme', id);
+  };
+
+  const handleVerifyPassword = async () => {
+    try {
+      setVerifyPwdError('');
+      const res = await api.post('/auth/verify-password', { password: verifyPwdStr });
+      if (res.data.valid) {
+        setIsWalletLocked(false);
+        setShowVerifyPwdModal(false);
+        setVerifyPwdStr('');
+        showToast('تم فك القفل بنجاح، يمكنك الآن تعديل البيانات', 'success');
+      }
+    } catch (error) {
+      setVerifyPwdError(error.response?.data?.error || 'كلمة المرور غير صحيحة');
+    }
   };
 
   const handleSave = async (e) => {
@@ -182,10 +207,10 @@ const Account = () => {
             <h1 className="page-title gradient-title">إعدادات الحساب</h1>
           </div>
           {user?.isTrackerOnline && (
-            <div style={{ 
-              display: 'flex', alignItems: 'center', gap: '0.4rem', 
-              background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', 
-              color: '#22c55e', padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.9rem', fontWeight: 'bold' 
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '0.4rem',
+              background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)',
+              color: '#22c55e', padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.9rem', fontWeight: 'bold'
             }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', animation: 'pulse 2s infinite' }}></div>
               التراكر متصل
@@ -366,6 +391,102 @@ const Account = () => {
             </div>
 
             <div className="form-section">
+              <h3 className="section-title">البيانات المالية</h3>
+              <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '12px', padding: '1rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'flex-start', gap: '0.8rem' }}>
+                <TriangleAlert color="#ef4444" size={24} style={{ flexShrink: 0, marginTop: '2px' }} />
+                <div>
+                  <h4 style={{ color: '#ef4444', marginBottom: '0.3rem', fontSize: '0.95rem' }}>تنويه هام جدًا</h4>
+                  <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.85rem', lineHeight: '1.5' }}>
+                    بيانات التحويل المكتوبة هنا هي <strong>مسؤولية صاحب الحساب بالكامل</strong>، وسوف يتم إرسال كافة مستحقاتك المالية عليها. يرجى التأكد من صحتها ومراجعتها بعناية.
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ position: 'relative', marginTop: '1.5rem', marginBottom: '1.5rem', padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '12px' }}>
+                {isWalletLocked && (
+                  <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(3px)', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'white' }}>
+                      <Lock size={24} />
+                      <h4 style={{ margin: 0, fontSize: '1.1rem' }}>بيانات الدفع  </h4>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowVerifyPwdModal(true)}
+                      style={{
+                        backgroundColor: 'var(--theme-color)',
+                        color: 'white',
+                        border: 'none',
+                        padding: '0.6rem 1.2rem',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        transition: 'opacity 0.2s'
+                      }}
+                      onMouseOver={(e) => e.target.style.opacity = '0.9'}
+                      onMouseOut={(e) => e.target.style.opacity = '1'}
+                    >
+                      تعديل البيانات
+                    </button>
+                  </div>
+                )}
+
+                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                  <label>نوع حساب الاستلام</label>
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                    <label style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.8rem', padding: '1.5rem', borderRadius: '16px', border: `2px solid ${formData.walletType === 'E-Wallet' ? 'var(--theme-color)' : 'var(--border-color)'}`, background: formData.walletType === 'E-Wallet' ? 'rgba(var(--theme-color-rgb, 59, 130, 246), 0.1)' : 'rgba(255,255,255,0.02)', cursor: 'pointer', transition: 'all 0.3s', boxShadow: formData.walletType === 'E-Wallet' ? '0 8px 20px rgba(59, 130, 246, 0.2)' : 'none' }}>
+                      <input
+                        type="radio"
+                        name="walletType"
+                        value="E-Wallet"
+                        checked={formData.walletType === 'E-Wallet'}
+                        onChange={handleChange}
+                        style={{ display: 'none' }}
+                        disabled={isWalletLocked}
+                      />
+                      <Wallet size={32} color={formData.walletType === 'E-Wallet' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
+                      <span style={{ fontWeight: formData.walletType === 'E-Wallet' ? 'bold' : 'normal', color: formData.walletType === 'E-Wallet' ? 'var(--theme-color)' : 'var(--text-primary)', fontSize: '1.1rem' }}>محفظة إلكترونية</span>
+                      {formData.walletType === 'E-Wallet' && (
+                        <CheckCircle size={20} color="var(--theme-color)" style={{ position: 'absolute', top: '10px', right: '10px' }} />
+                      )}
+                    </label>
+
+                    <label style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.8rem', padding: '1.5rem', borderRadius: '16px', border: `2px solid ${formData.walletType === 'InstaPay' ? '#a855f7' : 'var(--border-color)'}`, background: formData.walletType === 'InstaPay' ? 'rgba(168, 85, 247, 0.1)' : 'rgba(255,255,255,0.02)', cursor: 'pointer', transition: 'all 0.3s', boxShadow: formData.walletType === 'InstaPay' ? '0 8px 20px rgba(168, 85, 247, 0.2)' : 'none' }}>
+                      <input
+                        type="radio"
+                        name="walletType"
+                        value="InstaPay"
+                        checked={formData.walletType === 'InstaPay'}
+                        onChange={handleChange}
+                        style={{ display: 'none' }}
+                        disabled={isWalletLocked}
+                      />
+                      <Zap size={32} color={formData.walletType === 'InstaPay' ? '#a855f7' : 'var(--text-secondary)'} />
+                      <span style={{ fontWeight: formData.walletType === 'InstaPay' ? 'bold' : 'normal', color: formData.walletType === 'InstaPay' ? '#a855f7' : 'var(--text-primary)', fontSize: '1.1rem' }}>انستا باي (InstaPay)</span>
+                      {formData.walletType === 'InstaPay' && (
+                        <CheckCircle size={20} color="#a855f7" style={{ position: 'absolute', top: '10px', right: '10px' }} />
+                      )}
+                    </label>
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>{formData.walletType === 'InstaPay' ? 'عنوان الدفع الخاص بانستا باي (IPA) أو رقم الهاتف' : 'رقم المحفظة الإلكترونية (فودافون كاش - اتصالات كاش - إلخ)'}</label>
+                    <input
+                      type="text"
+                      name="walletNumber"
+                      value={formData.walletNumber}
+                      onChange={handleChange}
+                      placeholder={formData.walletType === 'InstaPay' ? 'أدخل عنوان انستا باي (مثال: user@instapay) أو الرقم' : 'أدخل رقم المحفظة (مثال: 010XXXXXXX)'}
+                      style={{ borderColor: formData.walletType === 'InstaPay' && formData.walletNumber ? '#6b21a8' : '' }}
+                      disabled={isWalletLocked}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="form-section">
               <h3 className="section-title">مظهر التطبيق (الوضع النهاري/الليلي)</h3>
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                 <button
@@ -516,6 +637,42 @@ const Account = () => {
               >
                 نعم، احذف كل شيء
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showVerifyPwdModal && (
+        <div className="modal-overlay active" onClick={() => setShowVerifyPwdModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Lock size={24} className="text-blue" />
+                تأكيد هويتك
+              </h2>
+              <button className="close-btn" onClick={() => setShowVerifyPwdModal(false)}>&times;</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>
+                يرجى إدخال كلمة مرور حسابك لتتمكن من تعديل بيانات الدفع والمحفظة الإلكترونية.
+              </p>
+              {verifyPwdError && <div className="error-message" style={{ color: '#ef4444', marginBottom: '1rem', background: 'rgba(239, 68, 68, 0.1)', padding: '0.5rem', borderRadius: '4px' }}>{verifyPwdError}</div>}
+              <div className="form-group">
+                <label>كلمة المرور</label>
+                <input
+                  type="password"
+                  value={verifyPwdStr}
+                  onChange={(e) => setVerifyPwdStr(e.target.value)}
+                  required
+                  style={{ width: '100%' }}
+                  onKeyDown={(e) => e.key === 'Enter' && handleVerifyPassword()}
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="modal-footer" style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              <button type="button" className="btn-cancel" onClick={() => setShowVerifyPwdModal(false)}>إلغاء</button>
+              <button type="button" className="btn-save" onClick={handleVerifyPassword}>تأكيد</button>
             </div>
           </div>
         </div>

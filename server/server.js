@@ -34,6 +34,7 @@ const dayOffRoutes = require('./routes/dayOffRoutes');
 const budgetRoutes = require('./routes/budgetRoutes');
 const advanceRoutes = require('./routes/advanceRoutes');
 const salaryAdjustmentRoutes = require('./routes/salaryAdjustmentRoutes');
+const settlementRoutes = require('./routes/settlementRoutes');
 // const backupRoutes = require('./routes/backupRoutes');
 const settingRoutes = require('./routes/settingRoutes');
 
@@ -69,6 +70,7 @@ app.use('/api/dayoff', dayOffRoutes);
 app.use('/api/budget', budgetRoutes);
 app.use('/api/advances', advanceRoutes);
 app.use('/api/salary-adjustments', salaryAdjustmentRoutes);
+app.use('/api/settlements', settlementRoutes);
 // app.use('/api/backup', backupRoutes);
 app.use('/api/settings', settingRoutes);
 
@@ -114,6 +116,19 @@ const startServer = async () => {
 
     await sequelize.sync({ alter: true });
     console.log('[INFO] Database synced');
+
+    // Verify all tables exist and are readable
+    const models = Object.keys(sequelize.models);
+    console.log(`[INFO] Verifying ${models.length} tables in database...`);
+    for (const modelName of models) {
+      try {
+        await sequelize.models[modelName].count();
+      } catch (err) {
+        console.error(`[ERROR] Table verification failed for model ${modelName}:`, err.message);
+        throw err;
+      }
+    }
+    console.log(`[INFO] All tables verified successfully!`);
 
     // Create SuperAdmin if not exists
     const superAdminUsername = process.env.SUPERADMIN_USERNAME || 'admin';
