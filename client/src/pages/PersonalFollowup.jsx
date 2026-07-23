@@ -5,7 +5,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { getLogicalDateString } from '../utils/dateHelpers';
-import './PersonalFollowup.css';
+import "./PersonalFollowup.scss";
 import { useToast } from '../contexts/ToastContext';
 
 const PersonalFollowup = () => {
@@ -221,7 +221,7 @@ const PersonalFollowup = () => {
       {filterType === 'custom' && (
         <div className="pf-custom-filter slide-down">
           <input type="date" className="pf-date-input" value={customStart} onChange={(e) => setCustomStart(e.target.value)} />
-          <span style={{ color: '#94a3b8' }}>إلى</span>
+          <span className="personalfollowup-style-1">إلى</span>
           <input type="date" className="pf-date-input" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} />
           <button className="pf-apply-btn" onClick={applyCustomFilter}>تطبيق</button>
         </div>
@@ -262,17 +262,17 @@ const PersonalFollowup = () => {
       {renderFilterBar()}
 
       {!employeeId && !loadingStatus && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+        <div className="personalfollowup-style-2">
 
           {/* Summary Status Card */}
-          <div className="pf-stat-card fade-in" style={{ animationDelay: '0.1s', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{ padding: '12px', borderRadius: '12px', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
+          <div className="pf-stat-card fade-in personalfollowup-style-3" >
+            <div className="personalfollowup-style-4">
+              <div className="personalfollowup-style-5">
+                <div className="personalfollowup-style-6">
                   <Star size={24} />
                 </div>
                 <div>
-                  <h3 style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.2rem' }}>حالة ملخص المهام لليوم</h3>
+                  <h3 className="personalfollowup-style-7">حالة ملخص المهام لليوم</h3>
                   <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: hasSummaryToday ? '#10b981' : '#ef4444' }}>
                     {hasSummaryToday ? 'مسجل' : 'غير مسجل'}
                   </div>
@@ -280,12 +280,12 @@ const PersonalFollowup = () => {
               </div>
             </div>
             {!hasSummaryToday ? (
-              <Link to="/summery" style={{ background: 'var(--theme-color)', color: 'white', padding: '0.8rem', borderRadius: '8px', textAlign: 'center', textDecoration: 'none', fontWeight: 'bold', display: 'block', transition: '0.3s' }}>
+              <Link to="/summery" className="personalfollowup-style-8">
                 تسجيل الملخص الآن
               </Link>
             ) : (
 
-              <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.2)', color: '#22c55e', padding: '0.8rem', borderRadius: '8px', textAlign: 'center', fontWeight: 'bold' }}>
+              <div className="personalfollowup-style-9">
                 تم تسجيل الملخص لليوم
               </div>
             )}
@@ -293,15 +293,15 @@ const PersonalFollowup = () => {
 
           {/* Checkout Card */}
           {attendanceStatus?.hasCheckedIn && (
-            <div className="pf-stat-card fade-in" style={{ animationDelay: '0.2s', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ padding: '12px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
+            <div className="pf-stat-card fade-in personalfollowup-style-10" >
+              <div className="personalfollowup-style-11">
+                <div className="personalfollowup-style-12">
+                  <div className="personalfollowup-style-13">
                     <LogOut size={24} />
                   </div>
                   <div>
-                    <h3 style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.2rem' }}>الوردية الحالية</h3>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                    <h3 className="personalfollowup-style-14">الوردية الحالية</h3>
+                    <div className="personalfollowup-style-15">
                       ينتهي: {(attendanceStatus?.log?.Shift || attendanceStatus?.shift)?.endTime || 'غير محدد'}
                     </div>
                   </div>
@@ -310,20 +310,7 @@ const PersonalFollowup = () => {
               {!attendanceStatus?.log?.checkOutTime ? (
                 <button
                   onClick={handleCheckoutClick}
-                  style={{
-                    background: 'rgba(239, 68, 68, 0.1)',
-                    border: '1px solid rgba(239, 68, 68, 0.2)',
-                    color: '#ef4444',
-                    padding: '0.8rem',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    transition: '0.3s'
-                  }}
+                  className="personalfollowup-style-16"
                   onMouseOver={(e) => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = 'white'; }}
                   onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#ef4444'; }}
                 >
@@ -331,8 +318,8 @@ const PersonalFollowup = () => {
                   تسجيل الانصراف
                 </button>
               ) : (
-                <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.2)', color: '#22c55e', padding: '0.8rem', borderRadius: '8px', textAlign: 'center', fontWeight: 'bold' }}>
-                  <CheckCircle size={18} style={{ display: 'inline-block', verticalAlign: 'middle', marginLeft: '0.5rem' }} />
+                <div className="personalfollowup-style-17">
+                  <CheckCircle size={18} className="personalfollowup-style-18" />
                   تم تسجيل الانصراف
                 </div>
               )}
@@ -389,7 +376,7 @@ const PersonalFollowup = () => {
                   </div>
                 </div>
 
-                <div className="pf-timeline" style={{ marginTop: '1.5rem' }}>
+                <div className="pf-timeline personalfollowup-style-19" >
                   <div className="pf-timeline-item">
                     <LogIn size={18} className="text-green" />
                     <div className="pf-time-info">
@@ -452,20 +439,7 @@ const PersonalFollowup = () => {
             (user?.role === 'Admin' || user?.role === 'SuperAdmin') ? (
               <Link
                 to={`/handleAdmin?employeeName=${encodeURIComponent(stats.user.name)}`}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  padding: '0.4rem 0.8rem',
-                  background: 'rgba(59, 130, 246, 0.15)',
-                  color: '#3b82f6',
-                  borderRadius: '6px',
-                  textDecoration: 'none',
-                  fontSize: '0.85rem',
-                  fontWeight: 'bold',
-                  marginRight: 'auto',
-                  transition: 'background 0.2s',
-                }}
+                className="personalfollowup-style-20"
                 onMouseOver={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.25)'}
                 onMouseOut={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)'}
                 title="عرض سجلات المكالمات لهذا الموظف"
@@ -478,7 +452,7 @@ const PersonalFollowup = () => {
 
           {stats.breaksChartData && renderChart(
             "متابعة الأداء الزمني (البريكات)",
-            <Coffee size={24} style={{ color: '#eab308' }} />,
+            <Coffee size={24} className="personalfollowup-style-21" />,
             stats.breaksChartData,
             breaksChartPeriod,
             setBreaksChartPeriod,
@@ -490,20 +464,7 @@ const PersonalFollowup = () => {
             (user?.role === 'Admin' || user?.role === 'SuperAdmin') ? (
               <Link
                 to={`/monitoring?employeeName=${encodeURIComponent(stats.user.name)}`}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  padding: '0.4rem 0.8rem',
-                  background: 'rgba(234, 179, 8, 0.15)',
-                  color: '#eab308',
-                  borderRadius: '6px',
-                  textDecoration: 'none',
-                  fontSize: '0.85rem',
-                  fontWeight: 'bold',
-                  marginRight: 'auto',
-                  transition: 'background 0.2s',
-                }}
+                className="personalfollowup-style-22"
                 onMouseOver={e => e.currentTarget.style.background = 'rgba(234, 179, 8, 0.25)'}
                 onMouseOut={e => e.currentTarget.style.background = 'rgba(234, 179, 8, 0.15)'}
                 title="عرض سجلات البريك لهذا الموظف"
@@ -516,7 +477,7 @@ const PersonalFollowup = () => {
 
           {stats.attendanceChartData && renderChart(
             "متابعة الأداء الزمني (ساعات العمل)",
-            <Clock size={24} style={{ color: '#10b981' }} />,
+            <Clock size={24} className="personalfollowup-style-23" />,
             stats.attendanceChartData,
             attendanceChartPeriod,
             setAttendanceChartPeriod,
@@ -528,20 +489,7 @@ const PersonalFollowup = () => {
             (user?.role === 'Admin' || user?.role === 'SuperAdmin') ? (
               <Link
                 to={`/attendancereports?employeeName=${encodeURIComponent(stats.user.name)}`}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  padding: '0.4rem 0.8rem',
-                  background: 'rgba(16, 185, 129, 0.15)',
-                  color: '#10b981',
-                  borderRadius: '6px',
-                  textDecoration: 'none',
-                  fontSize: '0.85rem',
-                  fontWeight: 'bold',
-                  marginRight: 'auto',
-                  transition: 'background 0.2s',
-                }}
+                className="personalfollowup-style-24"
                 onMouseOver={e => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.25)'}
                 onMouseOut={e => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.15)'}
                 title="عرض تقارير الحضور المجمعة لهذا الموظف"
@@ -555,22 +503,22 @@ const PersonalFollowup = () => {
       )}
       {/* Early Checkout Modal */}
       {showEarlyCheckoutModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
-          <div className="fade-in" style={{ background: 'var(--bg-main)', padding: '2.5rem', borderRadius: '16px', maxWidth: '450px', width: '90%', textAlign: 'center', border: '1px solid #ef4444', boxShadow: '0 10px 40px rgba(239, 68, 68, 0.3)' }}>
-            <div style={{ color: '#ef4444', margin: '0 auto 1.5rem auto', display: 'flex', justifyContent: 'center' }}>
+        <div className="personalfollowup-style-25">
+          <div className="fade-in personalfollowup-style-26" >
+            <div className="personalfollowup-style-27">
               <AlertCircle size={64} />
             </div>
-            <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem', fontSize: '1.8rem' }}>انصراف مبكر!</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '1.1rem', lineHeight: '1.6' }}>
+            <h2 className="personalfollowup-style-28">انصراف مبكر!</h2>
+            <p className="personalfollowup-style-29">
               سيتم تسجيل انصراف مبكر وتطبيق خصم على الساعات المتبقية من الوردية. هل أنت متأكد من الاستمرار؟
             </p>
-            <div style={{ display: 'flex', gap: '1rem' }}>
+            <div className="personalfollowup-style-30">
               <button
                 onClick={() => {
                   setShowEarlyCheckoutModal(false);
                   processCheckout();
                 }}
-                style={{ flex: 1, background: '#ef4444', color: 'white', padding: '1rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem', transition: '0.3s' }}
+                className="personalfollowup-style-31"
                 onMouseOver={(e) => e.currentTarget.style.opacity = '0.8'}
                 onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
               >
@@ -578,7 +526,7 @@ const PersonalFollowup = () => {
               </button>
               <button
                 onClick={() => setShowEarlyCheckoutModal(false)}
-                style={{ flex: 1, background: 'rgba(255,255,255,0.1)', color: 'var(--text-primary)', padding: '1rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem', transition: '0.3s' }}
+                className="personalfollowup-style-32"
                 onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
                 onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
               >

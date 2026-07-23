@@ -1,3 +1,4 @@
+import './ExportModal.scss';
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import { useToast } from '../contexts/ToastContext';
@@ -25,17 +26,17 @@ const ExportModal = ({ isOpen, onClose, onExport, title }) => {
 
   return ReactDOM.createPortal(
     <div className="modal-overlay active" onClick={onClose}>
-      <div className="modal-content" style={{ maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
+      <div className="modal-content exportmodal-style-1"  onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h2 style={{ color: 'var(--theme-color)' }}>{title}</h2>
+          <h2 className="exportmodal-style-2">{title}</h2>
           <button className="close-btn" onClick={onClose}>&times;</button>
         </div>
 
-        <div style={{ marginBottom: '2rem' }}>
-          <p style={{ marginBottom: '1.5rem', color: 'var(--text-secondary)' }}>
+        <div className="exportmodal-style-3">
+          <p className="exportmodal-style-4">
             اختر الفترة الزمنية التي تريد تحميل تقاريرها:
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="exportmodal-style-5">
             {['today', 'yesterday', 'week', 'month', 'all', 'custom'].map(type => (
               <button
                 key={type}
@@ -65,39 +66,23 @@ const ExportModal = ({ isOpen, onClose, onExport, title }) => {
           </div>
 
           {filterType === 'custom' && (
-            <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem' }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>من:</label>
+            <div className="exportmodal-style-6">
+              <div className="exportmodal-style-7">
+                <label className="exportmodal-style-8">من:</label>
                 <input 
                   type="date" 
                   value={startDate} 
                   onChange={e => setStartDate(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '0.8rem',
-                    borderRadius: '8px',
-                    border: '1px solid var(--border-color)',
-                    backgroundColor: 'var(--bg-color)',
-                    color: 'var(--text-primary)',
-                    fontFamily: 'inherit'
-                  }}
+                  className="exportmodal-style-9"
                 />
               </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>إلى:</label>
+              <div className="exportmodal-style-10">
+                <label className="exportmodal-style-11">إلى:</label>
                 <input 
                   type="date" 
                   value={endDate} 
                   onChange={e => setEndDate(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '0.8rem',
-                    borderRadius: '8px',
-                    border: '1px solid var(--border-color)',
-                    backgroundColor: 'var(--bg-color)',
-                    color: 'var(--text-primary)',
-                    fontFamily: 'inherit'
-                  }}
+                  className="exportmodal-style-12"
                 />
               </div>
             </div>

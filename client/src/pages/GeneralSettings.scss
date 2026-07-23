@@ -278,3 +278,99 @@
     grid-template-columns: 1fr;
   }
 }
+.generalsettings-style-1 {
+  padding: 2rem;
+  text-align: center;
+}
+
+.generalsettings-style-2 {
+  color: #ef4444;
+}
+
+.generalsettings-style-3 {
+  display: flex;
+  justify-content: center;
+  padding: 5rem;
+}
+
+.generalsettings-style-4 {
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: rgba(255,255,255,0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.generalsettings-style-5 {
+  display: block;
+  color: var(--text-primary);
+  margin-bottom: 0.2rem;
+}
+
+.generalsettings-style-6 {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.generalsettings-style-7 {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+}
+
+.generalsettings-style-8 {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.generalsettings-style-9 {
+  margin-top: 1rem;
+}
+
+.generalsettings-style-10 {
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+}
+
+.generalsettings-style-11 {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.generalsettings-style-12 {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.generalsettings-style-13 {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+
+.generalsettings-style-14 {
+  margin-top: 1.5rem;
+}
+
+.generalsettings-style-15 {
+  position: fixed;
+  bottom: 2rem;
+  left: 2rem;
+  z-index: 1000;
+}
+
+.generalsettings-style-16 {
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  font-size: 1.1rem;
+}
+

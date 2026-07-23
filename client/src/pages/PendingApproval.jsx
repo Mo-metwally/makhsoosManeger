@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Clock, RefreshCw, LogOut } from 'lucide-react';
-import './PendingApproval.css';
+import "./PendingApproval.scss";
 
 const PendingApproval = () => {
   const { logout } = useAuth();
@@ -41,13 +41,13 @@ const PendingApproval = () => {
         </p>
 
         {status && (
-          <div style={{ margin: '1rem 0', padding: '0.8rem', background: 'rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--theme-glow)', fontWeight: 'bold' }}>
+          <div className="pendingapproval-style-1">
             {status}
           </div>
         )}
 
         <div className="pending-actions">
-          <button className="btn-refresh" onClick={requestActivation} style={{ background: 'var(--theme-color)', color: '#fff', border: 'none' }}>
+          <button className="btn-refresh pendingapproval-style-2" onClick={requestActivation} >
             <Clock size={20} />
             <span>تنبيه الإدارة للتفعيل</span>
           </button>

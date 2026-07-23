@@ -513,3 +513,26 @@
   color: var(--text-secondary);
   align-self: flex-end;
 }
+.sidebar-style-1 {
+  background: var(--solid-bg);
+}
+
+.sidebar-style-2 {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+
+.sidebar-style-3 {
+  background: rgba(255,255,255,0.05);
+  padding: 8px;
+  border-radius: 50%;
+}
+
+.sidebar-style-4 {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1;
+}
+

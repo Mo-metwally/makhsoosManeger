@@ -1,3 +1,4 @@
+import './HandleAdminExport.scss';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { FileSpreadsheet, Archive, PhoneCall, Activity, ClipboardList, DownloadCloud, Info, Loader2, Search, ChevronDown, Check } from 'lucide-react';
 import api from '../services/api';
@@ -169,8 +170,8 @@ const HandleAdminExport = () => {
 
   return (
     <AdminGuard>
-      <div className="home-container" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <header className="page-header" style={{ justifyContent: 'center', textAlign: 'center', width: '100%' }}>
+      <div className="home-container handleadminexport-style-1" >
+        <header className="page-header handleadminexport-style-2" >
           <div className="page-title-wrapper">
             <DownloadCloud size={28} className="title-icon text-blue" />
             <h1 className="page-title gradient-title">تصدير التقارير الشاملة</h1>
@@ -178,19 +179,19 @@ const HandleAdminExport = () => {
         </header>
 
         {loading ? (
-          <div className="dashboard-card" style={{ maxWidth: '1200px', width: '100%', margin: '2rem auto', padding: '5rem 2rem', textAlign: 'center' }}>
-            <Loader2 className="spinning text-blue mx-auto" size={48} style={{ marginBottom: '1rem' }} />
-            <h3 style={{ color: 'var(--text-secondary)' }}>جاري جلب البيانات من قاعدة البيانات...</h3>
+          <div className="dashboard-card handleadminexport-style-3" >
+            <Loader2 className="spinning text-blue mx-auto handleadminexport-style-4" size={48}  />
+            <h3 className="handleadminexport-style-5">جاري جلب البيانات من قاعدة البيانات...</h3>
           </div>
         ) : (
-          <div className="dashboard-card" style={{ maxWidth: '1200px', width: '100%', margin: '2rem auto', padding: '3rem 2rem' }}>
+          <div className="dashboard-card handleadminexport-style-6" >
 
-            <h3 style={{ color: 'var(--text-primary)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>1</span>
+            <h3 className="handleadminexport-style-7">
+              <span className="handleadminexport-style-8">1</span>
               اختر الفترة الزمنية
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div className="handleadminexport-style-9">
               {['all', 'today', 'yesterday', 'week', 'month', 'custom'].map(type => (
                 <button
                   key={type}
@@ -221,70 +222,61 @@ const HandleAdminExport = () => {
             </div>
 
             {timeFilter === 'custom' && (
-              <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '2rem', background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', animation: 'fadeIn 0.3s ease-out' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', marginBottom: '0.8rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>من تاريخ:</label>
+              <div className="handleadminexport-style-10">
+                <div className="handleadminexport-style-11">
+                  <label className="handleadminexport-style-12">من تاريخ:</label>
                   <input
                     type="date"
                     value={customStartDate}
                     onChange={e => setCustomStartDate(e.target.value)}
-                    className="search-input"
-                    style={{ width: '100%', padding: '1rem', fontSize: '1rem' }}
+                    className="search-input handleadminexport-style-13"
+                    
                   />
                 </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', marginBottom: '0.8rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>إلى تاريخ:</label>
+                <div className="handleadminexport-style-14">
+                  <label className="handleadminexport-style-15">إلى تاريخ:</label>
                   <input
                     type="date"
                     value={customEndDate}
                     onChange={e => setCustomEndDate(e.target.value)}
-                    className="search-input"
-                    style={{ width: '100%', padding: '1rem', fontSize: '1rem' }}
+                    className="search-input handleadminexport-style-16"
+                    
                   />
                 </div>
               </div>
             )}
 
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', margin: '2.5rem 0' }} />
+            <hr className="handleadminexport-style-17" />
 
-            <h3 style={{ color: 'var(--text-primary)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>2</span>
+            <h3 className="handleadminexport-style-18">
+              <span className="handleadminexport-style-19">2</span>
               اختر الوردية
             </h3>
-            <div style={{ marginBottom: '2.5rem', position: 'relative' }} ref={dropdownRef}>
+            <div className="handleadminexport-style-20" ref={dropdownRef}>
               <div
                 onClick={() => setIsShiftDropdownOpen(!isShiftDropdownOpen)}
-                className="search-input"
-                style={{
-                  width: '100%', padding: '1rem', fontSize: '1.1rem', borderRadius: '12px',
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  cursor: 'pointer', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)'
-                }}
+                className="search-input handleadminexport-style-21"
+                
               >
-                <span style={{ color: 'var(--text-primary)' }}>{selectedShiftLabel}</span>
+                <span className="handleadminexport-style-22">{selectedShiftLabel}</span>
                 <ChevronDown size={20} style={{ color: 'var(--text-secondary)', transform: isShiftDropdownOpen ? 'rotate(180deg)' : 'rotate(0)', transition: '0.3s' }} />
               </div>
 
               {isShiftDropdownOpen && (
-                <div style={{
-                  position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '0.5rem',
-                  background: 'var(--card-bg, #1e293b)', borderRadius: '12px', padding: '0.5rem',
-                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)', zIndex: 50, border: '1px solid rgba(255,255,255,0.1)',
-                  animation: 'fadeIn 0.2s ease-out'
-                }}>
-                  <div style={{ position: 'relative', marginBottom: '0.5rem' }}>
-                    <Search size={18} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                <div className="handleadminexport-style-23">
+                  <div className="handleadminexport-style-24">
+                    <Search size={18} className="handleadminexport-style-25" />
                     <input
                       type="text"
                       placeholder="ابحث عن وردية..."
                       value={shiftSearchQuery}
                       onChange={(e) => setShiftSearchQuery(e.target.value)}
                       onClick={(e) => e.stopPropagation()}
-                      className="search-input"
-                      style={{ width: '100%', padding: '0.6rem 2rem 0.6rem 0.8rem', borderRadius: '8px', fontSize: '0.95rem' }}
+                      className="search-input handleadminexport-style-26"
+                      
                     />
                   </div>
-                  <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                  <div className="handleadminexport-style-27">
                     {shiftOptions.length > 0 ? shiftOptions.map(opt => (
                       <div
                         key={opt.value}
@@ -307,7 +299,7 @@ const HandleAdminExport = () => {
                         {selectedShift === opt.value && <Check size={18} />}
                       </div>
                     )) : (
-                      <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>لا توجد نتائج</div>
+                      <div className="handleadminexport-style-28">لا توجد نتائج</div>
                     )}
                   </div>
                 </div>
@@ -315,31 +307,28 @@ const HandleAdminExport = () => {
             </div>
 
             {/* Data Preview Banner */}
-            <div style={{
-              padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(59, 130, 246, 0.2)',
-              alignItems: 'center', flexWrap: 'wrap'
-            }}>
-              <Info size={32} color="var(--theme-color)" style={{ flexShrink: 0 }} />
-              <div style={{ flex: 1 }}>
-                <h4 style={{ color: 'var(--text-primary)', margin: '0 0 0.8rem 0', fontSize: '1.1rem' }}>البيانات المتاحة للتحميل في هذه الفترة:</h4>
-                <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', color: 'var(--text-primary)', fontSize: '1.05rem' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(0,0,0,0.2)', padding: '0.5rem 1rem', borderRadius: '100px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <div className="handleadminexport-style-29">
+              <Info size={32} color="var(--theme-color)" className="handleadminexport-style-30" />
+              <div className="handleadminexport-style-31">
+                <h4 className="handleadminexport-style-32">البيانات المتاحة للتحميل في هذه الفترة:</h4>
+                <div className="handleadminexport-style-33">
+                  <span className="handleadminexport-style-34">
                     <PhoneCall size={18} color="var(--theme-color)" />
                     <strong>{previewData.callsCount}</strong> مكالمة
                   </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(0,0,0,0.2)', padding: '0.5rem 1rem', borderRadius: '100px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <span className="handleadminexport-style-35">
                     <Activity size={18} color="#a855f7" />
                     <strong>{previewData.logsCount}</strong> فترة خمول/راحة
                   </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(0,0,0,0.2)', padding: '0.5rem 1rem', borderRadius: '100px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <span className="handleadminexport-style-36">
                     <ClipboardList size={18} color="#22c55e" />
                     <strong>{previewData.perfCount}</strong> تقرير أداء
                   </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(0,0,0,0.2)', padding: '0.5rem 1rem', borderRadius: '100px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <span className="handleadminexport-style-37">
                     <FileSpreadsheet size={18} color="#ef4444" />
                     <strong>{previewData.expCount}</strong> استخدام للمصروفات/السلف
                   </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(0,0,0,0.2)', padding: '0.5rem 1rem', borderRadius: '100px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <span className="handleadminexport-style-38">
                     <Check size={18} color="#0ea5e9" />
                     <strong>{previewData.attendanceCount}</strong> سجل حضور وانصراف
                   </span>
@@ -347,15 +336,15 @@ const HandleAdminExport = () => {
               </div>
             </div>
 
-            <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', margin: '2.5rem 0' }} />
+            <hr className="handleadminexport-style-39" />
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-              <h3 style={{ color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>3</span>
+            <div className="handleadminexport-style-40">
+              <h3 className="handleadminexport-style-41">
+                <span className="handleadminexport-style-42">3</span>
                 اختر نوع الملف
               </h3>
 
-              <div style={{ display: 'flex', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', padding: '0.3rem', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <div className="handleadminexport-style-43">
                 <button
                   onClick={() => { setReportDetailLevel('detailed'); setExportType('all_zip'); }}
                   style={{
@@ -391,7 +380,7 @@ const HandleAdminExport = () => {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', marginBottom: '3rem' }}>
+            <div className="handleadminexport-style-44">
               {reportDetailLevel === 'detailed' ? (
                 <>
                   <label style={{
@@ -407,14 +396,14 @@ const HandleAdminExport = () => {
                       value="all_zip"
                       checked={exportType === 'all_zip'}
                       onChange={() => setExportType('all_zip')}
-                      style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
+                      className="handleadminexport-style-45"
                     />
                     <div style={{ background: exportType === 'all_zip' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
                       <Archive size={32} color={exportType === 'all_zip' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>تحميل كل السجلات (ZIP)</h4>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل جميع السجلات الثلاثة معاً في ملف مضغوط واحد.</p>
+                    <div className="handleadminexport-style-46">
+                      <h4 className="handleadminexport-style-47">تحميل كل السجلات (ZIP)</h4>
+                      <p className="handleadminexport-style-48">تحميل جميع السجلات الثلاثة معاً في ملف مضغوط واحد.</p>
                     </div>
                   </label>
 
@@ -431,14 +420,14 @@ const HandleAdminExport = () => {
                       value="calls_only"
                       checked={exportType === 'calls_only'}
                       onChange={() => setExportType('calls_only')}
-                      style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
+                      className="handleadminexport-style-49"
                     />
                     <div style={{ background: exportType === 'calls_only' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
                       <PhoneCall size={32} color={exportType === 'calls_only' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>سجل المكالمات (Excel)</h4>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل مكالمات المندوبين المجمعة فقط.</p>
+                    <div className="handleadminexport-style-50">
+                      <h4 className="handleadminexport-style-51">سجل المكالمات (Excel)</h4>
+                      <p className="handleadminexport-style-52">تحميل مكالمات المندوبين المجمعة فقط.</p>
                     </div>
                   </label>
 
@@ -455,14 +444,14 @@ const HandleAdminExport = () => {
                       value="logs_only"
                       checked={exportType === 'logs_only'}
                       onChange={() => setExportType('logs_only')}
-                      style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
+                      className="handleadminexport-style-53"
                     />
                     <div style={{ background: exportType === 'logs_only' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
                       <Activity size={32} color={exportType === 'logs_only' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>سجل النشاط والخمول (Excel)</h4>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل فترات خمول وراحة المندوبين المجمعة فقط.</p>
+                    <div className="handleadminexport-style-54">
+                      <h4 className="handleadminexport-style-55">سجل النشاط والخمول (Excel)</h4>
+                      <p className="handleadminexport-style-56">تحميل فترات خمول وراحة المندوبين المجمعة فقط.</p>
                     </div>
                   </label>
 
@@ -479,14 +468,14 @@ const HandleAdminExport = () => {
                       value="perf_only"
                       checked={exportType === 'perf_only'}
                       onChange={() => setExportType('perf_only')}
-                      style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
+                      className="handleadminexport-style-57"
                     />
                     <div style={{ background: exportType === 'perf_only' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
                       <ClipboardList size={32} color={exportType === 'perf_only' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>سجل المهام (Excel)</h4>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل تقارير مهام المشرفين المجمعة فقط.</p>
+                    <div className="handleadminexport-style-58">
+                      <h4 className="handleadminexport-style-59">سجل المهام (Excel)</h4>
+                      <p className="handleadminexport-style-60">تحميل تقارير مهام المشرفين المجمعة فقط.</p>
                     </div>
                   </label>
 
@@ -503,14 +492,14 @@ const HandleAdminExport = () => {
                       value="expenses_only"
                       checked={exportType === 'expenses_only'}
                       onChange={() => setExportType('expenses_only')}
-                      style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
+                      className="handleadminexport-style-61"
                     />
                     <div style={{ background: exportType === 'expenses_only' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
                       <FileSpreadsheet size={32} color={exportType === 'expenses_only' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>سجل المصروفات (Excel)</h4>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل تقارير المصروفات والسلف المجمعة فقط.</p>
+                    <div className="handleadminexport-style-62">
+                      <h4 className="handleadminexport-style-63">سجل المصروفات (Excel)</h4>
+                      <p className="handleadminexport-style-64">تحميل تقارير المصروفات والسلف المجمعة فقط.</p>
                     </div>
                   </label>
 
@@ -527,14 +516,14 @@ const HandleAdminExport = () => {
                       value="attendance_only"
                       checked={exportType === 'attendance_only'}
                       onChange={() => setExportType('attendance_only')}
-                      style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
+                      className="handleadminexport-style-65"
                     />
                     <div style={{ background: exportType === 'attendance_only' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
                       <Check size={32} color={exportType === 'attendance_only' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>سجل الحضور والانصراف (Excel)</h4>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل تقارير الحضور والانصراف المجمعة فقط.</p>
+                    <div className="handleadminexport-style-66">
+                      <h4 className="handleadminexport-style-67">سجل الحضور والانصراف (Excel)</h4>
+                      <p className="handleadminexport-style-68">تحميل تقارير الحضور والانصراف المجمعة فقط.</p>
                     </div>
                   </label>
                 </>
@@ -553,14 +542,14 @@ const HandleAdminExport = () => {
                       value="summary_calls"
                       checked={exportType === 'summary_calls'}
                       onChange={() => setExportType('summary_calls')}
-                      style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
+                      className="handleadminexport-style-69"
                     />
                     <div style={{ background: exportType === 'summary_calls' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
                       <PhoneCall size={32} color={exportType === 'summary_calls' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>ملخص سجل التواصل (Excel)</h4>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل تقرير ملخص عن أداء التواصل لكل مندوب.</p>
+                    <div className="handleadminexport-style-70">
+                      <h4 className="handleadminexport-style-71">ملخص سجل التواصل (Excel)</h4>
+                      <p className="handleadminexport-style-72">تحميل تقرير ملخص عن أداء التواصل لكل مندوب.</p>
                     </div>
                   </label>
 
@@ -577,14 +566,14 @@ const HandleAdminExport = () => {
                       value="summary_attendance"
                       checked={exportType === 'summary_attendance'}
                       onChange={() => setExportType('summary_attendance')}
-                      style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
+                      className="handleadminexport-style-73"
                     />
                     <div style={{ background: exportType === 'summary_attendance' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
                       <Check size={32} color={exportType === 'summary_attendance' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>ملخص سجل الحضور (Excel)</h4>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل تقرير ملخص عن الحضور والانصراف لكل مندوب.</p>
+                    <div className="handleadminexport-style-74">
+                      <h4 className="handleadminexport-style-75">ملخص سجل الحضور (Excel)</h4>
+                      <p className="handleadminexport-style-76">تحميل تقرير ملخص عن الحضور والانصراف لكل مندوب.</p>
                     </div>
                   </label>
 
@@ -601,14 +590,14 @@ const HandleAdminExport = () => {
                       value="summary_payroll"
                       checked={exportType === 'summary_payroll'}
                       onChange={() => setExportType('summary_payroll')}
-                      style={{ accentColor: 'var(--theme-color)', width: '22px', height: '22px' }}
+                      className="handleadminexport-style-77"
                     />
                     <div style={{ background: exportType === 'summary_payroll' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px', transition: 'all 0.3s' }}>
                       <FileSpreadsheet size={32} color={exportType === 'summary_payroll' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>ملخص حساب المرتبات (Excel)</h4>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '6px 0 0 0', lineHeight: '1.4' }}>تحميل تقرير شامل لساعات التأخير، الحضور، الإجازات، والغياب والسلف.</p>
+                    <div className="handleadminexport-style-78">
+                      <h4 className="handleadminexport-style-79">ملخص حساب المرتبات (Excel)</h4>
+                      <p className="handleadminexport-style-80">تحميل تقرير شامل لساعات التأخير، الحضور، الإجازات، والغياب والسلف.</p>
                     </div>
                   </label>
                 </>

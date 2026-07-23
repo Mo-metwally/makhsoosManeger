@@ -54,7 +54,8 @@ exports.getShifts = async (req, res) => {
     const shifts = await Shift.findAll({
       include: [{
         model: User,
-        attributes: ['id', 'fullName', 'username', 'role', 'avatar', 'jobTitle', 'baseSalary']
+        attributes: ['id', 'fullName', 'username', 'role', 'avatar', 'jobTitle', 'baseSalary'],
+        through: { attributes: ['isObserver'] }
       }],
       order: [['createdAt', 'DESC']]
     });
@@ -215,12 +216,12 @@ exports.getShiftStaffStats = async (req, res) => {
       // Dynamic stats for current period (based on timeframe)
       const currPeriodLogs = attendanceLogs.filter(log => isInPeriod(new Date(log.date), false));
       const currPeriodDayOffs = dayOffRequests.filter(req => isInPeriod(new Date(req.date), false) && req.status === 'Approved');
-      const currPeriodCalls = callReports.filter(call => isInPeriod(new Date(call.createdAt), false));
+      const currPeriodCalls = callReports.filter(call => isInPeriod(new Date(call.date), false));
 
       // Dynamic stats for previous period (based on timeframe)
       const prevPeriodLogs = attendanceLogs.filter(log => isInPeriod(new Date(log.date), true));
       const prevPeriodDayOffs = dayOffRequests.filter(req => isInPeriod(new Date(req.date), true) && req.status === 'Approved');
-      const prevPeriodCalls = callReports.filter(call => isInPeriod(new Date(call.createdAt), true));
+      const prevPeriodCalls = callReports.filter(call => isInPeriod(new Date(call.date), true));
 
       // Populate time series buckets
       const populateBuckets = (logs, dayOffs, calls, isPrev) => {
@@ -249,7 +250,7 @@ exports.getShiftStaffStats = async (req, res) => {
         });
 
         calls.forEach(call => {
-           if (!isInPeriod(new Date(call.createdAt), isPrev)) return;
+           if (!isInPeriod(new Date(call.date), isPrev)) return;
            const d = new Date(call.createdAt);
            const idx = getBucketIndex(d, isPrev);
            if (idx >= 0 && idx < chartData.length) {
@@ -323,6 +324,7 @@ exports.getShiftStaffStats = async (req, res) => {
         role: user.role,
         avatar: user.avatar,
         jobTitle: user.jobTitle,
+        isObserver: user.UserShift ? user.UserShift.isObserver : false,
         stats: {
           presentDays,
           absentDays,
@@ -389,16 +391,35 @@ exports.getMyShifts = async (req, res) => {
 exports.assignUsersToShift = async (req, res) => {
   try {
     const { id } = req.params;
-    const { userIds } = req.body; // Array of User IDs
+    const { userIds, usersData } = req.body; 
 
     const shift = await Shift.findByPk(id);
     if (!shift) {
       return res.status(404).json({ error: 'الوردية غير موجودة' });
     }
 
-    // Sequelize magic method for many-to-many:
-    // This will replace the existing associations with the new ones
-    await shift.setUsers(userIds);
+    const UserShift = require('../models/UserShift');
+    
+    // Clear existing associations
+    await UserShift.destroy({ where: { shiftId: id } });
+
+    if (usersData && usersData.length > 0) {
+      // New method: array of { id, isObserver }
+      const userShiftsData = usersData.map(u => ({
+        shiftId: id,
+        userId: u.id,
+        isObserver: u.isObserver || false
+      }));
+      await UserShift.bulkCreate(userShiftsData);
+    } else if (userIds && userIds.length > 0) {
+      // Fallback for old method
+      const userShiftsData = userIds.map(userId => ({
+        shiftId: id,
+        userId: userId,
+        isObserver: false
+      }));
+      await UserShift.bulkCreate(userShiftsData);
+    }
 
     res.json({ message: 'تم تعيين الموظفين للوردية بنجاح' });
   } catch (error) {

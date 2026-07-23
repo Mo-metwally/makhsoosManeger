@@ -1,3 +1,4 @@
+import './AdminExportModal.scss';
 import React, { useState } from 'react';
 import { X, FileSpreadsheet, Archive, PhoneCall, Activity, ClipboardList } from 'lucide-react';
 import { exportAdminData } from '../utils/exportExcel';
@@ -36,20 +37,20 @@ const AdminExportModal = ({ isOpen, onClose, filters }) => {
   };
 
   return (
-    <div className="modal-overlay active" style={{ zIndex: 99999 }}>
-      <div className="modal-content" style={{ maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
+    <div className="modal-overlay active adminexportmodal-style-1" >
+      <div className="modal-content adminexportmodal-style-2" >
         <button className="modal-close" onClick={onClose}>
           <X size={24} />
         </button>
 
-        <h2 style={{ marginBottom: '1.5rem', color: 'var(--text-primary)', textAlign: 'center' }}>
+        <h2 className="adminexportmodal-style-3">
           تحميل تقرير شامل
         </h2>
 
         {/* Time Filter Section */}
-        <div style={{ marginBottom: '2rem' }}>
-          <h4 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>اختر الفترة الزمنية:</h4>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
+        <div className="adminexportmodal-style-4">
+          <h4 className="adminexportmodal-style-5">اختر الفترة الزمنية:</h4>
+          <div className="adminexportmodal-style-6">
             {['all', 'today', 'yesterday', 'week', 'month', 'custom'].map(type => (
               <button
                 key={type}
@@ -78,33 +79,33 @@ const AdminExportModal = ({ isOpen, onClose, filters }) => {
           </div>
 
           {timeFilter === 'custom' && (
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '12px' }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>من:</label>
+            <div className="adminexportmodal-style-7">
+              <div className="adminexportmodal-style-8">
+                <label className="adminexportmodal-style-9">من:</label>
                 <input
                   type="date"
                   value={customStartDate}
                   onChange={e => setCustomStartDate(e.target.value)}
-                  className="search-input"
-                  style={{ width: '100%' }}
+                  className="search-input adminexportmodal-style-10"
+                  
                 />
               </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>إلى:</label>
+              <div className="adminexportmodal-style-11">
+                <label className="adminexportmodal-style-12">إلى:</label>
                 <input
                   type="date"
                   value={customEndDate}
                   onChange={e => setCustomEndDate(e.target.value)}
-                  className="search-input"
-                  style={{ width: '100%' }}
+                  className="search-input adminexportmodal-style-13"
+                  
                 />
               </div>
             </div>
           )}
         </div>
 
-        <h4 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>اختر نوع الملف:</h4>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '2rem' }}>
+        <h4 className="adminexportmodal-style-14">اختر نوع الملف:</h4>
+        <div className="adminexportmodal-style-15">
 
           <label style={{
             display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem',
@@ -117,12 +118,12 @@ const AdminExportModal = ({ isOpen, onClose, filters }) => {
               value="all_zip"
               checked={exportType === 'all_zip'}
               onChange={() => setExportType('all_zip')}
-              style={{ accentColor: 'var(--theme-color)', width: '20px', height: '20px' }}
+              className="adminexportmodal-style-16"
             />
             <Archive size={24} color={exportType === 'all_zip' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
-            <div style={{ flex: 1 }}>
-              <h4 style={{ color: 'var(--text-primary)', margin: 0 }}>تحميل كل السجلات (ZIP)</h4>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '4px 0 0 0' }}>تحميل السجلات الثلاثة معاً في ملف مضغوط.</p>
+            <div className="adminexportmodal-style-17">
+              <h4 className="adminexportmodal-style-18">تحميل كل السجلات (ZIP)</h4>
+              <p className="adminexportmodal-style-19">تحميل السجلات الثلاثة معاً في ملف مضغوط.</p>
             </div>
           </label>
 
@@ -137,12 +138,12 @@ const AdminExportModal = ({ isOpen, onClose, filters }) => {
               value="calls_only"
               checked={exportType === 'calls_only'}
               onChange={() => setExportType('calls_only')}
-              style={{ accentColor: 'var(--theme-color)', width: '20px', height: '20px' }}
+              className="adminexportmodal-style-20"
             />
             <PhoneCall size={24} color={exportType === 'calls_only' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
-            <div style={{ flex: 1 }}>
-              <h4 style={{ color: 'var(--text-primary)', margin: 0 }}>سجل المكالمات (Excel)</h4>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '4px 0 0 0' }}>تحميل مكالمات المندوبين المجمعة فقط.</p>
+            <div className="adminexportmodal-style-21">
+              <h4 className="adminexportmodal-style-22">سجل المكالمات (Excel)</h4>
+              <p className="adminexportmodal-style-23">تحميل مكالمات المندوبين المجمعة فقط.</p>
             </div>
           </label>
 
@@ -157,12 +158,12 @@ const AdminExportModal = ({ isOpen, onClose, filters }) => {
               value="logs_only"
               checked={exportType === 'logs_only'}
               onChange={() => setExportType('logs_only')}
-              style={{ accentColor: 'var(--theme-color)', width: '20px', height: '20px' }}
+              className="adminexportmodal-style-24"
             />
             <Activity size={24} color={exportType === 'logs_only' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
-            <div style={{ flex: 1 }}>
-              <h4 style={{ color: 'var(--text-primary)', margin: 0 }}>سجل النشاط والخمول (Excel)</h4>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '4px 0 0 0' }}>تحميل فترات خمول وراحة المندوبين المجمعة فقط.</p>
+            <div className="adminexportmodal-style-25">
+              <h4 className="adminexportmodal-style-26">سجل النشاط والخمول (Excel)</h4>
+              <p className="adminexportmodal-style-27">تحميل فترات خمول وراحة المندوبين المجمعة فقط.</p>
             </div>
           </label>
 
@@ -177,20 +178,20 @@ const AdminExportModal = ({ isOpen, onClose, filters }) => {
               value="perf_only"
               checked={exportType === 'perf_only'}
               onChange={() => setExportType('perf_only')}
-              style={{ accentColor: 'var(--theme-color)', width: '20px', height: '20px' }}
+              className="adminexportmodal-style-28"
             />
             <ClipboardList size={24} color={exportType === 'perf_only' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
-            <div style={{ flex: 1 }}>
-              <h4 style={{ color: 'var(--text-primary)', margin: 0 }}>سجل المهام (Excel)</h4>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '4px 0 0 0' }}>تحميل تقارير مهام المشرفين المجمعة فقط.</p>
+            <div className="adminexportmodal-style-29">
+              <h4 className="adminexportmodal-style-30">سجل المهام (Excel)</h4>
+              <p className="adminexportmodal-style-31">تحميل تقارير مهام المشرفين المجمعة فقط.</p>
             </div>
           </label>
         </div>
 
         <button
-          className="btn-save"
+          className="btn-save adminexportmodal-style-32"
           onClick={handleExport}
-          style={{ width: '100%', padding: '1.2rem', display: 'flex', justifyContent: 'center', gap: '0.5rem', fontSize: '1.2rem', fontWeight: 'bold' }}
+          
         >
           <FileSpreadsheet size={24} />
           بدء التحميل الآن

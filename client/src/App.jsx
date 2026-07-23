@@ -31,6 +31,7 @@ import NotFound from './pages/NotFound';
 import Login from './pages/Login';
 import StaffManagement from './pages/StaffManagement';
 import ShiftStaffDetails from './pages/ShiftStaffDetails';
+import Followup from './pages/Followup';
 import PendingApproval from './pages/PendingApproval';
 import CheckInPage from './pages/CheckInPage';
 import CheckoutModal from './components/CheckoutModal';
@@ -43,7 +44,7 @@ import ComingSoon from './pages/ComingSoon';
 import GeneralSettings from './pages/GeneralSettings';
 import TrackerSettings from './pages/TrackerSettings';
 import { ToastProvider } from './contexts/ToastContext';
-import './App.css';
+import "./App.scss";
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -189,7 +190,7 @@ function AppContent() {
 
 
   if (loading || (user && user.status === 'Active' && !attendanceChecked)) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'white' }}>جاري التحميل...</div>;
+    return <div className="app-style-1">جاري التحميل...</div>;
   }
 
   if (!user) {
@@ -205,20 +206,20 @@ function AppContent() {
   if (needsCheckIn && !isEarlyForShift) {
     if (leaveStatus && !overrideLeave) {
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg-main)', color: 'var(--text-primary)', padding: '2rem', textAlign: 'center' }}>
-          <div style={{ background: 'var(--glass-bg)', padding: '3rem', borderRadius: '24px', border: 'var(--glass-border)', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', maxWidth: '450px', width: '100%' }}>
+        <div className="app-style-2">
+          <div className="app-style-3">
             <div style={{ background: leaveStatus === 'DayOff' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)', color: leaveStatus === 'DayOff' ? '#3b82f6' : '#ef4444', width: '80px', height: '80px', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '0 auto 1.5rem' }}>
               <Info size={40} />
             </div>
-            <h2 style={{ fontSize: '1.8rem', marginBottom: '1rem' }}>
+            <h2 className="app-style-4">
               {leaveStatus === 'DayOff' ? 'أنت في إجازة اليوم' : 'تم تسجيلك غياب اليوم'}
             </h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '2.5rem', lineHeight: '1.6' }}>
+            <p className="app-style-5">
               {leaveStatus === 'DayOff' ? 'نتمنى لك إجازة سعيدة. لا تحتاج لتسجيل الحضور اليوم.' : 'لقد تم تسجيلك كغياب في نظام الحضور والانصراف لهذا اليوم.'}
             </p>
             <button
               onClick={() => setOverrideLeave(true)}
-              style={{ padding: '0.8rem 1.5rem', background: 'transparent', border: '1px solid var(--theme-color)', color: 'var(--theme-color)', borderRadius: '12px', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.3s' }}
+              className="app-style-6"
               onMouseOver={e => { e.target.style.background = 'rgba(16, 185, 129, 0.1)' }}
               onMouseOut={e => { e.target.style.background = 'transparent' }}
             >
@@ -262,6 +263,7 @@ function AppContent() {
           <Route path="/staff-management" element={<StaffManagement />} />
           <Route path="/staff-management/:shiftId" element={<ShiftStaffDetails />} />
           <Route path="/today-followup" element={<TodayFollowup />} />
+          <Route path="/followup" element={<Followup />} />
           <Route path="/personal-followup/:employeeId?" element={<PersonalFollowup />} />
           <Route path="/expenses" element={<Expenses />} />
           <Route path="/expenses-add" element={<ExpensesAdd />} />
@@ -287,23 +289,23 @@ function AppContent() {
 
       {/* Summary Reminder Modal */}
       {showSummaryReminder && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
-          <div className="fade-in" style={{ background: 'var(--bg-main)', padding: '2.5rem', borderRadius: '16px', maxWidth: '450px', width: '90%', textAlign: 'center', border: '1px solid var(--theme-color)', boxShadow: '0 10px 40px rgba(var(--theme-color-rgb, 16,185,129), 0.3)' }}>
-            <div style={{ color: 'var(--theme-color)', marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+        <div className="app-style-7">
+          <div className="fade-in app-style-8" >
+            <div className="app-style-9">
               <Info size={64} />
             </div>
-            <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem', fontSize: '1.8rem' }}>تذكير هام!</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '1.1rem', lineHeight: '1.6' }}>
+            <h2 className="app-style-10">تذكير هام!</h2>
+            <p className="app-style-11">
               شارفت ورديتك على الانتهاء (أقل من 30 دقيقة). يرجى التأكد من كتابة <strong>ملخص المهام اليومية</strong> قبل الانصراف.
             </p>
-            <div style={{ display: 'flex', gap: '1rem' }}>
+            <div className="app-style-12">
               <button 
                 onClick={() => {
                   setShowSummaryReminder(false);
                   localStorage.setItem('summaryReminderDate', getLogicalDateString(new Date()));
                   window.location.href = '/summery';
                 }}
-                style={{ flex: 1, background: 'var(--theme-color)', color: 'white', padding: '1rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem' }}
+                className="app-style-13"
               >
                 الذهاب للملخص
               </button>
@@ -312,7 +314,7 @@ function AppContent() {
                   setShowSummaryReminder(false);
                   localStorage.setItem('summaryReminderDate', getLogicalDateString(new Date()));
                 }}
-                style={{ flex: 1, background: 'rgba(255,255,255,0.1)', color: 'var(--text-primary)', padding: '1rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem' }}
+                className="app-style-14"
               >
                 تخطي
               </button>
@@ -323,28 +325,28 @@ function AppContent() {
 
       {/* Wallet Warning Modal */}
       {user && !user.walletNumber && showWalletWarning && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
-          <div className="fade-in" style={{ background: 'var(--solid-bg)', padding: '2.5rem', borderRadius: '16px', maxWidth: '450px', width: '90%', textAlign: 'center', border: '1px solid #ef4444', boxShadow: '0 10px 40px rgba(239, 68, 68, 0.3)' }}>
-            <div style={{ color: '#ef4444', marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+        <div className="app-style-15">
+          <div className="fade-in app-style-16" >
+            <div className="app-style-17">
               <TriangleAlert size={64} />
             </div>
-            <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem', fontSize: '1.8rem' }}>البيانات المالية غير مكتملة!</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', fontSize: '1.1rem', lineHeight: '1.6' }}>
+            <h2 className="app-style-18">البيانات المالية غير مكتملة!</h2>
+            <p className="app-style-19">
               برجاء تسجيل <strong>رقم المحفظة الإلكترونية</strong> الخاص بك لتتمكن من استلام مستحقاتك وسلفك. لن تتمكن من استلام أي مبالغ بدون تسجيل رقم المحفظة.
             </p>
-            <div style={{ display: 'flex', gap: '1rem', flexDirection: 'column' }}>
+            <div className="app-style-20">
               <button 
                 onClick={() => {
                   setShowWalletWarning(false);
                   window.location.href = '/account';
                 }}
-                style={{ background: '#ef4444', color: 'white', padding: '1rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem' }}
+                className="app-style-21"
               >
                 الذهاب لتسجيل البيانات المالية
               </button>
               <button 
                 onClick={() => setShowWalletWarning(false)}
-                style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)', padding: '0.8rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+                className="app-style-22"
               >
                 تذكيري لاحقاً
               </button>

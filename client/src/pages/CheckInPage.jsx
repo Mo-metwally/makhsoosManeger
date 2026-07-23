@@ -1,3 +1,4 @@
+import './CheckInPage.scss';
 import React, { useState, useEffect } from 'react';
 import { Fingerprint, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import api from '../services/api';
@@ -59,57 +60,28 @@ const CheckInPage = ({ onCheckedIn, shift, userName, isDayOffWork }) => {
   const delayStr = getDelayString();
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, var(--bg-main) 0%, #111827 100%)',
-      color: 'var(--text-primary)',
-      padding: '2rem'
-    }}>
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.03)',
-        backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255, 255, 255, 0.05)',
-        borderRadius: '24px',
-        padding: '3rem',
-        maxWidth: '500px',
-        width: '100%',
-        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
-        textAlign: 'center',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
+    <div className="checkinpage-style-1">
+      <div className="checkinpage-style-2">
         {/* Decorative Top Glow */}
-        <div style={{ position: 'absolute', top: '-50px', left: '50%', transform: 'translateX(-50%)', width: '200px', height: '100px', background: 'var(--accent-blue)', filter: 'blur(80px)', opacity: 0.5 }}></div>
+        <div className="checkinpage-style-3"></div>
 
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '0.5rem', background: 'linear-gradient(90deg, #60a5fa, #3b82f6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+        <h1 className="checkinpage-style-4">
           مرحباً بك، {userName.split(' ')[0]}
         </h1>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '2.5rem', fontSize: '1.1rem' }}>يرجى تسجيل الحضور للبدء في ورديتك</p>
+        <p className="checkinpage-style-5">يرجى تسجيل الحضور للبدء في ورديتك</p>
 
         {shift && (
-          <div style={{
-            background: 'rgba(59, 130, 246, 0.1)',
-            border: '1px solid rgba(59, 130, 246, 0.2)',
-            borderRadius: '16px',
-            padding: '1.5rem',
-            marginBottom: '2.5rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.8rem'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>الوردية الحالية:</span>
-              <strong style={{ color: '#60a5fa' }}>{shift.name}</strong>
+          <div className="checkinpage-style-6">
+            <div className="checkinpage-style-7">
+              <span className="checkinpage-style-8">الوردية الحالية:</span>
+              <strong className="checkinpage-style-9">{shift.name}</strong>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>توقيت الوردية:</span>
-              <span style={{ color: 'var(--text-primary)' }}><Clock size={14} style={{ display: 'inline', marginLeft: '4px', verticalAlign: 'middle', color: '#60a5fa' }} /> من {shift.startTime} إلى {shift.endTime}</span>
+            <div className="checkinpage-style-10">
+              <span className="checkinpage-style-11">توقيت الوردية:</span>
+              <span className="checkinpage-style-12"><Clock size={14} className="checkinpage-style-13" /> من {shift.startTime} إلى {shift.endTime}</span>
             </div>
             {delayStr && (
-              <div style={{ marginTop: '0.5rem', padding: '0.8rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '8px', color: '#ef4444', fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+              <div className="checkinpage-style-14">
                 <AlertCircle size={16} />
                 {delayStr}
               </div>
@@ -117,17 +89,17 @@ const CheckInPage = ({ onCheckedIn, shift, userName, isDayOffWork }) => {
           </div>
         )}
 
-        <div style={{ marginBottom: '3rem' }}>
-          <div style={{ fontSize: '3.5rem', fontWeight: 'bold', fontFamily: 'monospace', letterSpacing: '2px', color: 'var(--text-primary)', textShadow: '0 0 20px rgba(255,255,255,0.1)' }}>
+        <div className="checkinpage-style-15">
+          <div className="checkinpage-style-16">
             {formatTime(time)}
           </div>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginTop: '0.5rem' }}>
+          <div className="checkinpage-style-17">
             {formatDate(time)}
           </div>
         </div>
 
         {error && (
-          <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '1rem', borderRadius: '12px', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+          <div className="checkinpage-style-18">
             <AlertCircle size={18} />
             {error}
           </div>

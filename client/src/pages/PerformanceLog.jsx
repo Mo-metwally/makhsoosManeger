@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { History, Calendar, PhoneCall, ListTodo, StickyNote, Activity, Download, ChevronDown, ChevronUp, Search, Trash2, RefreshCw } from 'lucide-react';
 import * as XLSX from 'xlsx-js-style';
 import api from '../services/api';
-import './Calls.css';
+import "./Calls.scss";
 
 const PerformanceLog = () => {
   const [logs, setLogs] = useState([]);
@@ -90,25 +90,25 @@ const PerformanceLog = () => {
   };
 
   return (
-    <div className="calls-page-container" style={{ width: '100%', maxWidth: '100%' }}>
-      <header className="page-header" style={{ marginBottom: '2rem' }}>
+    <div className="calls-page-container performancelog-style-1" >
+      <header className="page-header performancelog-style-2" >
         <div className="title-section">
           <History size={32} className="header-icon" />
-          <h1 className="page-title gradient-title" style={{ fontSize: '2.5rem' }}>سجل المهام</h1>
+          <h1 className="page-title gradient-title performancelog-style-3" >سجل المهام</h1>
         </div>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', fontSize: '1.1rem' }}>سجل بجميع ملخصات الأداء التي قمت بحفظها</p>
-          <button className="pr-refresh-btn" onClick={fetchLogs} style={{ padding: '0.4rem 0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--theme-color)', border: '1px solid var(--theme-color)', borderRadius: '8px', cursor: 'pointer' }}>
+        <div className="performancelog-style-4">
+          <p className="performancelog-style-5">سجل بجميع ملخصات الأداء التي قمت بحفظها</p>
+          <button className="pr-refresh-btn performancelog-style-6" onClick={fetchLogs} >
             <RefreshCw size={16} className={loading ? 'spinning' : ''} />
             تحديث
           </button>
         </div>
       </header>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', paddingBottom: '4rem' }}>
+      <div className="performancelog-style-7">
         {logs.length === 0 ? (
-          <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
-            <Calendar size={60} style={{ opacity: 0.3, marginBottom: '1rem' }} />
+          <div className="glass-panel performancelog-style-8" >
+            <Calendar size={60} className="performancelog-style-9" />
             <h2>لا توجد سجلات أداء بعد</h2>
             <p>قم بحفظ ملخص أدائك من صفحة "الملخص" ليظهر هنا.</p>
           </div>
@@ -118,11 +118,7 @@ const PerformanceLog = () => {
             const validNotes = log.notesList ? log.notesList.filter(n => n.trim() !== '') : [];
 
             return (
-              <div key={index} className="glass-panel" style={{
-                borderLeft: '4px solid var(--theme-color)',
-                transition: 'all 0.3s',
-                overflow: 'hidden'
-              }}>
+              <div key={index} className="glass-panel performancelog-style-10" >
                 <div
                   onClick={() => setExpandedIndex(isExpanded ? null : index)}
                   style={{
@@ -136,93 +132,63 @@ const PerformanceLog = () => {
                     gap: '1rem'
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                    <div style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '1rem', borderRadius: '50%', color: 'var(--theme-color)' }}>
+                  <div className="performancelog-style-11">
+                    <div className="performancelog-style-12">
                       <Calendar size={24} />
                     </div>
                     <div>
-                      <h3 style={{ margin: '0 0 0.3rem 0', color: 'var(--text-primary)', fontSize: '1.2rem' }}>
+                      <h3 className="performancelog-style-13">
                         {formatDate(log.date)}
                       </h3>
-                      <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', flexWrap: 'wrap' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><PhoneCall size={14} /> {log.manualCallsCount || 0} مكالمة</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><ListTodo size={14} /> مهام مدونة</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}><StickyNote size={14} /> {validNotes.length} ملاحظات</span>
+                      <div className="performancelog-style-14">
+                        <span className="performancelog-style-15"><PhoneCall size={14} /> {log.manualCallsCount || 0} مكالمة</span>
+                        <span className="performancelog-style-16"><ListTodo size={14} /> مهام مدونة</span>
+                        <span className="performancelog-style-17"><StickyNote size={14} /> {validNotes.length} ملاحظات</span>
                       </div>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div className="performancelog-style-18">
                     <button
                       onClick={(e) => { e.stopPropagation(); handleExportExcel(log); }}
-                      style={{
-                        padding: '0.6rem 1.2rem',
-                        background: 'rgba(59, 130, 246, 0.1)',
-                        color: 'var(--theme-color)',
-                        border: '1px solid var(--theme-color)',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        fontWeight: 'bold',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s'
-                      }}
+                      className="performancelog-style-19"
                       onMouseOver={(e) => e.target.style.background = 'rgba(59, 130, 246, 0.2)'}
                       onMouseOut={(e) => e.target.style.background = 'rgba(59, 130, 246, 0.1)'}
                     >
                       <Download size={18} /> تحميل إكسيل
                     </button>
-                    <div style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.05)', borderRadius: '50%', display: 'flex' }}>
+                    <div className="performancelog-style-20">
                       {isExpanded ? <ChevronUp size={24} color="var(--text-secondary)" /> : <ChevronDown size={24} color="var(--text-secondary)" />}
                     </div>
                   </div>
                 </div>
 
                 {isExpanded && (
-                  <div style={{ padding: '0 2rem 2rem 2rem', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '1rem', paddingTop: '1.5rem' }}>
+                  <div className="performancelog-style-21">
 
-                    <div style={{ marginBottom: '1.5rem' }}>
-                      <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#a855f7', marginBottom: '0.8rem' }}>
+                    <div className="performancelog-style-22">
+                      <h4 className="performancelog-style-23">
                         <ListTodo size={18} /> مهام المتابعة
                       </h4>
-                      <div style={{
-                        background: 'rgba(0,0,0,0.2)',
-                        padding: '1rem 1.5rem',
-                        borderRadius: '12px',
-                        border: '1px solid rgba(255,255,255,0.05)',
-                        color: 'var(--text-primary)',
-                        whiteSpace: 'pre-wrap',
-                        lineHeight: '1.6'
-                      }}>
-                        {log.tasks || <span style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>لا توجد مهام مدونة.</span>}
+                      <div className="performancelog-style-24">
+                        {log.tasks || <span className="performancelog-style-25">لا توجد مهام مدونة.</span>}
                       </div>
                     </div>
 
                     <div>
-                      <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#f59e0b', marginBottom: '0.8rem' }}>
+                      <h4 className="performancelog-style-26">
                         <StickyNote size={18} /> الملاحظات
                       </h4>
                       {validNotes.length > 0 ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                        <div className="performancelog-style-27">
                           {validNotes.map((note, idx) => (
-                            <div key={idx} style={{
-                              background: 'rgba(0,0,0,0.2)',
-                              padding: '1rem 1.5rem',
-                              borderRadius: '12px',
-                              border: '1px solid rgba(255,255,255,0.05)',
-                              color: 'var(--text-primary)',
-                              whiteSpace: 'pre-wrap',
-                              lineHeight: '1.6',
-                              position: 'relative',
-                              paddingRight: '3rem'
-                            }}>
-                              <span style={{ position: 'absolute', right: '1rem', top: '1rem', color: '#f59e0b', fontWeight: 'bold', opacity: 0.5 }}>{idx + 1}.</span>
+                            <div key={idx} className="performancelog-style-28">
+                              <span className="performancelog-style-29">{idx + 1}.</span>
                               {note}
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <div style={{ color: 'var(--text-secondary)', fontStyle: 'italic', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '12px' }}>
+                        <div className="performancelog-style-30">
                           لا توجد ملاحظات مدونة.
                         </div>
                       )}

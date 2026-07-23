@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useToast } from '../contexts/ToastContext';
-import './Expenses.css'; // Reuse styles
+import "./Expenses.scss"; // Reuse styles
 
 const ExpensesAdd = () => {
   const { user } = useAuth();
@@ -298,7 +298,7 @@ const ExpensesAdd = () => {
   return (
     <div className="expenses-page">
       <header className="page-header">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+        <div className="expensesadd-style-1">
           <div>
             <div className="header-title">
               <Wallet className="header-icon" size={32} />
@@ -316,8 +316,8 @@ const ExpensesAdd = () => {
             <Filter size={22} className="theme-color" />
             <span>تصفية وتحديد الميزانيات</span>
           </div>
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            <button className="advanced-apply-btn" onClick={() => setShowCreateCardModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--theme-glow)', color: '#fff', border: 'none', padding: '0.8rem 1.2rem', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
+          <div className="expensesadd-style-2">
+            <button className="advanced-apply-btn expensesadd-style-3" onClick={() => setShowCreateCardModal(true)} >
               <CreditCard size={18} />
               إنشاء بطاقة
             </button>
@@ -340,10 +340,10 @@ const ExpensesAdd = () => {
 
           <div className="filter-control-group">
             <label>تحديد الوردية</label>
-            <div className="advanced-select-container" style={{ minWidth: '100%', width: '100%' }}>
+            <div className="advanced-select-container expensesadd-style-4" >
               <div
-                className="advanced-select-header"
-                style={{ padding: '0.8rem 1.2rem', borderRadius: '10px', background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255, 255, 255, 0.1)' }}
+                className="advanced-select-header expensesadd-style-5"
+                
                 onClick={() => setIsShiftDropdownOpen(!isShiftDropdownOpen)}
               >
                 <span>{getSelectedShiftName()}</span>
@@ -376,10 +376,10 @@ const ExpensesAdd = () => {
 
           <div className="filter-control-group">
             <label>حالة البطاقة</label>
-            <div className="advanced-select-container" style={{ minWidth: '100%', width: '100%' }}>
+            <div className="advanced-select-container expensesadd-style-6" >
               <div
-                className="advanced-select-header"
-                style={{ padding: '0.8rem 1.2rem', borderRadius: '10px', background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255, 255, 255, 0.1)' }}
+                className="advanced-select-header expensesadd-style-7"
+                
                 onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
               >
                 <span>{getSelectedStatusName()}</span>
@@ -426,7 +426,7 @@ const ExpensesAdd = () => {
         </div>
       </div>
 
-      <div className="admin-expenses-list" style={{ display: 'flex', flexDirection: 'column', gap: '4rem' }}>
+      <div className="admin-expenses-list expensesadd-style-8" >
         {admins.filter(admin => {
           if (selectedShift !== 'all') {
             const userShift = admin.Shifts && admin.Shifts.length > 0 ? admin.Shifts[0] : null;
@@ -456,7 +456,7 @@ const ExpensesAdd = () => {
           const isActive = budgetData ? budgetData.isActive !== false : false;
 
           return (
-            <section key={admin.id} className="expenses-hero-section" style={{ position: 'relative' }}>
+            <section key={admin.id} className="expenses-hero-section expensesadd-style-9" >
               <div style={{
                 position: 'absolute',
                 top: '-15px',
@@ -478,30 +478,16 @@ const ExpensesAdd = () => {
                 STATUS: {isActive ? 'ACTIVE' : 'INACTIVE'}
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem', marginTop: '10px' }}>
-                <div style={{ flex: 1 }}>
+              <div className="expensesadd-style-10">
+                <div className="expensesadd-style-11">
                   {admin.cardUses && (
-                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+                    <div className="expensesadd-style-12">
                       <strong>استخدامات البطاقة:</strong> {admin.cardUses}
                     </div>
                   )}
                   <button
                     onClick={() => openUsesModal(admin)}
-                    style={{
-                      direction: 'rtl',
-                      background: 'rgba(59, 130, 246, 0.15)',
-                      color: 'var(--theme-color)',
-                      border: '1px solid rgba(59, 130, 246, 0.3)',
-                      padding: '0.4rem 0.8rem',
-                      borderRadius: '8px',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      cursor: 'pointer',
-                      fontWeight: 'bold',
-                      transition: 'all 0.3s ease',
-                      fontSize: '0.9rem'
-                    }}
+                    className="expensesadd-style-13"
                     onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(59, 130, 246, 0.25)' }}
                     onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)' }}
                     disabled
@@ -511,23 +497,11 @@ const ExpensesAdd = () => {
 
                   </button>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div className="expensesadd-style-14">
                   {budgetData && budgetData.isActive !== false && (
                     <button
                       onClick={() => { setCardToDelete(budgetData.id); setShowDeleteCardModal(true); }}
-                      style={{
-                        background: 'rgba(239, 68, 68, 0.15)',
-                        color: '#ef4444',
-                        border: '1px solid rgba(239, 68, 68, 0.3)',
-                        padding: '0.5rem 1rem',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        cursor: 'pointer',
-                        fontWeight: 'bold',
-                        transition: 'all 0.3s ease'
-                      }}
+                      className="expensesadd-style-15"
                       onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.25)' }}
                       onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)' }}
                     >
@@ -537,19 +511,7 @@ const ExpensesAdd = () => {
                   )}
                   <button
                     onClick={() => exportCardExpensesToExcel(admin, budgetData, expenses, userShift)}
-                    style={{
-                      background: 'rgba(16, 185, 129, 0.15)',
-                      color: 'var(--green)',
-                      border: '1px solid rgba(16, 185, 129, 0.3)',
-                      padding: '0.5rem 1rem',
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      cursor: 'pointer',
-                      fontWeight: 'bold',
-                      transition: 'all 0.3s ease'
-                    }}
+                    className="expensesadd-style-16"
                     onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.25)' }}
                     onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.15)' }}
                   >
@@ -560,19 +522,7 @@ const ExpensesAdd = () => {
                     <>
                       <button
                         onClick={() => handleActivateCard(budgetData.id)}
-                        style={{
-                          background: 'rgba(59, 130, 246, 0.15)',
-                          color: '#3b82f6',
-                          border: '1px solid rgba(59, 130, 246, 0.3)',
-                          padding: '0.5rem 1rem',
-                          borderRadius: '8px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          cursor: 'pointer',
-                          fontWeight: 'bold',
-                          transition: 'all 0.3s ease'
-                        }}
+                        className="expensesadd-style-17"
                         onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(59, 130, 246, 0.25)' }}
                         onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)' }}
                       >
@@ -582,19 +532,7 @@ const ExpensesAdd = () => {
 
                       <button
                         onClick={() => { setCardToHardDelete(budgetData.id); setShowHardDeleteModal(true); }}
-                        style={{
-                          background: 'rgba(220, 38, 38, 0.15)',
-                          color: '#dc2626',
-                          border: '1px solid rgba(220, 38, 38, 0.3)',
-                          padding: '0.5rem 1rem',
-                          borderRadius: '8px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          cursor: 'pointer',
-                          fontWeight: 'bold',
-                          transition: 'all 0.3s ease'
-                        }}
+                        className="expensesadd-style-18"
                         onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(220, 38, 38, 0.25)' }}
                         onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(220, 38, 38, 0.15)' }}
                       >
@@ -632,7 +570,7 @@ const ExpensesAdd = () => {
               </div>
 
               <div className="expenses-main-row">
-                <div className="expenses-inputs-container" style={{ flexDirection: 'column', alignItems: 'stretch', justifyContent: 'center' }}>
+                <div className="expenses-inputs-container expensesadd-style-19" >
 
                   <div className="opening-balance-badge">
                     <span className="badge-label">مبلغ بداية المدة ({currentMonthName}):</span>
@@ -641,7 +579,7 @@ const ExpensesAdd = () => {
 
                   <div className="input-card">
                     <div className="input-card-header">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div className="expensesadd-style-20">
                         <CreditCard className="card-icon theme-color" size={24} />
                         <h3>إجمالي ميزانية الشهر</h3>
                       </div>
@@ -694,21 +632,21 @@ const ExpensesAdd = () => {
 
               {/* Expenses Table for Admin */}
               {expenses.length > 0 && (
-                <div className="expenses-table-section fade-in" style={{ marginTop: '1.5rem', background: 'transparent', padding: 0, border: 'none' }}>
+                <div className="expenses-table-section fade-in expensesadd-style-21" >
                   <div
-                    className="table-header-box"
-                    style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', background: 'var(--glass-bg)', padding: '1rem', borderRadius: '12px', border: 'var(--glass-border)' }}
+                    className="table-header-box expensesadd-style-22"
+                    
                     onClick={() => setExpandedTables(prev => ({ ...prev, [admin.id]: !prev[admin.id] }))}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div className="expensesadd-style-23">
                       <FileText size={20} className="theme-color" />
-                      <h4 style={{ margin: 0, color: 'var(--text-primary)' }}>حركات المصروفات لـ {admin.fullName || admin.username} ({expenses.length})</h4>
+                      <h4 className="expensesadd-style-24">حركات المصروفات لـ {admin.fullName || admin.username} ({expenses.length})</h4>
                     </div>
                     {expandedTables[admin.id] ? <ChevronUp size={20} className="text-muted" /> : <ChevronDown size={20} className="text-muted" />}
                   </div>
 
                   {expandedTables[admin.id] && (
-                    <div className="advanced-table-wrapper fade-in" style={{ background: 'var(--glass-bg)', border: 'var(--glass-border)', borderRadius: '16px', padding: '1rem' }}>
+                    <div className="advanced-table-wrapper fade-in expensesadd-style-25" >
                       <table className="expenses-advanced-table">
                         <thead>
                           <tr>
@@ -743,21 +681,21 @@ const ExpensesAdd = () => {
                               <td>
                                 <span className="details-text">
                                   {exp.type === 'advance' ? (
-                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <div className="expensesadd-style-26">
                                       <span>{exp.employeeName}</span>
-                                      {exp.item && <small style={{ color: 'var(--text-secondary)' }}>{exp.item}</small>}
-                                      {exp.notes && <small style={{ color: 'var(--text-secondary)' }}>{exp.notes}</small>}
+                                      {exp.item && <small className="expensesadd-style-27">{exp.item}</small>}
+                                      {exp.notes && <small className="expensesadd-style-28">{exp.notes}</small>}
                                     </div>
                                   ) : (
-                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <div className="expensesadd-style-29">
                                       <span>{exp.item || 'مستلزمات'}</span>
-                                      {exp.notes && <small style={{ color: 'var(--text-secondary)' }}>{exp.notes}</small>}
+                                      {exp.notes && <small className="expensesadd-style-30">{exp.notes}</small>}
                                     </div>
                                   )}
                                 </span>
                               </td>
                               <td>
-                                <span className="amount-cell negative-val" style={{ fontSize: '0.95rem' }}>
+                                <span className="amount-cell negative-val expensesadd-style-31" >
                                   -{exp.amount.toLocaleString()} ج.م
                                 </span>
                               </td>
@@ -838,7 +776,7 @@ const ExpensesAdd = () => {
                 value={usesInput}
                 onChange={(e) => setUsesInput(e.target.value)}
                 placeholder="اكتب استخدامات البطاقة هنا..."
-                style={{ width: '100%', minHeight: '100px', padding: '1rem', borderRadius: '12px', background: 'var(--glass-bg)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', outline: 'none', resize: 'vertical', marginTop: '10px' }}
+                className="expensesadd-style-32"
               />
             </div>
             <div className="modal-footer">
@@ -851,18 +789,18 @@ const ExpensesAdd = () => {
 
       {/* Create Card Modal */}
       {showCreateCardModal && (
-        <div className="modal-overlay fade-in" onClick={() => setShowCreateCardModal(false)} style={{ zIndex: 9999 }}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ overflow: 'visible', maxWidth: '500px', width: '100%' }}>
+        <div className="modal-overlay fade-in expensesadd-style-33" onClick={() => setShowCreateCardModal(false)} >
+          <div className="modal-content expensesadd-style-34" onClick={e => e.stopPropagation()} >
             <div className="modal-header">
               <h3>إنشاء بطاقة</h3>
               <button className="close-btn" onClick={() => setShowCreateCardModal(false)}><X size={20} /></button>
             </div>
             <div className="modal-body">
-              <div className="form-group" style={{ position: 'relative' }}>
-                <label style={{ display: 'block', marginBottom: '10px' }}>اختر الحساب (المدير / المشرف)</label>
+              <div className="form-group expensesadd-style-35" >
+                <label className="expensesadd-style-36">اختر الحساب (المدير / المشرف)</label>
                 <div
-                  className="advanced-select-container"
-                  style={{ minWidth: '100%', width: '100%', padding: '0.8rem', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.3)', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                  className="advanced-select-container expensesadd-style-37"
+                  
                   onClick={() => setIsCreateCardDropdownOpen(!isCreateCardDropdownOpen)}
                 >
                   <span style={{ color: selectedCreateCardAdmin ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
@@ -874,7 +812,7 @@ const ExpensesAdd = () => {
                 </div>
 
                 {isCreateCardDropdownOpen && (
-                  <div className="advanced-select-dropdown" style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10000, background: '#1e1e2d', border: '1px solid var(--border-color)', borderRadius: '12px', marginTop: '4px', maxHeight: '250px', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
+                  <div className="advanced-select-dropdown expensesadd-style-38" >
                     {admins.map(admin => {
                       const shiftName = admin.Shifts && admin.Shifts.length > 0 ? admin.Shifts[0].name : 'بدون وردية';
                       const hasActiveCard = admin.Budgets && admin.Budgets.length > 0 && admin.Budgets[0].isActive !== false;
@@ -882,24 +820,24 @@ const ExpensesAdd = () => {
                       return (
                         <div
                           key={admin.id}
-                          className="advanced-select-option"
-                          style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                          className="advanced-select-option expensesadd-style-39"
+                          
                           onClick={() => {
                             setSelectedCreateCardAdmin(admin.id);
                             setIsCreateCardDropdownOpen(false);
                           }}
                         >
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <div className="expensesadd-style-40">
                             <span style={{ fontWeight: 'bold', fontSize: '1rem', color: '#fff', textDecoration: hasInactiveCard ? 'line-through' : 'none', opacity: hasInactiveCard ? 0.7 : 1 }}>{admin.fullName}</span>
-                            <span style={{ fontSize: '0.8rem', color: '#aaa' }}>الوردية: {shiftName}</span>
+                            <span className="expensesadd-style-41">الوردية: {shiftName}</span>
                           </div>
                           {hasActiveCard && (
-                            <CreditCard size={20} style={{ color: 'var(--primary-color)' }} title="يمتلك بطاقة نشطة" />
+                            <CreditCard size={20} className="expensesadd-style-42" title="يمتلك بطاقة نشطة" />
                           )}
                           {hasInactiveCard && (
-                            <div style={{ position: 'relative' }} title="البطاقة متوقفة (غير نشطة)">
-                              <CreditCard size={20} style={{ color: '#ef4444', opacity: 0.7 }} />
-                              <div style={{ position: 'absolute', top: '50%', left: '-2px', right: '-2px', height: '2px', background: '#ef4444', transform: 'rotate(-45deg)' }}></div>
+                            <div className="expensesadd-style-43" title="البطاقة متوقفة (غير نشطة)">
+                              <CreditCard size={20} className="expensesadd-style-44" />
+                              <div className="expensesadd-style-45"></div>
                             </div>
                           )}
                         </div>
@@ -919,21 +857,21 @@ const ExpensesAdd = () => {
 
       {/* Delete Card Modal (Soft Delete) */}
       {showDeleteCardModal && (
-        <div className="modal-overlay fade-in" onClick={() => setShowDeleteCardModal(false)} style={{ zIndex: 9999 }}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+        <div className="modal-overlay fade-in expensesadd-style-46" onClick={() => setShowDeleteCardModal(false)} >
+          <div className="modal-content expensesadd-style-47" onClick={e => e.stopPropagation()} >
             <div className="modal-header">
-              <h3 style={{ color: '#ef4444' }}>إيقاف البطاقة</h3>
+              <h3 className="expensesadd-style-48">إيقاف البطاقة</h3>
               <button className="close-btn" onClick={() => setShowDeleteCardModal(false)}><X size={20} /></button>
             </div>
             <div className="modal-body">
-              <p style={{ textAlign: 'center', marginBottom: '1rem' }}>
+              <p className="expensesadd-style-49">
                 هل أنت متأكد من إيقاف هذه البطاقة؟
-                <br /><small style={{ color: 'var(--text-secondary)' }}>(سيتم حفظ المعاملات ولن تحذف، وستتحول البطاقة لحالة "غير نشط")</small>
+                <br /><small className="expensesadd-style-50">(سيتم حفظ المعاملات ولن تحذف، وستتحول البطاقة لحالة "غير نشط")</small>
               </p>
             </div>
             <div className="modal-footer">
               <button className="cancel-btn" onClick={() => setShowDeleteCardModal(false)}>إلغاء</button>
-              <button className="save-btn" onClick={handleDeleteCard} style={{ background: '#ef4444' }}>تأكيد الإيقاف</button>
+              <button className="save-btn expensesadd-style-51" onClick={handleDeleteCard} >تأكيد الإيقاف</button>
             </div>
           </div>
         </div>
@@ -941,47 +879,47 @@ const ExpensesAdd = () => {
 
       {/* Hard Delete Card Modal */}
       {showHardDeleteModal && (
-        <div className="modal-overlay fade-in" onClick={() => setShowHardDeleteModal(false)} style={{ zIndex: 9999 }}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '450px' }}>
+        <div className="modal-overlay fade-in expensesadd-style-52" onClick={() => setShowHardDeleteModal(false)} >
+          <div className="modal-content expensesadd-style-53" onClick={e => e.stopPropagation()} >
             <div className="modal-header">
-              <h3 style={{ color: '#dc2626' }}>حذف البطاقة نهائياً</h3>
+              <h3 className="expensesadd-style-54">حذف البطاقة نهائياً</h3>
               <button className="close-btn" onClick={() => setShowHardDeleteModal(false)}><X size={20} /></button>
             </div>
             <div className="modal-body">
-              <div style={{ background: 'rgba(220, 38, 38, 0.1)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(220, 38, 38, 0.3)', marginBottom: '1rem' }}>
-                <p style={{ textAlign: 'center', color: '#fca5a5', fontWeight: 'bold', margin: 0, lineHeight: '1.6' }}>
+              <div className="expensesadd-style-55">
+                <p className="expensesadd-style-56">
                   ⚠️ تحذير شديد الأهمية ⚠️<br />
                   سيتم حذف هذه البطاقة وجميع المصروفات والمعاملات المرتبطة بها نهائياً ولا يمكن التراجع عن هذا الإجراء!
                 </p>
               </div>
-              <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+              <p className="expensesadd-style-57">
                 نصيحة: تأكد من <strong>تحميل تقرير المصاريف</strong> (Excel) للاحتفاظ بنسخة من البيانات قبل الحذف.
               </p>
             </div>
             <div className="modal-footer">
               <button className="cancel-btn" onClick={() => setShowHardDeleteModal(false)}>إلغاء</button>
-              <button className="save-btn" onClick={handleHardDeleteCard} style={{ background: '#dc2626' }}>حذف نهائي للبيانات</button>
+              <button className="save-btn expensesadd-style-58" onClick={handleHardDeleteCard} >حذف نهائي للبيانات</button>
             </div>
           </div>
         </div>
       )}
 
       {showDeleteCardModal && (
-        <div className="modal-overlay fade-in" onClick={() => setShowDeleteCardModal(false)} style={{ zIndex: 9999 }}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+        <div className="modal-overlay fade-in expensesadd-style-59" onClick={() => setShowDeleteCardModal(false)} >
+          <div className="modal-content expensesadd-style-60" onClick={e => e.stopPropagation()} >
             <div className="modal-header">
-              <h3 style={{ color: '#ef4444' }}>حذف البطاقة</h3>
+              <h3 className="expensesadd-style-61">حذف البطاقة</h3>
               <button className="close-btn" onClick={() => setShowDeleteCardModal(false)}><X size={20} /></button>
             </div>
             <div className="modal-body">
-              <p style={{ textAlign: 'center', marginBottom: '1rem' }}>
+              <p className="expensesadd-style-62">
                 هل أنت متأكد من حذف هذه البطاقة؟
-                <br /><small style={{ color: 'var(--text-secondary)' }}>(سيتم حفظ المعاملات ولن تحذف)</small>
+                <br /><small className="expensesadd-style-63">(سيتم حفظ المعاملات ولن تحذف)</small>
               </p>
             </div>
             <div className="modal-footer">
               <button className="cancel-btn" onClick={() => setShowDeleteCardModal(false)}>إلغاء</button>
-              <button className="save-btn" onClick={handleDeleteCard} style={{ background: '#ef4444' }}>تأكيد الحذف</button>
+              <button className="save-btn expensesadd-style-64" onClick={handleDeleteCard} >تأكيد الحذف</button>
             </div>
           </div>
         </div>

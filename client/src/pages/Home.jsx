@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, Check, Phone, CheckCircle, TrendingUp, Info, ChevronRight, Plus, UserPlus, Coffee, Moon, BookOpen, Play, LayoutDashboard, User, MapPin, PhoneCall as PhoneIcon, MessageSquare, FileText, Activity, MessageCircle, Send, Link } from 'lucide-react';
 import api from '../services/api';
 import { getLogicalDateString } from '../utils/dateHelpers';
-import './Home.css';
+import "./Home.scss";
 
 const FacebookIcon = ({ size = 24, color = "currentColor", style }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}>
@@ -309,8 +309,8 @@ const Home = () => {
       callStatus,
       report,
       date: selectedDate,
-      time: selectedDateObj.toTimeString().split(' ')[0].substring(0, 5),
-      createdAt: selectedDateObj.toISOString()
+      time: now.toTimeString().split(' ')[0].substring(0, 5),
+      createdAt: now.toISOString()
     };
 
     // Check if phone number already exists
@@ -410,7 +410,7 @@ const Home = () => {
           <h3 className="card-title">تغيير الحالة الفرعية</h3>
           <div className="sub-status-buttons">
             {activeBreak ? (
-              <button className="sub-btn end-break-btn" onClick={handleEndBreak} style={{ backgroundColor: 'rgba(34, 197, 94, 0.1)', borderColor: '#22c55e', color: '#22c55e', width: '100%' }}>
+              <button className="sub-btn end-break-btn home-style-1" onClick={handleEndBreak} >
                 <Play size={18} fill="currentColor" />
                 <span className="btn-text">إنهاء {activeBreak} والعودة للعمل</span>
               </button>
@@ -528,26 +528,13 @@ const Home = () => {
         <div className="modal-overlay active" onClick={() => { setIsModalOpen(false); setReportMethod(null); setPhoneInput(''); setPhoneStatus('empty'); }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                <h2 style={{ margin: 0 }}>{!reportMethod ? 'اختر طريقة التواصل' : reportMethod === 'facebook' ? 'إنشاء تقرير فيسبوك' : reportMethod === 'whatsapp' ? 'إنشاء تقرير واتساب' : 'إنشاء تقرير مكالمة'}</h2>
+              <div className="home-style-2">
+                <h2 className="home-style-3">{!reportMethod ? 'اختر طريقة التواصل' : reportMethod === 'facebook' ? 'إنشاء تقرير فيسبوك' : reportMethod === 'whatsapp' ? 'إنشاء تقرير واتساب' : 'إنشاء تقرير مكالمة'}</h2>
                 {reportMethod && (
                   <button
                     type="button"
                     onClick={() => { setReportMethod(null); setPhoneInput(''); setPhoneStatus('empty'); setExistingCommMethod(null); }}
-                    style={{
-                      background: 'rgba(59, 130, 246, 0.15)',
-                      color: '#3b82f6',
-                      border: 'none',
-                      padding: '0.4rem 0.8rem',
-                      borderRadius: '6px',
-                      fontSize: '0.85rem',
-                      fontWeight: 'bold',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
-                      transition: 'background 0.2s',
-                    }}
+                    className="home-style-4"
                     onMouseOver={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.25)'}
                     onMouseOut={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)'}
                   >
@@ -560,35 +547,35 @@ const Home = () => {
             </div>
 
             {!reportMethod ? (
-              <div style={{ padding: '2rem', display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <div className="home-style-5">
                 <div
-                  style={{ flex: '1 1 120px', padding: '2rem', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '16px', textAlign: 'center', cursor: 'pointer', transition: '0.3s' }}
+                  className="home-style-6"
                   onClick={() => setReportMethod('call')}
                   onMouseOver={(e) => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.2)'}
                   onMouseOut={(e) => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)'}
                 >
-                  <PhoneIcon size={40} color="#3b82f6" style={{ margin: '0 auto 1rem' }} />
-                  <h3 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>مكالمة</h3>
+                  <PhoneIcon size={40} color="#3b82f6" className="home-style-7" />
+                  <h3 className="home-style-8">مكالمة</h3>
                 </div>
 
                 <div
-                  style={{ flex: '1 1 120px', padding: '2rem', background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.1)', borderRadius: '16px', textAlign: 'center', cursor: 'pointer', transition: '0.3s' }}
+                  className="home-style-9"
                   onClick={() => setReportMethod('facebook')}
                   onMouseOver={(e) => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)'}
                   onMouseOut={(e) => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.05)'}
                 >
-                  <FacebookIcon size={40} color="#3b82f6" style={{ margin: '0 auto 1rem', display: 'block' }} />
-                  <h3 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>فيسبوك</h3>
+                  <FacebookIcon size={40} color="#3b82f6" className="home-style-10" />
+                  <h3 className="home-style-11">فيسبوك</h3>
                 </div>
 
                 <div
-                  style={{ flex: '1 1 120px', padding: '2rem', background: 'rgba(34, 197, 94, 0.05)', border: '1px solid rgba(34, 197, 94, 0.1)', borderRadius: '16px', textAlign: 'center', cursor: 'pointer', transition: '0.3s' }}
+                  className="home-style-12"
                   onClick={() => setReportMethod('whatsapp')}
                   onMouseOver={(e) => e.currentTarget.style.background = 'rgba(34, 197, 94, 0.1)'}
                   onMouseOut={(e) => e.currentTarget.style.background = 'rgba(34, 197, 94, 0.05)'}
                 >
-                  <WhatsAppIcon size={40} color="#22c55e" style={{ margin: '0 auto 1rem', display: 'block' }} />
-                  <h3 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '1.1rem' }}>واتساب</h3>
+                  <WhatsAppIcon size={40} color="#22c55e" className="home-style-13" />
+                  <h3 className="home-style-14">واتساب</h3>
                 </div>
               </div>
             ) : (
@@ -613,14 +600,14 @@ const Home = () => {
                           required={reportMethod === 'call' || reportMethod === 'whatsapp'}
                           placeholder="أدخل رقم الهاتف"
                           dir="ltr"
-                          style={{ textAlign: 'right' }}
+                          className="home-style-15"
                           value={phoneInput}
                           onChange={(e) => setPhoneInput(e.target.value)}
                         />
                         <PhoneIcon size={16} className="input-icon2" />
                       </div>
                       {phoneStatus === 'exists' && (
-                        <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '0.2rem', display: 'block' }}>
+                        <span className="home-style-16">
                           {reportMethod === 'whatsapp' && existingCommMethod === 'مكالمة هاتفية'
                             ? 'هذا الرقم مسجل مسبقاً عن طريق مكالمة'
                             : reportMethod === 'call' && existingCommMethod === 'واتساب'
@@ -628,8 +615,8 @@ const Home = () => {
                               : 'هذا الرقم مسجل مسبقاً'}
                         </span>
                       )}
-                      {phoneStatus === 'new' && <span style={{ color: '#22c55e', fontSize: '0.8rem', marginTop: '0.2rem', display: 'block' }}>رقم جديد</span>}
-                      {phoneStatus === 'checking' && <span style={{ color: '#3b82f6', fontSize: '0.8rem', marginTop: '0.2rem', display: 'block' }}>جاري التحقق...</span>}
+                      {phoneStatus === 'new' && <span className="home-style-17">رقم جديد</span>}
+                      {phoneStatus === 'checking' && <span className="home-style-18">جاري التحقق...</span>}
                     </div>
                     <div className="form-group">
                       <label>المحافظة / المدينة</label>
@@ -640,10 +627,10 @@ const Home = () => {
                     </div>
                   </div>
                   {reportMethod === 'facebook' && (
-                    <div className="form-group" style={{ marginTop: '1.2rem' }}>
+                    <div className="form-group home-style-19" >
                       <label>لينك الصفحة الشخصية (اختياري)</label>
                       <div className="input-with-icon">
-                        <input type="url" name="profileLink" placeholder="أدخل الرابط..." dir="ltr" style={{ textAlign: 'right' }} />
+                        <input type="url" name="profileLink" placeholder="أدخل الرابط..." dir="ltr" className="home-style-20" />
                         <Link size={16} className="input-icon2" />
                       </div>
                     </div>
@@ -655,7 +642,7 @@ const Home = () => {
                   <h4 className="section-title"><Activity size={18} /> الحالة والنتيجة</h4>
                   <div className="form-row two-cols">
                     <div className="form-group full-width">
-                      <label style={{ marginBottom: '0.8rem', display: 'block' }}>حالة المندوب</label>
+                      <label className="home-style-21">حالة المندوب</label>
                       <div className="radio-group">
                         <label className="radio-label status-license-only">
                           <input type="radio" name="agentStatus" value="رخصة قيادة" required />
@@ -673,7 +660,7 @@ const Home = () => {
                     </div>
 
                     <div className="form-group full-width">
-                      <label style={{ marginBottom: '0.8rem', display: 'block' }}>حالة المكالمة</label>
+                      <label className="home-style-22">حالة المكالمة</label>
                       <div className="radio-group">
                         <label className="radio-label status-no-answer">
                           <input type="radio" name="callStatus" value="لا يوجد رد" required />
@@ -717,20 +704,20 @@ const Home = () => {
 
       {/* Confirm Duplicate Modal */}
       {showConfirmDuplicate && (
-        <div className="modal-overlay active" style={{ zIndex: 1000 }} onClick={() => setShowConfirmDuplicate(false)}>
-          <div className="modal-content" style={{ maxWidth: '400px', textAlign: 'center', padding: '2rem' }} onClick={e => e.stopPropagation()}>
-            <div style={{ color: '#ef4444', marginBottom: '1rem' }}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto' }}>
+        <div className="modal-overlay active home-style-23"  onClick={() => setShowConfirmDuplicate(false)}>
+          <div className="modal-content home-style-24"  onClick={e => e.stopPropagation()}>
+            <div className="home-style-25">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="home-style-26">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="12" y1="8" x2="12" y2="12"></line>
                 <line x1="12" y1="16" x2="12.01" y2="16"></line>
               </svg>
             </div>
-            <h3 style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>تنبيه: الرقم مسجل مسبقاً</h3>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', lineHeight: '1.5' }}>
+            <h3 className="home-style-27">تنبيه: الرقم مسجل مسبقاً</h3>
+            <p className="home-style-28">
               هذا الرقم موجود بالفعل في النظام. هل أنت متأكد أنك تريد المتابعة وحفظ التقرير؟
             </p>
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+            <div className="home-style-29">
               <button
                 type="button"
                 className="btn-save"
@@ -755,15 +742,15 @@ const Home = () => {
         <div className="modal-overlay active" onClick={() => setIsDateWarningOpen(false)}>
           <div className="modal-content warning-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 style={{ color: '#f59e0b' }}>تحذير تاريخ قديم</h2>
+              <h2 className="home-style-30">تحذير تاريخ قديم</h2>
               <button className="close-btn" onClick={() => setIsDateWarningOpen(false)}>&times;</button>
             </div>
-            <p style={{ marginBottom: '2rem', fontSize: '1.1rem', color: 'var(--text-secondary)' }}>
+            <p className="home-style-31">
               أنت على وشك عرض وإضافة بيانات ليوم سابق. هل تود الاستمرار؟
             </p>
             <div className="form-actions">
               <button type="button" className="btn-cancel" onClick={() => setIsDateWarningOpen(false)}>إلغاء</button>
-              <button type="button" className="btn-save" style={{ backgroundColor: '#f59e0b' }} onClick={confirmDateChange}>استمرار</button>
+              <button type="button" className="btn-save home-style-32"  onClick={confirmDateChange}>استمرار</button>
             </div>
           </div>
         </div>

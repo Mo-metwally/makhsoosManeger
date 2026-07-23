@@ -4,7 +4,7 @@ import { exportCallsOnly } from '../utils/exportExcel';
 import ExportModal from '../components/ExportModal';
 import api from '../services/api';
 import { getLogicalDateString } from '../utils/dateHelpers';
-import './Calls.css';
+import "./Calls.scss";
 
 const Calls = () => {
   const [calls, setCalls] = useState([]);
@@ -83,15 +83,16 @@ const Calls = () => {
       const now = new Date();
       filtered = filtered.filter(call => {
         const callDate = new Date(call.createdAt);
+        const logicalStr = (call.date && /^\d{4}-\d{2}-\d{2}$/.test(call.date)) ? call.date : getLogicalDateString(callDate);
 
         if (filter === 'today') {
-          return getLogicalDateString(callDate) === getLogicalDateString(now);
+          return logicalStr === getLogicalDateString(now);
         }
 
         if (filter === 'yesterday') {
           const yesterday = new Date(now);
           yesterday.setDate(yesterday.getDate() - 1);
-          return getLogicalDateString(callDate) === getLogicalDateString(yesterday);
+          return logicalStr === getLogicalDateString(yesterday);
         }
 
         if (filter === 'week') {
@@ -100,7 +101,7 @@ const Calls = () => {
         }
 
         if (filter === 'month') {
-          return callDate.getMonth() === now.getMonth() && callDate.getFullYear() === now.getFullYear();
+          return logicalStr.startsWith(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`);
         }
 
         if (filter === 'custom' && customStartDate && customEndDate) {
@@ -359,20 +360,20 @@ const Calls = () => {
             </label>
           </div>
           {filter === 'custom' && (
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', padding: '1rem', backgroundColor: 'var(--bg-color)', borderRadius: '12px', border: '1px solid var(--border-color)', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <label style={{ color: 'var(--text-secondary)', fontWeight: 'bold' }}>من:</label>
-                <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} className="search-input" style={{ width: 'auto', padding: '0.5rem' }} />
+            <div className="calls-style-1">
+              <div className="calls-style-2">
+                <label className="calls-style-3">من:</label>
+                <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} className="search-input calls-style-4"  />
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <label style={{ color: 'var(--text-secondary)', fontWeight: 'bold' }}>إلى:</label>
-                <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} className="search-input" style={{ width: 'auto', padding: '0.5rem' }} />
+              <div className="calls-style-5">
+                <label className="calls-style-6">إلى:</label>
+                <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} className="search-input calls-style-7"  />
               </div>
             </div>
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div className="calls-style-8">
           <div className="search-bar">
             <Search size={18} className="search-icon" />
             <input
@@ -384,10 +385,10 @@ const Calls = () => {
             />
           </div>
           <button
-            className="btn-save"
+            className="btn-save calls-style-9"
             onClick={() => setIsExportModalOpen(true)}
             title="تنزيل ملف إكسيل يحمل المكالمات بالألوان"
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.8rem 1.5rem', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold' }}
+            
           >
             <Download size={18} />
             <span>تحميل المكالمات  </span>
@@ -422,7 +423,7 @@ const Calls = () => {
                   >
                     <td className="date-cell">
                       <div className="date-content">
-                        {isExpanded ? <ChevronDown size={14} className="cell-icon" style={{color: 'var(--theme-color)'}} /> : <ChevronRight size={14} className="cell-icon" style={{color: 'var(--theme-color)'}} />}
+                        {isExpanded ? <ChevronDown size={14} className="cell-icon calls-style-10"  /> : <ChevronRight size={14} className="cell-icon calls-style-11"  />}
                         <span>{formatDate(call.createdAt)}</span>
                       </div>
                     </td>
@@ -550,7 +551,7 @@ const Calls = () => {
                   </tr>
                   {isExpanded && (
                     <tr className="expanded-details-row">
-                      <td colSpan="8" style={{ padding: '0', background: 'rgba(0,0,0,0.15)' }}>
+                      <td colSpan="8" className="calls-style-12">
                         <div className="advanced-details-card">
                           <div className="detail-section full-width">
                             <div className="detail-section-header">
@@ -563,17 +564,17 @@ const Calls = () => {
                           
                           {call.notes && (
                             <div className="detail-section full-width">
-                              <div className="detail-section-header" style={{ color: '#f59e0b' }}>
+                              <div className="detail-section-header calls-style-13" >
                                 <Info size={18} /> ملاحظات إضافية
                               </div>
-                              <div className="detail-section-content" style={{ borderColor: 'rgba(245, 158, 11, 0.2)', background: 'rgba(245, 158, 11, 0.05)' }}>
+                              <div className="detail-section-content calls-style-14" >
                                 {call.notes}
                               </div>
                             </div>
                           )}
                           
                           {call.profileLink && (
-                            <div className="detail-section full-width" style={{ marginTop: '0.5rem' }}>
+                            <div className="detail-section full-width calls-style-15" >
                               <a href={call.profileLink.startsWith('http') ? call.profileLink : `https://${call.profileLink}`} target="_blank" rel="noopener noreferrer" className="detail-link-btn">
                                 <LinkIcon size={18} /> زيارة الحساب الشخصي
                               </a>
@@ -633,24 +634,24 @@ const Calls = () => {
         <div className="modal-overlay active" onClick={() => setConfirmModal({ isOpen: false, type: 'status', callId: null, field: '', oldValue: '', newValue: '' })}>
           <div className="modal-content warning-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 style={{ color: 'var(--theme-color)' }}>
+              <h2 className="calls-style-16">
                 {confirmModal.type === 'status' ? 'تأكيد تغيير الحالة' : 'تأكيد تعديل البيانات'}
               </h2>
               <button className="close-btn" onClick={() => setConfirmModal({ isOpen: false, type: 'status', callId: null, field: '', oldValue: '', newValue: '' })}>&times;</button>
             </div>
-            <p style={{ marginBottom: '2rem', fontSize: '1.1rem', color: 'var(--text-secondary)' }}>
+            <p className="calls-style-17">
               {confirmModal.type === 'status' ? (
-                <>هل أنت متأكد من تغيير حالة المكالمة من <strong style={{ color: 'var(--text-primary)' }}>{confirmModal.oldValue}</strong> إلى <strong style={{ color: 'var(--theme-color)' }}>{confirmModal.newValue}</strong>؟</>
+                <>هل أنت متأكد من تغيير حالة المكالمة من <strong className="calls-style-18">{confirmModal.oldValue}</strong> إلى <strong className="calls-style-19">{confirmModal.newValue}</strong>؟</>
               ) : (
-                <>هل أنت متأكد من تعديل <strong style={{ color: 'var(--text-primary)' }}>{fieldLabels[confirmModal.field]}</strong> وحفظ التغييرات؟</>
+                <>هل أنت متأكد من تعديل <strong className="calls-style-20">{fieldLabels[confirmModal.field]}</strong> وحفظ التغييرات؟</>
               )}
             </p>
             <div className="form-actions">
               <button type="button" className="btn-cancel" onClick={() => setConfirmModal({ isOpen: false, type: 'status', callId: null, field: '', oldValue: '', newValue: '' })}>إلغاء</button>
               <button
                 type="button"
-                className="btn-save"
-                style={{ backgroundColor: 'var(--theme-color)' }}
+                className="btn-save calls-style-21"
+                
                 onClick={() => {
                   if (confirmModal.type === 'status') {
                     handleStatusChange(confirmModal.callId, confirmModal.newValue);
@@ -685,19 +686,19 @@ const Calls = () => {
       {/* Phone History Modal */}
       {phoneHistoryModal.isOpen && (
         <div className="modal-overlay active" onClick={() => setPhoneHistoryModal({ ...phoneHistoryModal, isOpen: false })}>
-          <div className="modal-content advanced-history-modal" style={{ width: '90%', maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
+          <div className="modal-content advanced-history-modal calls-style-22"  onClick={e => e.stopPropagation()}>
+            <div className="modal-header calls-style-23" >
               <h2>
-                <Phone size={24} style={{ color: 'var(--primary-color)', marginLeft: '0.5rem', verticalAlign: 'middle' }} />
-                تاريخ تواصل الرقم: <span dir="ltr" style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{phoneHistoryModal.phone}</span>
+                <Phone size={24} className="calls-style-24" />
+                تاريخ تواصل الرقم: <span dir="ltr" className="calls-style-25">{phoneHistoryModal.phone}</span>
               </h2>
               <button className="btn-icon" onClick={() => setPhoneHistoryModal({ ...phoneHistoryModal, isOpen: false })}>
                 <X size={24} />
               </button>
             </div>
-            <div className="modal-body" style={{ marginTop: '1.5rem' }}>
+            <div className="modal-body calls-style-26" >
               {phoneHistoryModal.loading ? (
-                <div style={{ textAlign: 'center', padding: '2rem' }}>جاري التحميل...</div>
+                <div className="calls-style-27">جاري التحميل...</div>
               ) : phoneHistoryModal.history.length > 0 ? (
                 <div className="history-timeline">
                   {phoneHistoryModal.history.map((histCall, index) => (
@@ -707,7 +708,7 @@ const Calls = () => {
                         <div className="timeline-header">
                           <div className="timeline-meta">
                             <span className="timeline-agent">
-                              <Info size={16} style={{ color: 'var(--theme-color)' }} />
+                              <Info size={16} className="calls-style-28" />
                               {histCall.agentName}
                             </span>
                             <span className="timeline-supervisor">
@@ -720,7 +721,7 @@ const Calls = () => {
                           </div>
                         </div>
                         
-                        <div className="timeline-badges" style={{ marginBottom: '1rem' }}>
+                        <div className="timeline-badges calls-style-29" >
                           <span className={`status-badge ${getCommMethodBadgeClass(histCall.commMethod)}`}>{histCall.commMethod}</span>
                           <span className={`status-badge ${getAgentStatusBadgeClass(histCall.agentStatus)}`}>{histCall.agentStatus}</span>
                           <span className={`status-badge ${getStatusBadgeClass(histCall.callStatus)}`}>{histCall.callStatus}</span>
@@ -747,7 +748,7 @@ const Calls = () => {
                   ))}
                 </div>
               ) : (
-                <p style={{ textAlign: 'center' }}>لا يوجد سجل تواصل مسجل لهذا الرقم.</p>
+                <p className="calls-style-30">لا يوجد سجل تواصل مسجل لهذا الرقم.</p>
               )}
             </div>
           </div>

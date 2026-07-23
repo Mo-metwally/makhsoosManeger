@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CalendarDays, CheckCircle, XCircle, Clock, ShieldAlert, Users, ChevronDown, ChevronLeft, Calendar } from 'lucide-react';
 import api from '../services/api';
-import './DayOffManagement.css';
+import "./DayOffManagement.scss";
 import { useToast } from '../contexts/ToastContext';
 
 const DayOffManagement = () => {
@@ -93,13 +93,13 @@ const DayOffManagement = () => {
           </h1>
           <p className="dom-subtitle">مراجعة واعتماد أو رفض طلبات الإجازة للموظفين</p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--glass-bg)', padding: '0.5rem 1rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-          <span style={{ color: 'var(--text-secondary)' }}>تصفية بالشهر:</span>
+        <div className="dayoffmanagement-style-1">
+          <span className="dayoffmanagement-style-2">تصفية بالشهر:</span>
           <input 
             type="month" 
             value={selectedMonth} 
             onChange={(e) => setSelectedMonth(e.target.value)}
-            style={{ padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', outline: 'none' }}
+            className="dayoffmanagement-style-3"
           />
         </div>
         <div className="dom-filters-group">
@@ -139,13 +139,13 @@ const DayOffManagement = () => {
         {loading ? (
           <p>جاري التحميل...</p>
         ) : filteredRequests.length === 0 ? (
-          <p style={{ color: 'var(--text-secondary)' }}>لا توجد طلبات تطابق الفلتر الحالي.</p>
+          <p className="dayoffmanagement-style-4">لا توجد طلبات تطابق الفلتر الحالي.</p>
         ) : (
           <div className="dom-table-wrapper">
             <table className="dom-table">
               <thead>
                 <tr>
-                  <th style={{ width: '40px' }}></th>
+                  <th className="dayoffmanagement-style-5"></th>
                   <th>الموظف</th>
                   <th>نظام الوردية والإجازات</th>
                   <th>إجمالي الطلبات</th>
@@ -169,17 +169,17 @@ const DayOffManagement = () => {
                         </td>
                         <td>
                           <div><strong>{group.user?.fullName}</strong></div>
-                          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{group.user?.username}</div>
+                          <div className="dayoffmanagement-style-6">{group.user?.username}</div>
                         </td>
                         <td>
                           {group.user?.Shifts && group.user.Shifts.length > 0 ? (
                             group.user.Shifts.map(s => (
-                              <div key={s.id} style={{ marginBottom: '0.3rem', background: 'var(--glass-bg)', padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'inline-block', minWidth: '160px', textAlign: 'right' }}>
-                                <div style={{ color: 'var(--theme-color)', fontWeight: 'bold', fontSize: '0.9rem', marginBottom: '0.2rem' }}>{s.name}</div>
-                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                              <div key={s.id} className="dayoffmanagement-style-7">
+                                <div className="dayoffmanagement-style-8">{s.name}</div>
+                                <div className="dayoffmanagement-style-9">
                                   نظام: {s.dayOffType === 'Fixed' ? 'أيام ثابتة' : 'متغير'}
                                 </div>
-                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                <div className="dayoffmanagement-style-10">
                                   {s.dayOffType === 'Fixed' 
                                     ? 'حسب إعدادات الوردية' 
                                     : `المسموح: ${s.variableDaysOffCount || 0} أيام شهرياً`}
@@ -187,17 +187,17 @@ const DayOffManagement = () => {
                               </div>
                             ))
                           ) : (
-                            <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>غير معين بوردية</span>
+                            <span className="dayoffmanagement-style-11">غير معين بوردية</span>
                           )}
                         </td>
-                        <td style={{fontWeight: 'bold'}}>{group.requests.length}</td>
+                        <td className="dayoffmanagement-style-12">{group.requests.length}</td>
                         <td className="text-orange-500">{pendingCount}</td>
                         <td className="text-green-500">{approvedCount}</td>
                         <td className="text-red-500">{rejectedCount}</td>
                       </tr>
                       {isExpanded && (
                         <tr>
-                          <td colSpan={7} style={{ padding: 0, border: 'none' }}>
+                          <td colSpan={7} className="dayoffmanagement-style-13">
                             <div className="dom-expanded-content fade-in">
                               <table className="dom-inner-table">
                                 <thead>
@@ -215,8 +215,8 @@ const DayOffManagement = () => {
                                     <tr key={r.id}>
                                       <td>{r.date}</td>
                                       <td>{r.dayName}</td>
-                                      <td>{r.reason || <span style={{color:'var(--text-secondary)'}}>لا يوجد</span>}</td>
-                                      <td dir="ltr" style={{textAlign: 'right'}}>{new Date(r.createdAt).toLocaleString('ar-EG')}</td>
+                                      <td>{r.reason || <span className="dayoffmanagement-style-14">لا يوجد</span>}</td>
+                                      <td dir="ltr" className="dayoffmanagement-style-15">{new Date(r.createdAt).toLocaleString('ar-EG')}</td>
                                       <td>
                                         <span className={`dom-badge ${r.status.toLowerCase()}`}>
                                           {r.status === 'Pending' ? 'معلق' : r.status === 'Approved' ? 'مقبول' : 'مرفوض'}

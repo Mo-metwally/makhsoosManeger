@@ -97,3 +97,18 @@
   50% { transform: scale(1.05); opacity: 0.8; }
   100% { transform: scale(1); opacity: 1; }
 }
+.pendingapproval-style-1 {
+  margin: 1rem 0;
+  padding: 0.8rem;
+  background: rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: var(--theme-glow);
+  font-weight: bold;
+}
+
+.pendingapproval-style-2 {
+  background: var(--theme-color);
+  color: #fff;
+  border: none;
+}
+

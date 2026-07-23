@@ -5,7 +5,7 @@ import { Home, Phone, User, Users, Activity, Shield, Cat, Crown, Star, Smile, Br
 import { useAuth } from '../context/AuthContext';
 import { exportToExcel } from '../utils/exportExcel';
 import api from '../services/api';
-import './Sidebar.css';
+import "./Sidebar.scss";
 
 import AvatarIcon from './AvatarIcon';
 
@@ -176,7 +176,7 @@ const Sidebar = () => {
               )}
             </button>
             {isNotifOpen && (
-              <div className="notif-dropdown glass-panel" style={{ background: "var(--solid-bg)" }}>
+              <div className="notif-dropdown glass-panel sidebar-style-1" >
                 <div className="notif-header">
                   <h4>الإشعارات</h4>
                   {unreadCount > 0 && <span className="unread-text">{unreadCount} جديد</span>}
@@ -187,11 +187,11 @@ const Sidebar = () => {
                   ) : (
                     unreadNotifications.map(n => (
                       <div key={n.id} onClick={(e) => handleNotifClick(n, e)} className={`notif-item ${!n.isRead ? 'unread' : ''}`}>
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.8rem' }}>
-                          <div className="notif-icon-box" style={{ background: 'rgba(255,255,255,0.05)', padding: '8px', borderRadius: '50%' }}>
+                        <div className="sidebar-style-2">
+                          <div className="notif-icon-box sidebar-style-3" >
                             {getNotifIcon(n.message)}
                           </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', flex: 1 }}>
+                          <div className="sidebar-style-4">
                             <p className="notif-message">{n.message}</p>
                             <span className="notif-time">
                               {new Date(n.createdAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
@@ -222,6 +222,12 @@ const Sidebar = () => {
             <NavLink to="/" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
               <Home size={20} />
               <span>لوحة التشغيل</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/followup" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
+              <Flame size={20} />
+              <span>الأداء اليومي</span>
             </NavLink>
           </li>
           <li>

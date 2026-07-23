@@ -3,7 +3,7 @@ import { FileText, PhoneCall, ListTodo, StickyNote, Save, Edit2, Check, Sparkles
 import * as XLSX from 'xlsx-js-style';
 import api from '../services/api';
 import { getLogicalDateString } from '../utils/dateHelpers';
-import './Calls.css';
+import "./Calls.scss";
 
 const Summary = () => {
   const [todayCallsCount, setTodayCallsCount] = useState(0);
@@ -149,83 +149,52 @@ const Summary = () => {
 
   return (
     <div className="calls-page-container">
-      <header className="page-header" style={{ marginBottom: '2rem' }}>
+      <header className="page-header summary-style-1" >
         <div className="title-section">
-          <div style={{ position: 'relative' }}>
+          <div className="summary-style-2">
             <FileText size={32} className="header-icon" />
             <Sparkles size={16} color="var(--theme-color)" style={{ position: 'absolute', top: -5, right: -10, animation: 'pulse 2s infinite' }} />
           </div>
-          <h1 className="page-title gradient-title" style={{ fontSize: '2.5rem' }}>ملخص الاداء</h1>
+          <h1 className="page-title gradient-title summary-style-3" >ملخص الاداء</h1>
         </div>
-        <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', fontSize: '1.1rem' }}>نظرة عامة متقدمة على أدائك اليومي وتدوين ملاحظاتك المهمة.</p>
+        <p className="summary-style-4">نظرة عامة متقدمة على أدائك اليومي وتدوين ملاحظاتك المهمة.</p>
       </header>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', width: '100%', paddingBottom: '4rem' }}>
+      <div className="summary-style-5">
         
         {/* Right Sidebar - Stats & Actions */}
-        <div style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        <div className="summary-style-6">
           
           {/* Calls Count Widget */}
-          <div className="glass-panel" style={{ 
-            padding: '2.5rem 2rem', 
-            display: 'flex', 
-            flexDirection: 'column',
-            alignItems: 'center', 
-            justifyContent: 'center',
-            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(0, 0, 0, 0.2) 100%)',
-            borderTop: '4px solid var(--theme-color)',
-            textAlign: 'center',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            <div style={{ opacity: 0.05, position: 'absolute', top: '-10%', left: '-10%' }}>
+          <div className="glass-panel summary-style-7" >
+            <div className="summary-style-8">
               <PhoneCall size={150} />
             </div>
             
-            <div style={{ 
-              background: 'linear-gradient(135deg, var(--theme-color), #8b5cf6)', 
-              padding: '1.5rem', 
-              borderRadius: '50%', 
-              color: 'white', 
-              boxShadow: '0 10px 30px var(--theme-glow)',
-              marginBottom: '1.5rem',
-              zIndex: 1
-            }}>
+            <div className="summary-style-9">
               <PhoneCall size={40} />
             </div>
             
-            <div style={{ zIndex: 1 }}>
-              <h3 style={{ margin: '0 0 1rem 0', color: 'var(--text-secondary)', fontSize: '1.4rem' }}>إجمالي مكالمات اليوم</h3>
+            <div className="summary-style-10">
+              <h3 className="summary-style-11">إجمالي مكالمات اليوم</h3>
               {isEditingCalls ? (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+                <div className="summary-style-12">
                   <input 
                     type="number" 
                     value={todayCallsCount}
                     onChange={(e) => setTodayCallsCount(parseInt(e.target.value) || 0)}
-                    style={{
-                      fontSize: '3rem',
-                      fontWeight: '900',
-                      color: 'var(--text-primary)',
-                      background: 'rgba(0,0,0,0.4)',
-                      border: '2px solid var(--theme-color)',
-                      borderRadius: '12px',
-                      padding: '0.5rem 1rem',
-                      width: '150px',
-                      textAlign: 'center',
-                      outline: 'none',
-                      boxShadow: '0 0 20px var(--theme-glow)'
-                    }}
+                    className="summary-style-13"
                   />
-                  <button onClick={() => setIsEditingCalls(false)} style={{ color: 'white', background: '#22c55e', padding: '1rem', borderRadius: '12px', boxShadow: '0 5px 15px rgba(34,197,94,0.4)' }}>
+                  <button onClick={() => setIsEditingCalls(false)} className="summary-style-14">
                     <Check size={24} />
                   </button>
                 </div>
               ) : (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-                  <p style={{ margin: 0, fontSize: '4rem', fontWeight: '900', color: 'var(--text-primary)', textShadow: '0 0 30px var(--theme-glow)', lineHeight: '1' }}>
+                <div className="summary-style-15">
+                  <p className="summary-style-16">
                     {todayCallsCount}
                   </p>
-                  <button onClick={() => setIsEditingCalls(true)} style={{ color: 'var(--btn-text-color, #ffffff)', background: 'var(--theme-color)', padding: '0.8rem', borderRadius: '12px', transition: 'all 0.3s', boxShadow: '0 5px 15px var(--theme-glow)' }}>
+                  <button onClick={() => setIsEditingCalls(true)} className="summary-style-17">
                     <Edit2 size={20} />
                   </button>
                 </div>
@@ -234,19 +203,12 @@ const Summary = () => {
           </div>
 
           {/* Action Panel */}
-          <div className="glass-panel" style={{ 
-            padding: '2rem', 
-            display: 'flex', 
-            flexDirection: 'column', 
-            gap: '1.5rem', 
-            borderRight: '4px solid #22c55e',
-            background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(0, 0, 0, 0.2) 100%)'
-          }}>
-            <h3 style={{ margin: '0', color: 'var(--text-primary)', fontSize: '1.3rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="glass-panel summary-style-18" >
+            <h3 className="summary-style-19">
               <Save size={24} color="#22c55e" /> إجراءات الملخص
             </h3>
             
-            <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.95rem' }}>
+            <p className="summary-style-20">
               احفظ تقدمك باستمرار وتأكد من تنزيل تقريرك اليومي قبل نهاية الدوام.
             </p>
 
@@ -270,23 +232,7 @@ const Summary = () => {
             
             <button 
               onClick={handleSave}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.8rem',
-                padding: '1.2rem',
-                background: 'linear-gradient(135deg, var(--theme-color), #2563eb)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '16px',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                fontSize: '1.2rem',
-                boxShadow: '0 10px 25px var(--theme-glow)',
-                transition: 'all 0.3s',
-                width: '100%'
-              }}
+              className="summary-style-21"
               onMouseOver={(e) => {
                 e.target.style.transform = 'translateY(-3px)';
                 e.target.style.boxShadow = '0 15px 35px var(--theme-glow)';
@@ -302,22 +248,7 @@ const Summary = () => {
             
             <button 
               onClick={handleExportExcel}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.8rem',
-                padding: '1.2rem',
-                background: 'rgba(59, 130, 246, 0.1)',
-                color: 'var(--theme-color)',
-                border: '2px solid var(--theme-color)',
-                borderRadius: '16px',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                fontSize: '1.2rem',
-                transition: 'all 0.3s',
-                width: '100%'
-              }}
+              className="summary-style-22"
               onMouseOver={(e) => {
                 e.target.style.background = 'rgba(59, 130, 246, 0.2)';
                 e.target.style.transform = 'translateY(-2px)';
@@ -334,35 +265,21 @@ const Summary = () => {
         </div>
 
         {/* Main Content - Tasks & Notes */}
-        <div style={{ flex: '2 1 600px', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        <div className="summary-style-23">
           
           {/* Tasks Section */}
-          <div className="glass-panel" style={{ padding: '2.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1.5rem' }}>
-              <div style={{ background: 'linear-gradient(135deg, #a855f7, #7c3aed)', padding: '1rem', borderRadius: '16px', color: 'white', boxShadow: '0 8px 20px rgba(168,85,247,0.4)' }}>
+          <div className="glass-panel summary-style-24" >
+            <div className="summary-style-25">
+              <div className="summary-style-26">
                 <ListTodo size={28} />
               </div>
-              <h2 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1.8rem', fontWeight: '800' }}>مهام المتابعة</h2>
+              <h2 className="summary-style-27">مهام المتابعة</h2>
             </div>
             <textarea 
               value={tasks}
               onChange={(e) => setTasks(e.target.value)}
               placeholder="قم بتدوين مهامك الأساسية هنا ليتم تتبعها بسهولة..."
-              style={{
-                width: '100%',
-                minHeight: '200px',
-                padding: '1.5rem',
-                borderRadius: '20px',
-                border: '2px solid rgba(255,255,255,0.05)',
-                backgroundColor: 'rgba(0,0,0,0.3)',
-                color: 'var(--text-primary)',
-                fontFamily: 'inherit',
-                fontSize: '1.2rem',
-                lineHeight: '1.6',
-                resize: 'vertical',
-                transition: 'all 0.3s',
-                boxShadow: 'inset 0 4px 15px rgba(0,0,0,0.5)'
-              }}
+              className="summary-style-28"
               onFocus={(e) => {
                 e.target.style.borderColor = '#a855f7';
                 e.target.style.boxShadow = '0 0 20px rgba(168, 85, 247, 0.2), inset 0 4px 15px rgba(0,0,0,0.5)';
@@ -377,23 +294,23 @@ const Summary = () => {
           </div>
 
           {/* Notes Section */}
-          <div className="glass-panel" style={{ padding: '2.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1.5rem' }}>
-              <div style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)', padding: '1rem', borderRadius: '16px', color: 'white', boxShadow: '0 8px 20px rgba(245,158,11,0.4)' }}>
+          <div className="glass-panel summary-style-29" >
+            <div className="summary-style-30">
+              <div className="summary-style-31">
                 <StickyNote size={28} />
               </div>
-              <h2 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1.8rem', fontWeight: '800' }}>الملاحظات الهامة</h2>
+              <h2 className="summary-style-32">الملاحظات الهامة</h2>
             </div>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div className="summary-style-33">
               {notesList.map((note, index) => (
-                <div key={index} style={{ position: 'relative' }}>
-                  <div style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', width: '32px', height: '32px', background: 'rgba(245,158,11,0.2)', color: '#f59e0b', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1.1rem' }}>
+                <div key={index} className="summary-style-34">
+                  <div className="summary-style-35">
                     {index + 1}
                   </div>
                   <button
                     onClick={() => removeNote(index)}
-                    style={{ position: 'absolute', top: '1.5rem', left: '1.5rem', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.3s' }}
+                    className="summary-style-36"
                     onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'; e.currentTarget.style.transform = 'scale(1.1)'; }}
                     onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.transform = 'scale(1)'; }}
                     title="حذف الملاحظة"
@@ -408,21 +325,7 @@ const Summary = () => {
                       setNotesList(updated);
                     }}
                     placeholder={`الملاحظة رقم ${index + 1}...`}
-                    style={{
-                      width: '100%',
-                      minHeight: '120px',
-                      padding: '1.5rem 4rem 1.5rem 1.5rem',
-                      borderRadius: '20px',
-                      border: '2px solid rgba(255,255,255,0.05)',
-                      backgroundColor: 'rgba(0,0,0,0.3)',
-                      color: 'var(--text-primary)',
-                      fontFamily: 'inherit',
-                      fontSize: '1.15rem',
-                      lineHeight: '1.6',
-                      resize: 'vertical',
-                      transition: 'all 0.3s',
-                      boxShadow: 'inset 0 4px 15px rgba(0,0,0,0.5)'
-                    }}
+                    className="summary-style-37"
                     onFocus={(e) => {
                       e.target.style.borderColor = '#f59e0b';
                       e.target.style.boxShadow = '0 0 20px rgba(245, 158, 11, 0.2), inset 0 4px 15px rgba(0,0,0,0.5)';
@@ -438,20 +341,10 @@ const Summary = () => {
               ))}
             </div>
 
-            <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center' }}>
+            <div className="summary-style-38">
               <button 
                 onClick={() => setNotesList([...notesList, ''])}
-                style={{
-                  padding: '1rem 3rem',
-                  backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                  color: '#f59e0b',
-                  border: '2px dashed #f59e0b',
-                  borderRadius: '100px',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                  fontSize: '1.2rem',
-                  transition: 'all 0.3s'
-                }}
+                className="summary-style-39"
                 onMouseOver={(e) => {
                   e.target.style.backgroundColor = 'rgba(245, 158, 11, 0.2)';
                   e.target.style.transform = 'translateY(-2px)';

@@ -332,7 +332,8 @@ exports.getTodayStatus = async (req, res) => {
       include: [
         { 
           model: Shift, 
-          through: { attributes: [] }
+          through: { attributes: ['isObserver'] },
+          required: false
         }
       ],
       where: {
@@ -373,7 +374,11 @@ exports.getTodayStatus = async (req, res) => {
       where: { date: today }
     });
     const summaryMap = {};
-    performanceLogs.forEach(p => summaryMap[p.userId] = true);
+    const callsMap = {};
+    performanceLogs.forEach(p => {
+      summaryMap[p.userId] = true;
+      callsMap[p.userId] = p.manualCallsCount || 0;
+    });
 
     // Fetch Settings
     const settings = await Setting.findAll();
@@ -474,13 +479,15 @@ exports.getTodayStatus = async (req, res) => {
         jobTitle: user.jobTitle,
         role: user.role,
         shifts: user.Shifts.map(s => s.name),
+        isObserver: user.Shifts.some(s => s.UserShift && s.UserShift.isObserver),
         todayStatus,
         checkInTime,
         checkOutTime,
         lateMinutes,
         notes: attendanceMap[user.id] ? attendanceMap[user.id].notes : (dayoffMap[user.id] ? dayoffMap[user.id].reason : ''),
         breakDetails: breakMap[user.id] || { 'بريك صلاة': 0, 'بريك غداء': 0 },
-        hasSummary: !!summaryMap[user.id]
+        hasSummary: !!summaryMap[user.id],
+        callsCount: callsMap[user.id] || 0
       };
     });
 

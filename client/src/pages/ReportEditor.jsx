@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FileText, ShieldAlert, CheckCircle, PlusCircle } from 'lucide-react';
-import './ReportEditor.css';
+import "./ReportEditor.scss";
 
 const ReportEditor = () => {
   const cards = [

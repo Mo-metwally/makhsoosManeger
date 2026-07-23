@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { ShieldAlert, Table } from 'lucide-react';
-import './ReportEditorPermissions.css';
+import "./ReportEditorPermissions.scss";
 
 const ReportEditorPermissions = () => {
   useEffect(() => {

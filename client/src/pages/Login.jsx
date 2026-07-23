@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Lock, User as UserIcon, Mail, Phone, UserPlus, LogIn, KeyRound, Briefcase, Loader2 } from 'lucide-react';
 import api from '../services/api';
-import './Login.css';
+import "./Login.scss";
 
 const Login = () => {
   const [mode, setMode] = useState('login'); // 'login' or 'signup'
@@ -70,7 +70,7 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className={`login-card glass-panel ${mode === 'signup' ? 'signup-mode' : ''}`}>
-        <h2 className="gradient-title" style={{ textAlign: 'center', marginBottom: '2rem', fontSize: '2.5rem' }}>
+        <h2 className="gradient-title login-style-1" >
           {mode === 'login' && 'تسجيل الدخول'}
           {mode === 'signup' && 'إنشاء حساب جديد'}
           {mode === 'forgot_email' && 'استعادة كلمة المرور'}
@@ -229,8 +229,8 @@ const Login = () => {
               <Loader2 size={20} className="spinner-icon" />
             ) : (
               <>
-                {mode === 'login' && <><LogIn size={20} style={{ marginLeft: '8px' }} /> دخول</>}
-                {mode === 'signup' && <><UserPlus size={20} style={{ marginLeft: '8px' }} /> إنشاء الحساب</>}
+                {mode === 'login' && <><LogIn size={20} className="login-style-2" /> دخول</>}
+                {mode === 'signup' && <><UserPlus size={20} className="login-style-3" /> إنشاء الحساب</>}
                 {mode === 'forgot_email' && 'إرسال الرمز'}
                 {mode === 'forgot_otp' && 'تأكيد الرمز'}
                 {mode === 'forgot_reset' && 'تعيين كلمة المرور'}
@@ -246,7 +246,7 @@ const Login = () => {
             <p>لديك حساب بالفعل؟ <button type="button" className="link-btn primary" onClick={() => { setMode('login'); setError(''); setSuccess(''); }}>تسجيل الدخول</button></p>
           )}
           {mode.startsWith('forgot') && (
-            <p style={{ marginTop: '1rem' }}><button type="button" className="link-btn" onClick={() => { setMode('login'); setError(''); setSuccess(''); }}>العودة لتسجيل الدخول</button></p>
+            <p className="login-style-4"><button type="button" className="link-btn" onClick={() => { setMode('login'); setError(''); setSuccess(''); }}>العودة لتسجيل الدخول</button></p>
           )}
         </div>
       </div>

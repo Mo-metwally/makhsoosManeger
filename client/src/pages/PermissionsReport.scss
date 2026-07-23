@@ -541,3 +541,111 @@
 .role-supervisor {
   color: #3b82f6;
 }
+.permissionsreport-style-1 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.permissionsreport-style-2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.permissionsreport-style-3 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.permissionsreport-style-4 {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: pulse 2s infinite;
+}
+
+.permissionsreport-style-5 {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f97316;
+}
+
+.permissionsreport-style-6 {
+  position: relative;
+}
+
+.permissionsreport-style-7 {
+  font-size: 0.95rem;
+}
+
+.permissionsreport-style-8 {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.permissionsreport-style-9 {
+  margin-bottom: 1rem;
+}
+
+.permissionsreport-style-10 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255,255,255,0.03);
+  padding: 0.8rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.permissionsreport-style-11 {
+  margin-top: 2rem;
+  border-top: 1px solid var(--border-color);
+  padding-top: 1.5rem;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.permissionsreport-style-12 {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: bold;
+  transition: 0.3s;
+  cursor: pointer;
+}
+
+.permissionsreport-style-13 {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.permissionsreport-style-14 {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.permissionsreport-style-15 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #f97316;
+}
+
+.permissionsreport-style-16 {
+  margin-bottom: 0.5rem;
+}
+

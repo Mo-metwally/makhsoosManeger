@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Clock, Plus, Users, Trash2, Calendar, Check, Save, TriangleAlert, Search, User as UserIcon, Edit, ShieldCheck, Crown, Shield, Cat, Star, Smile, Briefcase, Flame, Zap, Heart, Moon, Activity, DollarSign } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import './Account.css'; // Reuse form styles
+import "./Account.scss"; // Reuse form styles
 
 const DAYS_OF_WEEK = [
   { id: 'Saturday', label: 'السبت' },
@@ -40,6 +40,7 @@ const ShiftManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedShift, setSelectedShift] = useState(null);
   const [selectedUserIds, setSelectedUserIds] = useState([]);
+  const [observerUserIds, setObserverUserIds] = useState([]);
   const [modalSearchTerm, setModalSearchTerm] = useState('');
 
   // Salary Modal State
@@ -186,7 +187,9 @@ const ShiftManagement = () => {
   const openAssignModal = (shift) => {
     setSelectedShift(shift);
     const existingIds = shift.Users ? shift.Users.map(u => u.id) : [];
+    const existingObservers = shift.Users ? shift.Users.filter(u => u.UserShift && u.UserShift.isObserver).map(u => u.id) : [];
     setSelectedUserIds(existingIds);
+    setObserverUserIds(existingObservers);
     setModalSearchTerm('');
     setIsModalOpen(true);
   };
@@ -198,9 +201,21 @@ const ShiftManagement = () => {
     });
   };
 
+  const handleObserverToggle = (e, userId) => {
+    e.stopPropagation();
+    setObserverUserIds(prev => {
+      if (prev.includes(userId)) return prev.filter(id => id !== userId);
+      return [...prev, userId];
+    });
+  };
+
   const handleAssignSubmit = async () => {
     try {
-      await api.put(`/shifts/${selectedShift.id}/assign`, { userIds: selectedUserIds });
+      const usersData = selectedUserIds.map(id => ({
+        id,
+        isObserver: observerUserIds.includes(id)
+      }));
+      await api.put(`/shifts/${selectedShift.id}/assign`, { usersData, userIds: selectedUserIds });
       showToast('تم تحديث تعيين الموظفين بنجاح');
       setIsModalOpen(false);
       fetchShifts();
@@ -237,31 +252,31 @@ const ShiftManagement = () => {
         </div>
       </header>
 
-      <div className="account-content" style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+      <div className="account-content shiftmanagement-style-1" >
 
         {/* Section: Advanced List of Shifts */}
         <div className="shifts-list-section">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-            <h2 style={{ color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+          <div className="shiftmanagement-style-2">
+            <h2 className="shiftmanagement-style-3">
               <Calendar size={24} className="text-blue" />
               إدارة الورديات وتفاصيل الموظفين
             </h2>
             <button
-              className="btn-save"
+              className="btn-save shiftmanagement-style-4"
               onClick={() => setIsFormModalOpen(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.8rem 1.5rem', background: '#fff', color: '#000', borderRadius: '12px' }}
+              
             >
-              <span style={{ fontWeight: 'bold' }}>إضافة وردية جديدة</span>
+              <span className="shiftmanagement-style-5">إضافة وردية جديدة</span>
               <Plus size={20} />
             </button>
           </div>
 
           {shifts.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)', background: 'var(--bg-card)', borderRadius: '12px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+            <div className="shiftmanagement-style-6">
               لا توجد ورديات مُسجلة حالياً. قم بإنشاء أول وردية من النموذج أعلاه.
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            <div className="shiftmanagement-style-7">
               {shifts.map(shift => {
                 const searchTerm = shiftSearchTerms[shift.id] || '';
                 const shiftUsers = shift.Users || [];
@@ -285,79 +300,64 @@ const ShiftManagement = () => {
                 const hasVariableSalaries = minSalary !== maxSalary;
 
                 return (
-                  <div key={shift.id} className="account-card" style={{ padding: '0', overflow: 'hidden' }}>
+                  <div key={shift.id} className="account-card shiftmanagement-style-8" >
                     {/* Shift Header */}
-                    <div style={{
-                      padding: '1.5rem 2rem',
-                      background: 'rgba(59, 130, 246, 0.05)',
-                      borderBottom: '1px solid rgba(255,255,255,0.05)',
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      gap: '1rem'
-                    }}>
+                    <div className="shiftmanagement-style-9">
                       <div>
-                        <h3 style={{ fontSize: '1.4rem', color: 'var(--text-primary)', margin: '0 0 0.5rem 0' }}>{shift.name}</h3>
-                        <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <h3 className="shiftmanagement-style-10">{shift.name}</h3>
+                        <div className="shiftmanagement-style-11">
+                          <span className="shiftmanagement-style-12">
                             <Clock size={16} className="text-blue" />
                             {shift.startTime} - {shift.endTime}
                           </span>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span className="shiftmanagement-style-13">
                             <Calendar size={16} className="text-blue" />
                             {shift.workingDays.map(dId => DAYS_OF_WEEK.find(d => d.id === dId)?.label).join('، ')}
                           </span>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span className="shiftmanagement-style-14">
                             <Users size={16} className="text-blue" />
                             {shiftUsers.length} موظف
                           </span>
                         </div>
-                        <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px' }}>
+                        <div className="shiftmanagement-style-15">
+                          <span className="shiftmanagement-style-16">
                             <strong>نظام الإجازات:</strong>
                             {shift.dayOffType === 'Fixed' ? 'ثابت' : 'متغير'}
                           </span>
                           {shift.dayOffType === 'Fixed' ? (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px' }}>
+                            <span className="shiftmanagement-style-17">
                               <strong>أيام الإجازة:</strong>
                               {(shift.fixedDaysOff || []).map(dId => DAYS_OF_WEEK.find(d => d.id === dId)?.label).join('، ') || 'لا يوجد'}
                             </span>
                           ) : (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px' }}>
+                            <span className="shiftmanagement-style-18">
                               <strong>الأيام المسموحة شهرياً:</strong>
                               {shift.variableDaysOffCount || 0} أيام
                             </span>
                           )}
                         </div>
                         {currentUser?.role === 'SuperAdmin' && (
-                          <div style={{ marginTop: '0.8rem', padding: '0.8rem', background: 'rgba(34, 197, 94, 0.05)', borderRadius: '6px', border: '1px solid rgba(34, 197, 94, 0.1)' }}>
-                            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#22c55e', margin: '0 0 0.5rem 0', fontSize: '0.95rem' }}>
+                          <div className="shiftmanagement-style-19">
+                            <h4 className="shiftmanagement-style-20">
                               <DollarSign size={16} /> بيانات الراتب
                             </h4>
                             {hasVariableSalaries ? (
-                              <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                                <span style={{ background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px' }}><strong>أقل راتب:</strong> {minSalary}</span>
-                                <span style={{ background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px' }}><strong>أعلى راتب:</strong> {maxSalary}</span>
+                              <div className="shiftmanagement-style-21">
+                                <span className="shiftmanagement-style-22"><strong>أقل راتب:</strong> {minSalary}</span>
+                                <span className="shiftmanagement-style-23"><strong>أعلى راتب:</strong> {maxSalary}</span>
                               </div>
                             ) : (
-                              <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                                <span style={{ background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px' }}><strong>الراتب الموحد:</strong> {baseShiftSalary}</span>
+                              <div className="shiftmanagement-style-24">
+                                <span className="shiftmanagement-style-25"><strong>الراتب الموحد:</strong> {baseShiftSalary}</span>
                               </div>
                             )}
                           </div>
                         )}
                       </div>
-                      <div style={{ display: 'flex', gap: '0.8rem' }}>
+                      <div className="shiftmanagement-style-26">
                         <button
                           onClick={() => handleEditShift(shift)}
-                          style={{
-                            background: 'rgba(59, 130, 246, 0.1)', color: 'var(--accent-blue)',
-                            border: '1px solid rgba(59, 130, 246, 0.2)',
-                            padding: '0.6rem 1rem', borderRadius: '8px', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', gap: '0.5rem',
-                            transition: 'all 0.2s'
-                          }}
+                          className="shiftmanagement-style-27"
                           onMouseOver={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.2)'}
                           onMouseOut={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)'}
                         >
@@ -365,20 +365,14 @@ const ShiftManagement = () => {
                         </button>
                         <button
                           onClick={() => openAssignModal(shift)}
-                          className="btn-save"
-                          style={{ padding: '0.6rem 1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                          className="btn-save shiftmanagement-style-28"
+                          
                         >
                           <Users size={16} /> إدارة الموظفين
                         </button>
                         <button
                           onClick={() => handleDeleteShift(shift.id)}
-                          style={{
-                            background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444',
-                            border: '1px solid rgba(239, 68, 68, 0.2)',
-                            padding: '0.6rem 1rem', borderRadius: '8px', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', gap: '0.5rem',
-                            transition: 'all 0.2s'
-                          }}
+                          className="shiftmanagement-style-29"
                           onMouseOver={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'}
                           onMouseOut={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
                         >
@@ -388,27 +382,18 @@ const ShiftManagement = () => {
                     </div>
 
                     {/* Shift Employees Area */}
-                    <div style={{ padding: '1.5rem 2rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-                        <h4 style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', margin: 0 }}>موظفو الوردية</h4>
+                    <div className="shiftmanagement-style-30">
+                      <div className="shiftmanagement-style-31">
+                        <h4 className="shiftmanagement-style-32">موظفو الوردية</h4>
 
-                        <div className="search-box" style={{ width: '300px', maxWidth: '100%', position: 'relative' }}>
-                          <Search size={18} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', pointerEvents: 'none' }} />
+                        <div className="search-box shiftmanagement-style-33" >
+                          <Search size={18} className="shiftmanagement-style-34" />
                           <input
                             type="text"
                             placeholder="ابحث عن موظف في هذه الوردية..."
                             value={searchTerm}
                             onChange={(e) => handleShiftSearchChange(shift.id, e.target.value)}
-                            style={{
-                              width: '100%',
-                              padding: '0.7rem 2.5rem 0.7rem 1rem',
-                              borderRadius: '8px',
-                              border: '1px solid rgba(255,255,255,0.1)',
-                              background: 'rgba(0,0,0,0.2)',
-                              color: 'var(--text-primary)',
-                              outline: 'none',
-                              transition: 'border-color 0.2s'
-                            }}
+                            className="shiftmanagement-style-35"
                             onFocus={e => e.target.style.borderColor = 'var(--accent-blue)'}
                             onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
                           />
@@ -416,11 +401,11 @@ const ShiftManagement = () => {
                       </div>
 
                       {filteredShiftUsers.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
+                        <div className="shiftmanagement-style-36">
                           {searchTerm ? 'لا توجد نتائج مطابقة للبحث.' : 'لا يوجد موظفين معينين لهذه الوردية حتى الآن.'}
                         </div>
                       ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
+                        <div className="shiftmanagement-style-37">
                           {filteredShiftUsers.map(user => {
                             const isAdmin = user.role === 'Admin' || user.role === 'SuperAdmin';
                             const isSuperAdmin = user.role === 'SuperAdmin';
@@ -455,35 +440,35 @@ const ShiftManagement = () => {
                                 }}>
                                   <AvatarIcon name={user.avatar} size={22} />
                                 </div>
-                                <div style={{ flex: 1 }}>
+                                <div className="shiftmanagement-style-38">
                                   <div style={{ fontWeight: 'bold', color: isAdmin ? '#60a5fa' : 'var(--text-primary)', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     {user.fullName}
-                                    {isAdmin && <span style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', color: '#fff' }}>{user.role}</span>}
+                                    {isAdmin && <span className="shiftmanagement-style-39">{user.role}</span>}
                                   </div>
-                                  <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>{user.jobTitle || 'موظف'}</div>
+                                  <div className="shiftmanagement-style-40" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span>{user.jobTitle || 'موظف'}</span>
+                                    {isAdmin && (
+                                      user.UserShift?.isObserver ? (
+                                        <span style={{ fontSize: '0.75rem', backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
+                                          مراقب فقط (بدون حضور)
+                                        </span>
+                                      ) : (
+                                        <span style={{ fontSize: '0.75rem', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
+                                          مطلوب تسجيل حضور
+                                        </span>
+                                      )
+                                    )}
+                                  </div>
                                 </div>
 
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <div className="shiftmanagement-style-41">
                                   {currentUser?.role === 'SuperAdmin' && (
                                     <button
                                       onClick={() => {
                                         setSalaryModal({ show: true, userId: user.id, userName: user.fullName, baseSalary: user.baseSalary || shift.baseSalary || '' });
                                         setSelectedSalary(user.baseSalary || shift.baseSalary || '');
                                       }}
-                                      style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '0.4rem',
-                                        padding: '0.5rem 0.8rem',
-                                        background: 'rgba(34, 197, 94, 0.1)',
-                                        color: '#22c55e',
-                                        border: '1px solid rgba(34, 197, 94, 0.2)',
-                                        borderRadius: '6px',
-                                        cursor: 'pointer',
-                                        fontSize: '0.85rem',
-                                        fontWeight: 'bold',
-                                        transition: 'background 0.2s',
-                                      }}
+                                      className="shiftmanagement-style-42"
                                       onMouseOver={e => e.currentTarget.style.background = 'rgba(34, 197, 94, 0.2)'}
                                       onMouseOut={e => e.currentTarget.style.background = 'rgba(34, 197, 94, 0.1)'}
                                       title="تعديل الراتب الخاص"
@@ -494,19 +479,7 @@ const ShiftManagement = () => {
                                   )}
                                   <Link
                                     to={`/personal-followup/${user.id}`}
-                                    style={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '0.4rem',
-                                      padding: '0.5rem 0.8rem',
-                                      background: 'rgba(59, 130, 246, 0.15)',
-                                      color: '#60a5fa',
-                                      borderRadius: '6px',
-                                      textDecoration: 'none',
-                                      fontSize: '0.85rem',
-                                      fontWeight: 'bold',
-                                      transition: 'background 0.2s',
-                                    }}
+                                    className="shiftmanagement-style-43"
                                     onMouseOver={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.25)'}
                                     onMouseOut={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)'}
                                     title="عرض إحصائيات الموظف"
@@ -533,35 +506,35 @@ const ShiftManagement = () => {
       {/* Salary Edit Modal */}
       {salaryModal.show && (
         <div className="modal-overlay active" onClick={() => setSalaryModal({ show: false, userId: null, userName: '', baseSalary: '' })}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', width: '90%' }}>
-            <div className="modal-header" style={{ paddingBottom: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, fontSize: '1.2rem', color: '#22c55e' }}>
+          <div className="modal-content shiftmanagement-style-44" onClick={e => e.stopPropagation()} >
+            <div className="modal-header shiftmanagement-style-45" >
+              <h2 className="shiftmanagement-style-46">
                 <DollarSign size={20} />
                 تعديل الراتب
               </h2>
               <button className="close-btn" type="button" onClick={() => setSalaryModal({ show: false, userId: null, userName: '', baseSalary: '' })}>&times;</button>
             </div>
             <div className="modal-body">
-              <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+              <p className="shiftmanagement-style-47">
                 تعديل الراتب الخاص للموظف: <strong>{salaryModal.userName}</strong>
               </p>
               <form onSubmit={handleSalarySubmit}>
-                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                  <label style={{ color: 'var(--text-secondary)' }}>الراتب الشهري</label>
+                <div className="form-group shiftmanagement-style-48" >
+                  <label className="shiftmanagement-style-49">الراتب الشهري</label>
                   <input
                     type="number"
                     min="0"
                     value={selectedSalary}
                     onChange={(e) => setSelectedSalary(e.target.value)}
                     required
-                    style={{ width: '100%', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '0.8rem', borderRadius: '8px' }}
+                    className="shiftmanagement-style-50"
                   />
                 </div>
-                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-                  <button type="button" onClick={() => setSalaryModal({ show: false, userId: null, userName: '', baseSalary: '' })} style={{ padding: '0.6rem 1rem', background: 'transparent', color: 'var(--text-secondary)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', cursor: 'pointer' }}>
+                <div className="shiftmanagement-style-51">
+                  <button type="button" onClick={() => setSalaryModal({ show: false, userId: null, userName: '', baseSalary: '' })} className="shiftmanagement-style-52">
                     إلغاء
                   </button>
-                  <button type="submit" style={{ padding: '0.6rem 1.5rem', background: '#22c55e', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                  <button type="submit" className="shiftmanagement-style-53">
                     حفظ الراتب
                   </button>
                 </div>
@@ -574,9 +547,9 @@ const ShiftManagement = () => {
       {/* Create/Edit Shift Modal */}
       {isFormModalOpen && (
         <div className="modal-overlay active" onClick={() => resetForm()}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '650px', width: '90%' }}>
-            <div className="modal-header" style={{ paddingBottom: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0, fontSize: '1.4rem' }}>
+          <div className="modal-content shiftmanagement-style-54" onClick={e => e.stopPropagation()} >
+            <div className="modal-header shiftmanagement-style-55" >
+              <h2 className="shiftmanagement-style-56">
                 <Plus size={24} />
                 {editingShiftId ? 'تعديل الوردية' : 'إضافة وردية جديدة'}
               </h2>
@@ -584,64 +557,64 @@ const ShiftManagement = () => {
             </div>
             <div className="modal-body">
               <form onSubmit={handleSubmitShift}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem' }}>
-                  <div className="form-group" style={{ flex: '1 1 100%' }}>
-                    <label style={{ color: 'var(--text-secondary)' }}>اسم الوردية</label>
+                <div className="shiftmanagement-style-57">
+                  <div className="form-group shiftmanagement-style-58" >
+                    <label className="shiftmanagement-style-59">اسم الوردية</label>
                     <input
                       type="text"
                       value={shiftForm.name}
                       onChange={(e) => setShiftForm({ ...shiftForm, name: e.target.value })}
                       placeholder="مثال: الوردية الصباحية"
                       required
-                      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '1rem', borderRadius: '8px' }}
+                      className="shiftmanagement-style-60"
                     />
                   </div>
 
-                  <div className="form-group" style={{ flex: '1 1 100%' }}>
-                    <label style={{ color: 'var(--text-secondary)' }}>الراتب الشهري (لكل موظف في الوردية)</label>
+                  <div className="form-group shiftmanagement-style-61" >
+                    <label className="shiftmanagement-style-62">الراتب الشهري (لكل موظف في الوردية)</label>
                     <input
                       type="number"
                       min="0"
                       value={shiftForm.baseSalary}
                       onChange={(e) => setShiftForm({ ...shiftForm, baseSalary: e.target.value })}
                       placeholder="مثال: 5000"
-                      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '1rem', borderRadius: '8px' }}
+                      className="shiftmanagement-style-63"
                     />
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', marginTop: '1rem' }}>
-                  <div className="form-group" style={{ flex: '1 1 200px' }}>
-                    <label style={{ color: 'var(--text-secondary)' }}>وقت البدء (من)</label>
-                    <div style={{ position: 'relative' }}>
-                      <Clock size={18} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', pointerEvents: 'none' }} />
+                <div className="shiftmanagement-style-64">
+                  <div className="form-group shiftmanagement-style-65" >
+                    <label className="shiftmanagement-style-66">وقت البدء (من)</label>
+                    <div className="shiftmanagement-style-67">
+                      <Clock size={18} className="shiftmanagement-style-68" />
                       <input
                         type="time"
                         value={shiftForm.startTime}
                         onChange={(e) => setShiftForm({ ...shiftForm, startTime: e.target.value })}
                         required
-                        style={{ width: '100%', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '1rem 3rem 1rem 1rem', borderRadius: '8px' }}
+                        className="shiftmanagement-style-69"
                       />
                     </div>
                   </div>
-                  <div className="form-group" style={{ flex: '1 1 200px' }}>
-                    <label style={{ color: 'var(--text-secondary)' }}>وقت الانتهاء (إلى)</label>
-                    <div style={{ position: 'relative' }}>
-                      <Clock size={18} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', pointerEvents: 'none' }} />
+                  <div className="form-group shiftmanagement-style-70" >
+                    <label className="shiftmanagement-style-71">وقت الانتهاء (إلى)</label>
+                    <div className="shiftmanagement-style-72">
+                      <Clock size={18} className="shiftmanagement-style-73" />
                       <input
                         type="time"
                         value={shiftForm.endTime}
                         onChange={(e) => setShiftForm({ ...shiftForm, endTime: e.target.value })}
                         required
-                        style={{ width: '100%', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '1rem 3rem 1rem 1rem', borderRadius: '8px' }}
+                        className="shiftmanagement-style-74"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="form-group" style={{ marginTop: '1.5rem' }}>
-                  <label style={{ color: 'var(--text-secondary)', marginBottom: '0.8rem' }}>أيام العمل الخاصة بالوردية</label>
-                  <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
+                <div className="form-group shiftmanagement-style-75" >
+                  <label className="shiftmanagement-style-76">أيام العمل الخاصة بالوردية</label>
+                  <div className="shiftmanagement-style-77">
                     {DAYS_OF_WEEK.map(day => {
                       const isSelected = shiftForm.workingDays.includes(day.id);
                       return (
@@ -670,9 +643,9 @@ const ShiftManagement = () => {
                   </div>
                 </div>
 
-                <div className="form-group" style={{ marginTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1.5rem' }}>
-                  <label style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 'bold' }}>نظام الإجازات الخاص بالوردية</label>
-                  <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                <div className="form-group shiftmanagement-style-78" >
+                  <label className="shiftmanagement-style-79">نظام الإجازات الخاص بالوردية</label>
+                  <div className="shiftmanagement-style-80">
                     <button
                       type="button"
                       onClick={() => setShiftForm({ ...shiftForm, dayOffType: 'Fixed' })}
@@ -702,7 +675,7 @@ const ShiftManagement = () => {
                         alignItems: 'center',
                         justifyContent: 'center'
                       }}>
-                        {shiftForm.dayOffType === 'Fixed' && <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#3b82f6' }}></div>}
+                        {shiftForm.dayOffType === 'Fixed' && <div className="shiftmanagement-style-81"></div>}
                       </div>
                       أيام ثابتة
                     </button>
@@ -735,16 +708,16 @@ const ShiftManagement = () => {
                         alignItems: 'center',
                         justifyContent: 'center'
                       }}>
-                        {shiftForm.dayOffType === 'Variable' && <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#3b82f6' }}></div>}
+                        {shiftForm.dayOffType === 'Variable' && <div className="shiftmanagement-style-82"></div>}
                       </div>
                       متغيرة (أيام شهرياً)
                     </button>
                   </div>
 
                   {shiftForm.dayOffType === 'Fixed' && (
-                    <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <label style={{ color: 'var(--text-secondary)', marginBottom: '0.8rem', display: 'block' }}>اختر أيام الإجازة الثابتة</label>
-                      <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
+                    <div className="shiftmanagement-style-83">
+                      <label className="shiftmanagement-style-84">اختر أيام الإجازة الثابتة</label>
+                      <div className="shiftmanagement-style-85">
                         {DAYS_OF_WEEK.map(day => {
                           const isSelected = shiftForm.fixedDaysOff.includes(day.id);
                           return (
@@ -772,32 +745,23 @@ const ShiftManagement = () => {
                   )}
 
                   {shiftForm.dayOffType === 'Variable' && (
-                    <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <label style={{ color: 'var(--text-secondary)', marginBottom: '0.8rem', display: 'block' }}>عدد الأيام المسموح بها في الشهر</label>
+                    <div className="shiftmanagement-style-86">
+                      <label className="shiftmanagement-style-87">عدد الأيام المسموح بها في الشهر</label>
                       <input
                         type="number"
                         min="0"
                         max="31"
                         value={shiftForm.variableDaysOffCount}
                         onChange={(e) => setShiftForm({ ...shiftForm, variableDaysOffCount: parseInt(e.target.value) || 0 })}
-                        style={{
-                          width: '100px',
-                          background: 'rgba(255,255,255,0.03)',
-                          border: '1px solid rgba(255,255,255,0.1)',
-                          padding: '0.8rem',
-                          borderRadius: '8px',
-                          color: '#fff',
-                          fontSize: '1.1rem',
-                          textAlign: 'center'
-                        }}
+                        className="shiftmanagement-style-88"
                       />
                     </div>
                   )}
                 </div>
 
-                <div className="form-actions" style={{ justifyContent: 'flex-end', marginTop: '2.5rem', gap: '1rem', display: 'flex' }}>
-                  <button type="submit" className="btn-save" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.8rem 2rem', background: '#fff', color: '#000', borderRadius: '12px' }}>
-                    <span style={{ fontWeight: 'bold' }}>{editingShiftId ? 'حفظ التعديلات' : 'إنشاء الوردية'}</span>
+                <div className="form-actions shiftmanagement-style-89" >
+                  <button type="submit" className="btn-save shiftmanagement-style-90" >
+                    <span className="shiftmanagement-style-91">{editingShiftId ? 'حفظ التعديلات' : 'إنشاء الوردية'}</span>
                     <Save size={18} />
                   </button>
                 </div>
@@ -810,20 +774,20 @@ const ShiftManagement = () => {
       {/* Assign Users Modal */}
       {isModalOpen && selectedShift && (
         <div className="modal-overlay active" onClick={() => setIsModalOpen(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', width: '90%' }}>
+          <div className="modal-content shiftmanagement-style-92" onClick={e => e.stopPropagation()} >
             <div className="modal-header">
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <h2 className="shiftmanagement-style-93">
                 <Users size={24} className="text-blue" />
                 تعيين موظفين لـ "{selectedShift.name}"
               </h2>
               <button className="close-btn" onClick={() => setIsModalOpen(false)}>&times;</button>
             </div>
             <div className="modal-body">
-              <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.9rem' }}>
+              <p className="shiftmanagement-style-94">
                 اختر الموظفين الذين تود ربطهم بهذه الوردية. يمكن للموظف الواحد الانتماء لعدة ورديات لتغطية أيام مختلفة.
               </p>
 
-              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', padding: '0.4rem', background: 'rgba(0, 0, 0, 0.61)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <div className="shiftmanagement-style-95">
                 {['All', 'Scheduled', 'Unscheduled'].map((val) => {
                   const labelMap = { All: 'الكل', Scheduled: 'مجدول', Unscheduled: 'غير مجدول' };
                   const isChecked = modalScheduleFilter === val;
@@ -850,7 +814,7 @@ const ShiftManagement = () => {
                         value={val}
                         checked={isChecked}
                         onChange={() => setModalScheduleFilter(val)}
-                        style={{ display: 'none' }}
+                        className="shiftmanagement-style-96"
                       />
                       {labelMap[val]}
                     </label>
@@ -858,29 +822,20 @@ const ShiftManagement = () => {
                 })}
               </div>
 
-              <div className="search-box" style={{ marginBottom: '1.5rem', position: 'relative' }}>
-                <Search size={18} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)', pointerEvents: 'none' }} />
+              <div className="search-box shiftmanagement-style-97" >
+                <Search size={18} className="shiftmanagement-style-98" />
                 <input
                   type="text"
                   placeholder="ابحث عن موظف لتعيينه..."
                   value={modalSearchTerm}
                   onChange={(e) => setModalSearchTerm(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '0.8rem 2.5rem 0.8rem 1rem',
-                    borderRadius: '8px',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    background: 'rgba(0,0,0,0.2)',
-                    color: 'var(--text-primary)',
-                    outline: 'none',
-                    transition: 'border-color 0.2s'
-                  }}
+                  className="shiftmanagement-style-99"
                   onFocus={e => e.target.style.borderColor = 'var(--accent-blue)'}
                   onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
                 />
               </div>
 
-              <div style={{ maxHeight: '350px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingRight: '0.5rem' }}>
+              <div className="shiftmanagement-style-100">
                 {filteredModalUsers.map(user => {
                   const isAssigned = selectedUserIds.includes(user.id);
                   return (
@@ -899,47 +854,72 @@ const ShiftManagement = () => {
                         transition: 'all 0.2s'
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
+                      <div className="shiftmanagement-style-101">
+                        <div className="shiftmanagement-style-102">
                           <AvatarIcon name={user.avatar || 'User'} size={18} />
                         </div>
                         <div>
                           <div style={{ fontWeight: 'bold', color: isAssigned ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{user.fullName}</div>
-                          <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                          <div className="shiftmanagement-style-103">
                             {user.Shifts && user.Shifts.length > 0
                               ? user.Shifts.map(s => `${s.name} (${s.startTime} - ${s.endTime})`).join('، ')
                               : 'غير مجدول'}
                           </div>
                         </div>
                       </div>
-                      <div style={{
-                        width: '22px',
-                        height: '22px',
-                        borderRadius: '6px',
-                        border: `2px solid ${isAssigned ? 'var(--accent-blue)' : 'rgba(255,255,255,0.3)'}`,
-                        background: isAssigned ? 'var(--accent-blue)' : 'transparent',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'all 0.2s'
-                      }}>
-                        {isAssigned && <Check size={14} color="#fff" strokeWidth={3} />}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        {isAssigned && (user.role === 'Admin' || user.role === 'SuperAdmin') && (
+                          <div 
+                            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                            onClick={(e) => handleObserverToggle(e, user.id)}
+                          >
+                            <div style={{
+                              width: '18px',
+                              height: '18px',
+                              borderRadius: '4px',
+                              border: `2px solid ${observerUserIds.includes(user.id) ? '#f59e0b' : 'rgba(255,255,255,0.3)'}`,
+                              background: observerUserIds.includes(user.id) ? '#f59e0b' : 'transparent',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'all 0.2s'
+                            }}>
+                              {observerUserIds.includes(user.id) && <Check size={12} color="#fff" strokeWidth={3} />}
+                            </div>
+                            <span style={{ fontSize: '0.8rem', color: observerUserIds.includes(user.id) ? '#f59e0b' : 'var(--text-secondary)' }}>
+                              مشرف (بدون حضور)
+                            </span>
+                          </div>
+                        )}
+                        <div style={{
+                          width: '22px',
+                          height: '22px',
+                          borderRadius: '6px',
+                          border: `2px solid ${isAssigned ? 'var(--accent-blue)' : 'rgba(255,255,255,0.3)'}`,
+                          background: isAssigned ? 'var(--accent-blue)' : 'transparent',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.2s'
+                        }}>
+                          {isAssigned && <Check size={14} color="#fff" strokeWidth={3} />}
+                        </div>
                       </div>
                     </div>
                   )
                 })}
                 {filteredModalUsers.length === 0 && (
-                  <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+                  <div className="shiftmanagement-style-104">
                     {modalSearchTerm ? 'لا توجد نتائج مطابقة.' : 'لا يوجد موظفين متاحين.'}
                   </div>
                 )}
               </div>
 
-              <div className="modal-actions" style={{ marginTop: '2rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                <button type="button" onClick={() => setIsModalOpen(false)} style={{ flex: '1 1 120px', padding: '0.8rem', borderRadius: '8px', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+              <div className="modal-actions shiftmanagement-style-105" >
+                <button type="button" onClick={() => setIsModalOpen(false)} className="shiftmanagement-style-106">
                   إلغاء
                 </button>
-                <button type="button" className="btn-save" style={{ flex: '2 1 200px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }} onClick={handleAssignSubmit}>
+                <button type="button" className="btn-save shiftmanagement-style-107"  onClick={handleAssignSubmit}>
                   <Save size={18} />
                   حفظ التعيينات ({selectedUserIds.length})
                 </button>

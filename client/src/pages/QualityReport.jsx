@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx-js-style';
 import { Download, Upload, EyeOff, Eye, Search, Table, Settings, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
-import './QualityReport.css';
+import "./QualityReport.scss";
 
 const defaultIds = [''];
 

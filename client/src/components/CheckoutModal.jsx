@@ -1,3 +1,4 @@
+import './CheckoutModal.scss';
 import React, { useState, useEffect } from 'react';
 import { LogOut, Clock, X } from 'lucide-react';
 import api from '../services/api';
@@ -86,39 +87,24 @@ const CheckoutModal = () => {
   if (!isOpen) return null;
 
   return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 9999
-    }}>
-      <div style={{
-        background: 'var(--bg-card)',
-        border: '1px solid rgba(255,255,255,0.1)',
-        borderRadius: '20px',
-        padding: '2.5rem',
-        maxWidth: '450px',
-        width: '90%',
-        textAlign: 'center',
-        boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
-        position: 'relative'
-      }}>
-        <button onClick={() => setIsOpen(false)} style={{ position: 'absolute', top: '15px', right: '15px', background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+    <div className="checkoutmodal-style-1">
+      <div className="checkoutmodal-style-2">
+        <button onClick={() => setIsOpen(false)} className="checkoutmodal-style-3">
           <X size={24} />
         </button>
 
-        <div style={{ background: 'rgba(239, 68, 68, 0.1)', width: '70px', height: '70px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto', color: '#ef4444' }}>
+        <div className="checkoutmodal-style-4">
           <LogOut size={32} />
         </div>
 
-        <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>حان وقت الانصراف</h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', lineHeight: '1.6' }}>
+        <h2 className="checkoutmodal-style-5">حان وقت الانصراف</h2>
+        <p className="checkoutmodal-style-6">
           ورديتك الحالية ({shiftData?.name}) تقترب من نهايتها أو انتهت بالفعل. يرجى تسجيل الانصراف الآن.
         </p>
 
-        <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '1rem', marginBottom: '2rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', color: '#60a5fa' }}>
+        <div className="checkoutmodal-style-7">
           <Clock size={20} />
-          موعد انتهاء الوردية: <span style={{ direction: 'ltr', fontWeight: 'bold' }}>{shiftData?.endTime}</span>
+          موعد انتهاء الوردية: <span className="checkoutmodal-style-8">{shiftData?.endTime}</span>
         </div>
 
         <button

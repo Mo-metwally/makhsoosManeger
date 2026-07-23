@@ -5,7 +5,7 @@ import AdminGuard from '../components/AdminGuard';
 import CustomSelect from '../components/CustomSelect';
 import { getLogicalDateString } from '../utils/dateHelpers';
 import api from '../services/api';
-import './Monitoring.css';
+import "./Monitoring.scss";
 import { useToast } from '../contexts/ToastContext';
 
 const HandleAdminReports = () => {
@@ -19,6 +19,7 @@ const HandleAdminReports = () => {
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
   const [employeeFilter, setEmployeeFilter] = useState(initialEmployeeName || 'all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('date_desc');
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 8; // Adjust if needed
@@ -152,6 +153,15 @@ const HandleAdminReports = () => {
     filteredLogs = filteredLogs.filter(log => log.User?.fullName === employeeFilter);
   }
 
+  // Status Filter
+  if (statusFilter !== 'all') {
+    filteredLogs = filteredLogs.filter(log => {
+      if (statusFilter === 'CheckedOut') return log.checkOutTime != null;
+      if (statusFilter === 'Present') return log.status === 'Present' && log.checkOutTime == null;
+      return log.status === statusFilter;
+    });
+  }
+
   // Search Filter
   if (searchQuery.trim() !== '') {
     const lowerQ = searchQuery.toLowerCase();
@@ -190,13 +200,13 @@ const HandleAdminReports = () => {
           <div className="page-title-wrapper">
             <Users size={28} className="title-icon text-blue" />
             <h1 className="page-title gradient-title">سجل الحضور المجمع (إدارة)</h1>
-            <div style={{ color: 'var(--text-secondary)' }}>
+            <div className="handleadminreports-style-1">
               إجمالي السجلات: <strong>{attendanceLogs.length}</strong>
             </div>
           </div>
         </header>
 
-        <div className="filter-section" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'relative', zIndex: 10 }}>
+        <div className="filter-section handleadminreports-style-2" >
 
           {/* Time Filters */}
           <div className="admin-filter-group">
@@ -217,21 +227,52 @@ const HandleAdminReports = () => {
             ))}
           </div>
 
-          {timeFilter === 'custom' && (
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap', background: 'var(--glass-bg)', padding: '1rem', borderRadius: '12px', border: 'var(--glass-border)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>من:</span>
-                <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} className="search-input" style={{ width: 'auto', padding: '0.5rem', margin: 0 }} />
+          {/* Status Filters */}
+          <div className="admin-filter-group handleadminreports-style-3" >
+            {[
+              { value: 'all', label: 'الكل', icon: Users, color: 'var(--theme-glow)' },
+              { value: 'Present', label: 'حضور', icon: CheckCircle, color: '#10b981' },
+              { value: 'CheckedOut', label: 'انصراف', icon: LogOut, color: '#ef4444' },
+              { value: 'Late', label: 'تأخير', icon: Clock, color: '#f59e0b' },
+              { value: 'Absent', label: 'غياب', icon: XCircle, color: '#ef4444' },
+              { value: 'BusinessTrip', label: 'سفر', icon: Plane, color: '#0ea5e9' },
+              { value: 'DayOff', label: 'إجازة', icon: Calendar, color: '#3b82f6' },
+              { value: 'DayOffWork', label: 'عمل إجازة', icon: Briefcase, color: '#8b5cf6' }
+            ].map(status => (
+              <div className="admin-filter-radio" key={status.value}>
+                <label className="handleadminreports-style-4">
+                  <input
+                    type="radio"
+                    name="statusFilter"
+                    value={status.value}
+                    checked={statusFilter === status.value}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                  />
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: statusFilter === status.value ? '#fff' : 'var(--text-color)' }}>
+                    <status.icon size={16} color={statusFilter === status.value ? '#fff' : status.color} />
+                    {status.label}
+                  </span>
+                  {statusFilter === status.value && <div className="radio-bg" style={{ background: status.color, boxShadow: `0 4px 15px ${status.color}40` }}></div>}
+                </label>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>إلى:</span>
-                <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} className="search-input" style={{ width: 'auto', padding: '0.5rem', margin: 0 }} />
+            ))}
+          </div>
+
+          {timeFilter === 'custom' && (
+            <div className="handleadminreports-style-5">
+              <div className="handleadminreports-style-6">
+                <span className="handleadminreports-style-7">من:</span>
+                <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} className="search-input handleadminreports-style-8"  />
+              </div>
+              <div className="handleadminreports-style-9">
+                <span className="handleadminreports-style-10">إلى:</span>
+                <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} className="search-input handleadminreports-style-11"  />
               </div>
             </div>
           )}
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-            <div className="search-bar" style={{ flex: 1, minWidth: '250px', maxWidth: '400px', margin: 0 }}>
+          <div className="handleadminreports-style-12">
+            <div className="search-bar handleadminreports-style-13" >
               <Search size={18} className="search-icon" />
               <input
                 type="text"
@@ -249,7 +290,7 @@ const HandleAdminReports = () => {
               ]}
               value={employeeFilter}
               onChange={setEmployeeFilter}
-              placeholder="اختر الموظف"
+              placeholder="فلتر الموظف..."
             />
 
             <CustomSelect
@@ -268,7 +309,7 @@ const HandleAdminReports = () => {
 
         <div className="table-container">
           {filteredLogs.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)', background: 'var(--glass-bg)', borderRadius: '16px', border: 'var(--glass-border)' }}>
+            <div className="handleadminreports-style-14">
               لا توجد سجلات حضور مسجلة تطابق بحثك حالياً.
             </div>
           ) : (
@@ -296,25 +337,13 @@ const HandleAdminReports = () => {
                       style={{ cursor: log.notes ? 'pointer' : 'default' }}
                     >
                       <td>
-                        <div style={{ fontWeight: 'bold', color: 'var(--theme-color)', fontSize: '1.1rem' }}>{log.User ? log.User.fullName : '---'}</div>
-                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.2rem', marginBottom: '0.5rem' }}>{log.User ? log.User.jobTitle : ''}</div>
+                        <div className="handleadminreports-style-15">{log.User ? log.User.fullName : '---'}</div>
+                        <div className="handleadminreports-style-16">{log.User ? log.User.jobTitle : ''}</div>
                         {log.userId && (
                           <Link
                             to={`/personal-followup/${log.userId}`}
                             onClick={(e) => e.stopPropagation()}
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.3rem',
-                              padding: '0.3rem 0.6rem',
-                              background: 'rgba(59, 130, 246, 0.15)',
-                              color: '#60a5fa',
-                              borderRadius: '4px',
-                              textDecoration: 'none',
-                              fontSize: '0.75rem',
-                              fontWeight: 'bold',
-                              transition: 'background 0.2s',
-                            }}
+                            className="handleadminreports-style-17"
                             onMouseOver={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.25)'}
                             onMouseOut={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)'}
                             title="عرض إحصائيات الموظف"
@@ -327,15 +356,15 @@ const HandleAdminReports = () => {
                       <td>{formatDate(log.date)}</td>
                       <td>{log.Shift ? log.Shift.name : '---'}</td>
                       <td style={{ color: log.checkInTime ? '#10b981' : 'var(--text-secondary)' }}>
-                        {log.checkInTime ? <><LogIn size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> {formatTime(log.checkInTime)}</> : '---'}
+                        {log.checkInTime ? <><LogIn size={16} className="handleadminreports-style-18" /> {formatTime(log.checkInTime)}</> : '---'}
                       </td>
                       <td style={{ color: log.checkOutTime ? '#ef4444' : 'var(--text-secondary)' }}>
-                        {log.checkOutTime ? <><LogOut size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> {formatTime(log.checkOutTime)}</> : (log.status === 'Present' ? 'لم ينصرف بعد' : '---')}
+                        {log.checkOutTime ? <><LogOut size={16} className="handleadminreports-style-19" /> {formatTime(log.checkOutTime)}</> : (log.status === 'Present' ? 'لم ينصرف بعد' : '---')}
                       </td>
                       <td>
-                        <div style={{ fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                        <div className="handleadminreports-style-20">
                           {log.breakDetails && log.breakDetails['بريك صلاة'] > 0 && (
-                            <div style={{ color: 'var(--text-secondary)' }}><span style={{ marginRight: '4px' }}>🕋</span>صلاة: {(() => {
+                            <div className="handleadminreports-style-21"><span className="handleadminreports-style-22">🕋</span>صلاة: {(() => {
                               const totalMins = Math.floor(log.breakDetails['بريك صلاة'] / 60000);
                               const hours = Math.floor(totalMins / 60);
                               const mins = totalMins % 60;
@@ -343,7 +372,7 @@ const HandleAdminReports = () => {
                             })()}</div>
                           )}
                           {log.breakDetails && log.breakDetails['بريك غداء'] > 0 && (
-                            <div style={{ color: 'var(--text-secondary)' }}><span style={{ marginRight: '4px' }}>🍔</span>غداء: {(() => {
+                            <div className="handleadminreports-style-23"><span className="handleadminreports-style-24">🍔</span>غداء: {(() => {
                               const totalMins = Math.floor(log.breakDetails['بريك غداء'] / 60000);
                               const hours = Math.floor(totalMins / 60);
                               const mins = totalMins % 60;
@@ -351,41 +380,41 @@ const HandleAdminReports = () => {
                             })()}</div>
                           )}
                           {(!log.breakDetails || (log.breakDetails['بريك صلاة'] === 0 && log.breakDetails['بريك غداء'] === 0)) && (
-                            <span style={{ color: 'var(--text-secondary)' }}>لا يوجد</span>
+                            <span className="handleadminreports-style-25">لا يوجد</span>
                           )}
                         </div>
                       </td>
-                      <td style={{ color: '#f59e0b', fontWeight: 'bold' }}>
+                      <td className="handleadminreports-style-26">
                         {calculateDelay(log.checkInTime, log.Shift?.startTime)}
                       </td>
                       <td>
                         {log.status === 'Absent' ? (
-                          <span className="status-badge" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
+                          <span className="status-badge handleadminreports-style-27" >
                             <X size={14} /> غياب
                           </span>
                         ) : log.status === 'BusinessTrip' ? (
-                          <span className="status-badge" style={{ background: 'rgba(14, 165, 233, 0.1)', color: '#0ea5e9' }}>
+                          <span className="status-badge handleadminreports-style-28" >
                             <Plane size={14} /> سفر عمل
                           </span>
                         ) : log.status === 'DayOff' ? (
-                          <span className="status-badge" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
+                          <span className="status-badge handleadminreports-style-29" >
                             <Calendar size={14} /> إجازة عادية
                           </span>
                         ) : log.status === 'DayOffWork' ? (
-                          <span className="status-badge" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' }}>
+                          <span className="status-badge handleadminreports-style-30" >
                             <Briefcase size={14} /> عمل بإجازة
                           </span>
                         ) : log.status === 'Late' ? (
-                          <span className="status-badge" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
+                          <span className="status-badge handleadminreports-style-31" >
                             <Clock size={14} /> تأخير
                           </span>
                         ) : (
-                          <span className="status-badge" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+                          <span className="status-badge handleadminreports-style-32" >
                             <CheckCircle size={14} /> حضور
                           </span>
                         )}
                         {log.notes && (
-                          <div style={{ fontSize: '0.75rem', color: 'var(--theme-color)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <div className="handleadminreports-style-33">
                             <Info size={12} /> اضغط لعرض السبب
                           </div>
                         )}
@@ -403,18 +432,7 @@ const HandleAdminReports = () => {
                               notes: log.notes || ''
                             });
                           }}
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.1)',
-                            border: 'none',
-                            color: 'var(--text-secondary)',
-                            padding: '0.5rem',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: '0.3s'
-                          }}
+                          className="handleadminreports-style-34"
                           title="تعديل الوقت"
                           onMouseOver={(e) => e.currentTarget.style.color = 'var(--theme-color)'}
                           onMouseOut={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
@@ -425,13 +443,13 @@ const HandleAdminReports = () => {
                     </tr>
                     {expandedRowId === log.id && log.notes && (
                       <tr className="tf-expanded-row">
-                        <td colSpan="9" style={{ padding: '0 1.5rem 1.5rem 1.5rem', borderTop: 'none' }}>
-                          <div style={{ padding: '1rem 1.5rem', background: 'rgba(255, 255, 255, 0.04)', borderRadius: '0 0 12px 12px', borderRight: '3px solid var(--theme-color)', color: 'var(--text-secondary)', textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '-0.8rem', boxShadow: 'inset 0 4px 6px -4px rgba(0,0,0,0.1)' }}>
-                            <strong style={{ color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem' }}>
-                              <Info size={16} style={{ color: 'var(--theme-color)' }} />
+                        <td colSpan="9" className="handleadminreports-style-35">
+                          <div className="handleadminreports-style-36">
+                            <strong className="handleadminreports-style-37">
+                              <Info size={16} className="handleadminreports-style-38" />
                               السبب المرفق:
                             </strong>
-                            <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '0.9rem', marginRight: '24px', color: 'rgba(255,255,255,0.7)' }}>{log.notes}</div>
+                            <div className="handleadminreports-style-39">{log.notes}</div>
                           </div>
                         </td>
                       </tr>
@@ -473,41 +491,41 @@ const HandleAdminReports = () => {
 
       {/* Edit Time Modal */}
       {editModal.isOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'var(--solid-bg)', padding: '2rem', borderRadius: '16px', width: '90%', maxWidth: '700px', border: '1px solid var(--border-color)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', maxHeight: '90vh', overflowY: 'auto' }}>
-            <h3 style={{ color: 'var(--text-primary)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div className="handleadminreports-style-40">
+          <div className="handleadminreports-style-41">
+            <h3 className="handleadminreports-style-42">
               <Edit2 size={24} className="text-blue" />
               تعديل أوقات السجل
             </h3>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+            <p className="handleadminreports-style-43">
               موظف: <strong>{editModal.log?.User?.fullName}</strong><br />
               تاريخ: {formatDate(editModal.log?.date)}
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+            <div className="handleadminreports-style-44">
               <div>
-                <label style={{ display: 'block', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>وقت الحضور</label>
+                <label className="handleadminreports-style-45">وقت الحضور</label>
                 <input
                   type="time"
                   value={editModal.checkInTime}
                   onChange={(e) => setEditModal({ ...editModal, checkInTime: e.target.value })}
-                  style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+                  className="handleadminreports-style-46"
                 />
               </div>
               <div>
-                <label style={{ display: 'block', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>وقت الانصراف</label>
+                <label className="handleadminreports-style-47">وقت الانصراف</label>
                 <input
                   type="time"
                   value={editModal.checkOutTime}
                   onChange={(e) => setEditModal({ ...editModal, checkOutTime: e.target.value })}
-                  style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+                  className="handleadminreports-style-48"
                 />
               </div>
             </div>
 
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>حالة الحضور</label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.75rem' }}>
+            <div className="handleadminreports-style-49">
+              <label className="handleadminreports-style-50">حالة الحضور</label>
+              <div className="handleadminreports-style-51">
                 <div
                   onClick={() => setEditModal({ ...editModal, status: 'Present' })}
                   style={{
@@ -582,15 +600,15 @@ const HandleAdminReports = () => {
               </div>
             </div>
 
-            <div style={{ marginBottom: '1.5rem', background: 'rgba(0,0,0,0.15)', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h3 style={{ margin: 0, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)' }}>
+            <div className="handleadminreports-style-52">
+              <div className="handleadminreports-style-53">
+                <h3 className="handleadminreports-style-54">
                   <Edit2 size={18} /> ملاحظة (السبب)
                 </h3>
                 {editModal.notes && (
                   <button
                     onClick={() => setEditModal({ ...editModal, notes: '' })}
-                    style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', borderRadius: '6px', padding: '0.3rem 0.6rem', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                    className="handleadminreports-style-55"
                     title="حذف الملاحظة"
                   >
                     <X size={14} /> حذف
@@ -601,20 +619,20 @@ const HandleAdminReports = () => {
                 value={editModal.notes}
                 onChange={(e) => setEditModal({ ...editModal, notes: e.target.value })}
                 placeholder="أدخل سبب التعديل أو تفاصيل الإجازة/سفر العمل..."
-                style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'white', minHeight: '80px', fontFamily: 'inherit', resize: 'vertical' }}
+                className="handleadminreports-style-56"
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem' }}>
+            <div className="handleadminreports-style-57">
               <button
                 onClick={handleEditTime}
-                style={{ flex: 1, background: 'var(--theme-color)', color: 'white', padding: '0.8rem', borderRadius: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', border: 'none', fontWeight: 'bold' }}
+                className="handleadminreports-style-58"
               >
                 <Save size={18} /> حفظ
               </button>
               <button
                 onClick={() => setEditModal({ isOpen: false, log: null, checkInTime: '', checkOutTime: '', status: '', notes: '' })}
-                style={{ flex: 1, background: 'rgba(255,255,255,0.1)', color: 'var(--text-primary)', padding: '0.8rem', borderRadius: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', border: 'none' }}
+                className="handleadminreports-style-59"
               >
                 <X size={18} /> إلغاء
               </button>

@@ -13,6 +13,7 @@ const AdvanceRequest = require('./AdvanceRequest')(sequelize);
 const SalaryAdjustment = require('./SalaryAdjustment')(sequelize);
 const MonthlySettlement = require('./MonthlySettlement')(sequelize);
 const Setting = require('./Setting');
+const UserShift = require('./UserShift');
 
 // Relationships
 User.hasMany(Notification, { foreignKey: 'userId', onDelete: 'CASCADE' });
@@ -26,8 +27,8 @@ InactivityLog.belongsTo(User, { foreignKey: 'userId' });
 User.hasMany(PerformanceLog, { foreignKey: 'userId', onDelete: 'CASCADE' });
 PerformanceLog.belongsTo(User, { foreignKey: 'userId' });
 
-User.belongsToMany(Shift, { through: 'UserShifts', foreignKey: 'userId' });
-Shift.belongsToMany(User, { through: 'UserShifts', foreignKey: 'shiftId' });
+User.belongsToMany(Shift, { through: UserShift, foreignKey: 'userId' });
+Shift.belongsToMany(User, { through: UserShift, foreignKey: 'shiftId' });
 
 User.hasMany(AttendanceLog, { foreignKey: 'userId', onDelete: 'CASCADE' });
 AttendanceLog.belongsTo(User, { foreignKey: 'userId' });
@@ -75,5 +76,6 @@ module.exports = {
   AdvanceRequest,
   SalaryAdjustment,
   MonthlySettlement,
-  Setting
+  Setting,
+  UserShift
 };

@@ -28,20 +28,22 @@ export const applyFiltersAndSort = (data, { timeFilter, supervisorFilter, search
   if (timeFilter && timeFilter !== 'all') {
     filtered = filtered.filter(item => {
       const itemDate = new Date(item.createdAt || new Date());
+      const logicalStr = (item.date && /^\d{4}-\d{2}-\d{2}$/.test(item.date)) ? item.date : getLogicalDateString(itemDate);
+      
       if (timeFilter === 'today') {
-        return getLogicalDateString(itemDate) === getLogicalDateString();
+        return logicalStr === getLogicalDateString();
       }
       if (timeFilter === 'yesterday') {
         const yesterday = new Date(now);
         yesterday.setDate(yesterday.getDate() - 1);
-        return getLogicalDateString(itemDate) === getLogicalDateString(yesterday);
+        return logicalStr === getLogicalDateString(yesterday);
       }
       if (timeFilter === 'week') {
         const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         return itemDate >= oneWeekAgo;
       }
       if (timeFilter === 'month') {
-        return itemDate.getMonth() === now.getMonth() && itemDate.getFullYear() === now.getFullYear();
+        return logicalStr.startsWith(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`);
       }
       if (timeFilter === 'custom' && customStartDate && customEndDate) {
         const start = new Date(customStartDate);

@@ -3,7 +3,7 @@ import { CreditCard, Wallet, Filter, TrendingUp, X, Edit2, User, Clock, Calendar
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import api from '../services/api';
-import './Expenses.css';
+import "./Expenses.scss";
 
 const Expenses = () => {
   const { user } = useAuth();
@@ -238,8 +238,8 @@ const Expenses = () => {
     switch (status) {
       case 'pending': return <span className="type-badge supplies-badge"><Clock size={14} /> قيد المراجعة</span>;
       case 'approved': return <span className="type-badge advance-badge"><CheckCircle size={14} /> مقبول (سلفة)</span>;
-      case 'rejected': return <span className="type-badge" style={{ background: 'rgba(107,114,128,0.15)', color: '#9ca3af' }}><X size={14} /> مرفوض</span>;
-      case 'settled': return <span className="type-badge advance-badge" style={{ background: 'rgba(59,130,246,0.15)', color: '#3b82f6' }}><CheckCircle size={14} /> مسدد</span>;
+      case 'rejected': return <span className="type-badge expenses-style-1" ><X size={14} /> مرفوض</span>;
+      case 'settled': return <span className="type-badge advance-badge expenses-style-2" ><CheckCircle size={14} /> مسدد</span>;
       default: return null;
     }
   };
@@ -379,7 +379,7 @@ const Expenses = () => {
         <>
           {activeTab === 'budget' && (
             hasBudgetCard ? (
-              <section className="expenses-hero-section" style={{ position: 'relative' }}>
+              <section className="expenses-hero-section expenses-style-3" >
 
               <div style={{
                 position: 'absolute',
@@ -403,33 +403,19 @@ const Expenses = () => {
               </div>
 
               {/* User Info Bar */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem', marginTop: '10px' }}>
-                <div style={{ flex: 1 }}>
+              <div className="expenses-style-4">
+                <div className="expenses-style-5">
                   {user.cardUses && (
-                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+                    <div className="expenses-style-6">
                       <strong>استخدامات البطاقة:</strong> {user.cardUses}
                     </div>
                   )}
                 </div>
-                <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem' }}>
-                  <div style={{ flex: 1 }}>
+                <div className="expenses-style-7">
+                  <div className="expenses-style-8">
                     <button
                       onClick={() => openUsesModal(admin)}
-                      style={{
-                        direction: 'rtl',
-                        background: 'rgba(59, 130, 246, 0.15)',
-                        color: 'var(--theme-color)',
-                        border: '1px solid rgba(59, 130, 246, 0.3)',
-                        padding: '0.4rem 0.8rem',
-                        borderRadius: '8px',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        cursor: 'pointer',
-                        fontWeight: 'bold',
-                        transition: 'all 0.3s ease',
-                        fontSize: '0.9rem'
-                      }}
+                      className="expenses-style-9"
                       onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(59, 130, 246, 0.25)' }}
                       onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)' }}
                       disabled
@@ -442,19 +428,7 @@ const Expenses = () => {
 
                   <button
                     onClick={exportMyExpensesToExcel}
-                    style={{
-                      background: 'rgba(16, 185, 129, 0.15)',
-                      color: 'var(--green)',
-                      border: '1px solid rgba(16, 185, 129, 0.3)',
-                      padding: '0.5rem 1rem',
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      cursor: 'pointer',
-                      fontWeight: 'bold',
-                      transition: 'all 0.3s ease'
-                    }}
+                    className="expenses-style-10"
                     onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.25)' }}
                     onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.15)' }}
                   >
@@ -492,7 +466,7 @@ const Expenses = () => {
               </div>
 
               <div className="expenses-main-row">
-                <div className="expenses-inputs-container" style={{ flexDirection: 'column', alignItems: 'stretch', justifyContent: 'center' }}>
+                <div className="expenses-inputs-container expenses-style-11" >
 
                   <div className="opening-balance-badge">
                     <span className="badge-label">مبلغ بداية المدة ({currentMonthName}):</span>
@@ -501,7 +475,7 @@ const Expenses = () => {
 
                   <div className="input-card">
                     <div className="input-card-header">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div className="expenses-style-12">
                         <CreditCard className="card-icon theme-color" size={24} />
                         <h3>إجمالي ميزانية الشهر</h3>
                       </div>
@@ -569,10 +543,10 @@ const Expenses = () => {
 
               </section>
             ) : (
-              <div style={{ textAlign: 'center', padding: '3rem', background: 'var(--glass-bg)', borderRadius: '12px', border: '1px solid var(--border-color)', margin: '2rem 0' }}>
-                <CreditCard size={48} style={{ color: 'var(--text-secondary)', marginBottom: '1rem', opacity: 0.5 }} />
-                <h3 style={{ color: 'var(--text-secondary)' }}>لا يوجد بطاقة مصروفات للحساب في هذا الشهر</h3>
-                <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', fontSize: '0.9rem' }}>يرجى التواصل مع الإدارة لإنشاء بطاقة مصروفات لك.</p>
+              <div className="expenses-style-13">
+                <CreditCard size={48} className="expenses-style-14" />
+                <h3 className="expenses-style-15">لا يوجد بطاقة مصروفات للحساب في هذا الشهر</h3>
+                <p className="expenses-style-16">يرجى التواصل مع الإدارة لإنشاء بطاقة مصروفات لك.</p>
               </div>
             )
           )}
@@ -586,7 +560,7 @@ const Expenses = () => {
             });
 
             if (displayedExpenses.length === 0) return (
-              <div className="text-muted fade-in" style={{ textAlign: 'center', padding: '2rem', background: 'var(--glass-bg)', borderRadius: '16px', border: 'var(--glass-border)', marginTop: '2rem' }}>
+              <div className="text-muted fade-in expenses-style-17" >
                 لا توجد حركات مسجلة في هذا السجل.
               </div>
             );
@@ -637,15 +611,15 @@ const Expenses = () => {
                           <td>
                             <span className="details-text">
                               {exp.type === 'advance' ? (
-                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <div className="expenses-style-18">
                                   <span>{exp.employeeName}</span>
-                                  {exp.item && <small style={{ color: 'var(--text-secondary)' }}>{exp.item}</small>}
-                                  {exp.notes && <small style={{ color: 'var(--text-secondary)' }}>{exp.notes}</small>}
+                                  {exp.item && <small className="expenses-style-19">{exp.item}</small>}
+                                  {exp.notes && <small className="expenses-style-20">{exp.notes}</small>}
                                 </div>
                               ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <div className="expenses-style-21">
                                   <span>{exp.item || 'مستلزمات'}</span>
-                                  {exp.notes && <small style={{ color: 'var(--text-secondary)' }}>{exp.notes}</small>}
+                                  {exp.notes && <small className="expenses-style-22">{exp.notes}</small>}
                                 </div>
                               )}
                             </span>
@@ -657,18 +631,18 @@ const Expenses = () => {
                           </td>
                           {budgetIsActive && (
                             <td>
-                              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                              <div className="expenses-style-23">
                                 <button
-                                  className="edit-btn"
-                                  style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6' }}
+                                  className="edit-btn expenses-style-24"
+                                  
                                   onClick={() => handleEditExpense(exp)}
                                   title="تعديل"
                                 >
                                   <Edit2 size={16} />
                                 </button>
                                 <button
-                                  className="edit-btn"
-                                  style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}
+                                  className="edit-btn expenses-style-25"
+                                  
                                   onClick={() => handleDeleteExpense(exp.id)}
                                   title="حذف"
                                 >
@@ -693,7 +667,7 @@ const Expenses = () => {
             <h2>إدارة طلبات السلف للموظفين</h2>
           </div>
           {advanceRequests.length === 0 ? (
-            <div className="text-muted" style={{ textAlign: 'center', padding: '2rem' }}>لا توجد طلبات سلف مسجلة هذا الشهر.</div>
+            <div className="text-muted expenses-style-26" >لا توجد طلبات سلف مسجلة هذا الشهر.</div>
           ) : (
             <div className="advanced-table-wrapper">
               <table className="expenses-advanced-table">
@@ -711,7 +685,7 @@ const Expenses = () => {
                   {advanceRequests.map(req => (
                     <tr key={req.id}>
                       <td>
-                        <div style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                        <div className="expenses-style-27">
                           {req.Requester?.fullName || req.Requester?.username}
                         </div>
                       </td>
@@ -722,7 +696,7 @@ const Expenses = () => {
                         </div>
                       </td>
                       <td>
-                        <span className="amount-cell" style={{ color: 'var(--theme-color)', fontWeight: 'bold' }}>
+                        <span className="amount-cell expenses-style-28" >
                           {req.amount.toLocaleString()} ج.م
                         </span>
                       </td>
@@ -734,17 +708,17 @@ const Expenses = () => {
                       </td>
                       <td>
                         {req.status === 'pending' && (
-                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <div className="expenses-style-29">
                             <button
-                              className="apply-filter-btn"
-                              style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}
+                              className="apply-filter-btn expenses-style-30"
+                              
                               onClick={() => handleUpdateAdvanceStatus(req.id, 'approved')}
                             >
                               موافقة
                             </button>
                             <button
-                              className="apply-filter-btn"
-                              style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444' }}
+                              className="apply-filter-btn expenses-style-31"
+                              
                               onClick={() => handleUpdateAdvanceStatus(req.id, 'rejected')}
                             >
                               رفض
@@ -753,16 +727,16 @@ const Expenses = () => {
                         )}
                         {req.status === 'approved' && (
                           <button
-                            className="apply-filter-btn"
-                            style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', background: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6' }}
+                            className="apply-filter-btn expenses-style-32"
+                            
                             onClick={() => handleUpdateAdvanceStatus(req.id, 'settled')}
                           >
-                            <CheckCircle size={14} style={{ display: 'inline', verticalAlign: 'middle', marginLeft: '4px' }} />
+                            <CheckCircle size={14} className="expenses-style-33" />
                             تم السداد والتسوية
                           </button>
                         )}
                         {(req.status === 'settled' || req.status === 'rejected') && (
-                          <span className="text-muted" style={{ fontSize: '0.85rem' }}>لا يوجد إجراء</span>
+                          <span className="text-muted expenses-style-34" >لا يوجد إجراء</span>
                         )}
                       </td>
                     </tr>
@@ -842,7 +816,7 @@ const Expenses = () => {
         <div className="modal-overlay fade-in">
           <div className="expense-modal">
             <div className="modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div className="expenses-style-35">
                 <CreditCard size={24} className="theme-color" />
                 <h3>تسجيل استخدام البطاقة</h3>
               </div>

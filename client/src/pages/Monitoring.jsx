@@ -7,7 +7,7 @@ import { getLogicalDateString } from '../utils/dateHelpers';
 import CustomSelect from '../components/CustomSelect';
 import AdminNavBar from '../components/AdminNavBar';
 import AvatarIcon from '../components/AvatarIcon';
-import './Monitoring.css';
+import "./Monitoring.scss";
 
 const Monitoring = ({ isMyMonitoring = false }) => {
   const { user } = useAuth();
@@ -191,8 +191,8 @@ const Monitoring = ({ isMyMonitoring = false }) => {
     <div className="monitoring-container">
       {!isMyMonitoring && <AdminNavBar />}
       <header className="page-header">
-        <div className="page-title-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '1rem', width: '100%', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div className="page-title-wrapper monitoring-style-1" >
+          <div className="monitoring-style-2">
             <Activity size={28} className="title-icon text-blue" />
             <h1 className="page-title gradient-title">{isMyMonitoring ? 'متابعة الخمول الخاصة بي' : 'المتابعة الخمول للاستراحات'}</h1>
           </div>
@@ -214,7 +214,7 @@ const Monitoring = ({ isMyMonitoring = false }) => {
             title="تحديث البيانات"
           >
             <RefreshCw size={18} className={loading ? 'spinner' : ''} />
-            <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>تحديث</span>
+            <span className="monitoring-style-3">تحديث</span>
           </button>
         </div>
       </header>
@@ -248,7 +248,7 @@ const Monitoring = ({ isMyMonitoring = false }) => {
         <div className="filter-toolbar">
 
           {/* Top Row: Time Filters and Type Filters */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', width: '100%' }}>
+          <div className="monitoring-style-4">
             <div className="filter-group-container">
               <h3 className="filter-title">تصفية السجل:</h3>
               <div className="mon-radio-filter-group">
@@ -314,14 +314,14 @@ const Monitoring = ({ isMyMonitoring = false }) => {
                 </label>
               </div>
               {filter === 'custom' && (
-                <div className="custom-date-filters fade-in" style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                    <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>من تاريخ</label>
-                    <input type="date" className="employee-search-input" value={customStartDate} onChange={(e) => setCustomStartDate(e.target.value)} style={{ padding: '0.4rem', borderRadius: '6px', background: 'rgba(15, 23, 42, 0.6)' }} />
+                <div className="custom-date-filters fade-in monitoring-style-5" >
+                  <div className="monitoring-style-6">
+                    <label className="monitoring-style-7">من تاريخ</label>
+                    <input type="date" className="employee-search-input monitoring-style-8" value={customStartDate} onChange={(e) => setCustomStartDate(e.target.value)}  />
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                    <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>إلى تاريخ</label>
-                    <input type="date" className="employee-search-input" value={customEndDate} onChange={(e) => setCustomEndDate(e.target.value)} style={{ padding: '0.4rem', borderRadius: '6px', background: 'rgba(15, 23, 42, 0.6)' }} />
+                  <div className="monitoring-style-9">
+                    <label className="monitoring-style-10">إلى تاريخ</label>
+                    <input type="date" className="employee-search-input monitoring-style-11" value={customEndDate} onChange={(e) => setCustomEndDate(e.target.value)}  />
                   </div>
                 </div>
               )}
@@ -344,7 +344,7 @@ const Monitoring = ({ isMyMonitoring = false }) => {
           </div>
 
           <div className="advanced-filters-container">
-            <div className="filter-actions-container" style={{ justifyContent: 'flex-start', flexWrap: 'wrap' }}>
+            <div className="filter-actions-container monitoring-style-12" >
               <div className="filter-group-container" style={{ marginTop: filter === 'custom' ? '1rem' : '0' }}>
                 <h3 className="filter-title">نوع السجل:</h3>
                 <div className="mon-radio-filter-group">
@@ -423,8 +423,8 @@ const Monitoring = ({ isMyMonitoring = false }) => {
               <th>الموظف</th>
               <th>التاريخ</th>
               <th>نوع الفترة</th>
-              <th style={{ textAlign: 'center' }}>التوقيت</th>
-              <th style={{ textAlign: 'center' }}>المدة الإجمالية</th>
+              <th className="monitoring-style-13">التوقيت</th>
+              <th className="monitoring-style-14">المدة الإجمالية</th>
               <th>الحالة</th>
             </tr>
           </thead>
@@ -444,7 +444,7 @@ const Monitoring = ({ isMyMonitoring = false }) => {
                   <div className="empty-content">
                     <AlertTriangle size={40} className="text-orange" />
                     <p>{error}</p>
-                    <button onClick={fetchLogs} style={{ marginTop: '1rem', padding: '0.5rem 1rem', borderRadius: '8px', background: 'var(--blue)', color: 'white', border: 'none', cursor: 'pointer' }}>إعادة المحاولة</button>
+                    <button onClick={fetchLogs} className="monitoring-style-15">إعادة المحاولة</button>
                   </div>
                 </td>
               </tr>
@@ -455,23 +455,13 @@ const Monitoring = ({ isMyMonitoring = false }) => {
                 return (
                   <tr key={log.id}>
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <div style={{
-                          width: '40px',
-                          height: '40px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          background: 'rgba(var(--theme-color-rgb, 59, 130, 246), 0.15)',
-                          border: '1px solid rgba(var(--theme-color-rgb, 59, 130, 246), 0.3)',
-                          borderRadius: '50%',
-                          flexShrink: 0
-                        }}>
+                      <div className="monitoring-style-16">
+                        <div className="monitoring-style-17">
                           <AvatarIcon name={userAvatar} size={20} color="var(--theme-color)" />
                         </div>
                         <div>
-                          <div style={{ fontWeight: 'bold', color: 'var(--theme-color)' }}>{log.User ? log.User.fullName : (log.supervisorName || 'موظف')}</div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{log.User ? log.User.jobTitle : ''}</div>
+                          <div className="monitoring-style-18">{log.User ? log.User.fullName : (log.supervisorName || 'موظف')}</div>
+                          <div className="monitoring-style-19">{log.User ? log.User.jobTitle : ''}</div>
                         </div>
                       </div>
                     </td>
@@ -484,22 +474,22 @@ const Monitoring = ({ isMyMonitoring = false }) => {
                     <td>
                       {isIdle ? (
                         <span className="status-badge badge-warning">
-                          <Activity size={14} style={{ marginLeft: '4px' }} />
+                          <Activity size={14} className="monitoring-style-20" />
                           خمول تجاوز الحد
                         </span>
                       ) : log.type === 'بريك غداء' ? (
-                        <span className="status-badge badge-info" style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', borderColor: '#f59e0b' }}>
-                          <Coffee size={14} style={{ marginLeft: '4px' }} />
+                        <span className="status-badge badge-info monitoring-style-21" >
+                          <Coffee size={14} className="monitoring-style-22" />
                           {log.type}
                         </span>
                       ) : log.type === 'بريك صلاة' ? (
-                        <span className="status-badge badge-success" style={{ backgroundColor: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', borderColor: '#8b5cf6' }}>
-                          <Moon size={14} style={{ marginLeft: '4px' }} />
+                        <span className="status-badge badge-success monitoring-style-23" >
+                          <Moon size={14} className="monitoring-style-24" />
                           {log.type}
                         </span>
                       ) : log.type === 'تدريب' ? (
-                        <span className="status-badge badge-primary" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', borderColor: '#3b82f6' }}>
-                          <BookOpen size={14} style={{ marginLeft: '4px' }} />
+                        <span className="status-badge badge-primary monitoring-style-25" >
+                          <BookOpen size={14} className="monitoring-style-26" />
                           {log.type}
                         </span>
                       ) : (
@@ -507,30 +497,30 @@ const Monitoring = ({ isMyMonitoring = false }) => {
                       )}
                     </td>
                     <td className="time-cell" dir="ltr">
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
-                        <span style={{ color: 'var(--text-primary)' }}>{formatTime(log.startTime)}</span>
-                        <div style={{ width: '30px', height: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
-                        <span style={{ color: 'var(--text-secondary)' }}>
+                      <div className="monitoring-style-27">
+                        <span className="monitoring-style-28">{formatTime(log.startTime)}</span>
+                        <div className="monitoring-style-29"></div>
+                        <span className="monitoring-style-30">
                           {log.endTime ? formatTime(log.endTime) : '---'}
                         </span>
                       </div>
                     </td>
-                    <td className="duration-cell" style={{ textAlign: 'center' }}>
+                    <td className="duration-cell monitoring-style-31" >
                       <span className="duration-badge">
                         {formatDuration(log.durationMs)}
                       </span>
                     </td>
                     <td>
                       {!log.endTime ? (
-                        <span className="text-orange" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span className="text-orange monitoring-style-32" >
                           <Activity size={14} className="spinner" /> قيد التقدم
                         </span>
                       ) : isIdle ? (
-                        <span className="text-orange" style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span className="text-orange monitoring-style-33" >
                           <AlertTriangle size={14} /> تنبيه
                         </span>
                       ) : (
-                        <span style={{ color: '#22c55e', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span className="monitoring-style-34">
                           مسجل ✔️
                         </span>
                       )}

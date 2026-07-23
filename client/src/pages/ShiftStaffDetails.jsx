@@ -4,7 +4,7 @@ import { Users, ArrowRight, Loader, ShieldAlert, CheckCircle, XCircle, Clock, Ca
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import api from '../services/api';
 import AvatarIcon from '../components/AvatarIcon';
-import './ShiftStaffDetails.css';
+import "./ShiftStaffDetails.scss";
 import { useToast } from '../contexts/ToastContext';
 
 const ShiftStaffDetails = () => {
@@ -233,7 +233,7 @@ const ShiftStaffDetails = () => {
             </div>
           </div>
           
-          <div className="chart-container" style={{ width: '100%', height: '450px', marginTop: '1rem' }}>
+          <div className="chart-container shiftstaffdetails-style-1" >
             <ResponsiveContainer>
               <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <defs>
@@ -272,12 +272,12 @@ const ShiftStaffDetails = () => {
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
                       return (
-                        <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '1rem', color: '#fff', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)' }}>
-                          <p style={{ margin: '0 0 0.8rem 0', fontWeight: 'bold', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem', textAlign: 'center', fontSize: '1.1rem' }}>{label}</p>
+                        <div className="shiftstaffdetails-style-2">
+                          <p className="shiftstaffdetails-style-3">{label}</p>
                           {payload.map((entry, index) => (
                             <div key={`item-${index}`} style={{ display: 'flex', justifyContent: 'space-between', gap: '2rem', margin: '0.5rem 0', color: entry.color, fontSize: '0.95rem' }}>
                               <span>{entry.name}:</span>
-                              <span style={{ fontWeight: 'bold' }}>{entry.value}</span>
+                              <span className="shiftstaffdetails-style-4">{entry.value}</span>
                             </div>
                           ))}
                         </div>
@@ -443,7 +443,14 @@ const ShiftStaffDetails = () => {
                         </div>
                         <div>
                           <h4>{user.fullName}</h4>
-                          <span>{user.jobTitle || 'موظف'}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span>{user.jobTitle || 'موظف'}</span>
+                            {user.isObserver && (
+                              <span style={{ fontSize: '0.75rem', backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>
+                                مشرف الوردية
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -469,7 +476,7 @@ const ShiftStaffDetails = () => {
                       </div>
                       <div className="stat-mini yellow" title="التأخير المجمع للفترة">
                         <AlertTriangle size={16} /> {user.stats.lateDays} 
-                        <span style={{ fontSize: '0.75rem', opacity: 0.8, marginRight: '4px' }}>
+                        <span className="shiftstaffdetails-style-5">
                           ({formatLateDuration(user.stats.totalLateMinutes)})
                         </span>
                       </div>
@@ -499,10 +506,10 @@ const ShiftStaffDetails = () => {
                         <Calendar size={16} />
                       </button>
                       <button 
-                        className="action-btn"
+                        className="action-btn shiftstaffdetails-style-6"
                         onClick={() => openModal('salary', user.id, user.fullName, user.baseSalary || shift.baseSalary || '')}
                         title="تعديل الراتب"
-                        style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', border: '1px solid rgba(34, 197, 94, 0.2)' }}
+                        
                       >
                         <DollarSign size={18} />
                         <span>الراتب</span>
@@ -551,13 +558,13 @@ const ShiftStaffDetails = () => {
                       required 
                     />
                   </div>
-                  <div className="form-group" style={{ marginTop: '1rem' }}>
+                  <div className="form-group shiftstaffdetails-style-7" >
                     <label>السبب / الملاحظة (اختياري):</label>
                     <textarea 
                       value={actionReason}
                       onChange={(e) => setActionReason(e.target.value)}
                       placeholder="اكتب سبب الإجازة أو الغياب..."
-                      style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: 'white', minHeight: '80px', fontFamily: 'inherit', resize: 'vertical' }}
+                      className="shiftstaffdetails-style-8"
                     />
                   </div>
                 </>

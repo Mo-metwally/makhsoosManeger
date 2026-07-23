@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CalendarDays, Calendar as CalendarIcon, Users, CheckCircle, Clock, XCircle, Send, X, AlertTriangle } from 'lucide-react';
 import api from '../services/api';
-import './DayOff.css';
+import "./DayOff.scss";
 import { useToast } from '../contexts/ToastContext';
 
 const DayOff = () => {
@@ -150,15 +150,15 @@ const DayOff = () => {
     <div className="dayoff-container fade-in">
       <div className="dayoff-header">
         <h1 className="dayoff-title">
-          <CalendarDays size={32} style={{ color: 'var(--theme-color)' }} />
+          <CalendarDays size={32} className="dayoff-style-1" />
           <span>الإجازات</span>
         </h1>
-        <div className="dayoff-filters" style={{display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap'}}>
+        <div className="dayoff-filters dayoff-style-2" >
           <input 
             type="month" 
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            style={{ padding: '0.6rem 1rem', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--glass-bg)', color: 'var(--text-primary)', outline: 'none' }}
+            className="dayoff-style-3"
           />
           <button 
             className={`btn-filter ${activeTab === 'apply' ? 'active' : ''}`}
@@ -175,36 +175,27 @@ const DayOff = () => {
         </div>
       </div>
 
-      <div className="dayoff-summary fade-in" style={{
-        background: 'rgba(255,255,255,0.03)', 
-        padding: '1.5rem', 
-        borderRadius: '16px', 
-        display: 'flex', 
-        gap: '2rem', 
-        marginBottom: '2rem',
-        border: '1px solid rgba(255,255,255,0.08)',
-        boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
-      }}>
+      <div className="dayoff-summary fade-in dayoff-style-4" >
                     <>
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <div className="dayoff-style-5">
+                <div className="dayoff-style-6">
                   <CheckCircle size={28} /> {monthApproved}
                 </div>
-                <div style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>إجازات مستهلكة ({selectedMonth})</div>
+                <div className="dayoff-style-7">إجازات مستهلكة ({selectedMonth})</div>
               </div>
-              <div style={{ width: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--orange)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <div className="dayoff-style-8"></div>
+              <div className="dayoff-style-9">
+                <div className="dayoff-style-10">
                   <Clock size={28} /> {monthPending}
                 </div>
-                <div style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>طلبات معلقة</div>
+                <div className="dayoff-style-11">طلبات معلقة</div>
               </div>
-              <div style={{ width: '1px', background: 'rgba(255,255,255,0.1)' }}></div>
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--theme-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <div className="dayoff-style-12"></div>
+              <div className="dayoff-style-13">
+                <div className="dayoff-style-14">
                   <CalendarIcon size={28} /> {remaining}
                 </div>
-                <div style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>الرصيد المتبقي (من 4)</div>
+                <div className="dayoff-style-15">الرصيد المتبقي (من 4)</div>
               </div>
             </>
       </div>
@@ -237,8 +228,8 @@ const DayOff = () => {
       )}
 
       {activeTab === 'apply' && loading ? (
-        <div style={{ textAlign: 'center', marginTop: '3rem' }}>
-          <div className="spinning" style={{ display: 'inline-block' }}><Clock size={30} /></div>
+        <div className="dayoff-style-16">
+          <div className="spinning dayoff-style-17" ><Clock size={30} /></div>
           <p>جاري التحميل...</p>
         </div>
       ) : activeTab === 'apply' && (
@@ -261,10 +252,10 @@ const DayOff = () => {
                 </div>
               </div>
 
-              <div style={{ marginTop: 'auto' }}>
+              <div className="dayoff-style-18">
                 {day.userRequest ? (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-                    <div style={{ flex: 1 }}>{getStatusBadge(day.userRequest.status)}</div>
+                  <div className="dayoff-style-19">
+                    <div className="dayoff-style-20">{getStatusBadge(day.userRequest.status)}</div>
                     {day.userRequest.status === 'Pending' && (
                       <button 
                         className="btn-cancel-req" 
@@ -294,7 +285,7 @@ const DayOff = () => {
       {activeTab === 'history' && !loading && (
         <div className="dayoff-grid">
           {userRequests.filter(req => req.date.startsWith(selectedMonth)).length === 0 ? (
-            <p style={{ color: 'var(--text-secondary)' }}>ليس لديك أي إجازات مسجلة في هذا الشهر.</p>
+            <p className="dayoff-style-21">ليس لديك أي إجازات مسجلة في هذا الشهر.</p>
           ) : (
             userRequests.filter(req => req.date.startsWith(selectedMonth)).map((req, idx) => (
               <div className="dayoff-card" key={idx}>
@@ -302,12 +293,12 @@ const DayOff = () => {
                 <div className="day-date">
                   <CalendarIcon size={14} /> {req.date}
                 </div>
-                <div style={{ margin: '1rem 0', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                <div className="dayoff-style-22">
                   <strong>السبب:</strong> {req.reason || 'لا يوجد'}
                 </div>
-                <div style={{ marginTop: 'auto' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-                    <div style={{ flex: 1 }}>{getStatusBadge(req.status)}</div>
+                <div className="dayoff-style-23">
+                  <div className="dayoff-style-24">
+                    <div className="dayoff-style-25">{getStatusBadge(req.status)}</div>
                     {req.status === 'Pending' && (
                       <button 
                         className="btn-cancel-req" 
@@ -337,17 +328,17 @@ const DayOff = () => {
             
             <form onSubmit={handleSubmit}>
               {monthApproved >= 4 && (
-                <div style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(245, 158, 11, 0.3)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <AlertTriangle size={28} style={{ flexShrink: 0 }} />
+                <div className="dayoff-style-26">
+                  <AlertTriangle size={28} className="dayoff-style-27" />
                   <div>
-                    <h4 style={{ margin: '0 0 0.3rem 0', fontWeight: 'bold' }}>تنبيه: إجازة غير مدفوعة</h4>
-                    <p style={{ margin: 0, fontSize: '0.9rem', lineHeight: '1.4' }}>أنت على وشك طلب إجازة غير مدفوعة نظراً لاستهلاك كل أيام الإجازات (4/4) لهذا الشهر.</p>
+                    <h4 className="dayoff-style-28">تنبيه: إجازة غير مدفوعة</h4>
+                    <p className="dayoff-style-29">أنت على وشك طلب إجازة غير مدفوعة نظراً لاستهلاك كل أيام الإجازات (4/4) لهذا الشهر.</p>
                   </div>
                 </div>
               )}
               <div className="do-form-group">
                 <label>تاريخ الإجازة:</label>
-                <div style={{ color: 'var(--text-primary)', padding: '0.8rem', background: 'var(--glass-bg)', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
+                <div className="dayoff-style-30">
                   {selectedDay.date}
                 </div>
               </div>

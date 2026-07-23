@@ -35,15 +35,16 @@ const getFilteredData = (data, filterType, dateField, startDate, endDate) => {
 
   return data.filter(item => {
     const itemDate = new Date(item[dateField]);
+    const logicalStr = (item.date && /^\d{4}-\d{2}-\d{2}$/.test(item.date)) ? item.date : getLogicalDateString(itemDate);
 
     if (filterType === 'today') {
-      return getLogicalDateString(itemDate) === getLogicalDateString();
+      return logicalStr === getLogicalDateString();
     }
 
     if (filterType === 'yesterday') {
       const yesterday = new Date(now);
       yesterday.setDate(yesterday.getDate() - 1);
-      return getLogicalDateString(itemDate) === getLogicalDateString(yesterday);
+      return logicalStr === getLogicalDateString(yesterday);
     }
 
     if (filterType === 'week') {
@@ -52,7 +53,7 @@ const getFilteredData = (data, filterType, dateField, startDate, endDate) => {
     }
 
     if (filterType === 'month') {
-      return itemDate.getMonth() === now.getMonth() && itemDate.getFullYear() === now.getFullYear();
+      return logicalStr.startsWith(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`);
     }
 
     return true;

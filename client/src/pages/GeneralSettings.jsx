@@ -3,7 +3,7 @@ import { Settings, Target, Save, Loader2, CheckCircle2, Moon, Sun, Sunrise, Cloc
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import './GeneralSettings.css';
+import "./GeneralSettings.scss";
 
 const GeneralSettings = () => {
   const { user } = useAuth();
@@ -151,8 +151,8 @@ const GeneralSettings = () => {
   if (user && user.role !== 'Admin' && user.role !== 'SuperAdmin') {
     return (
       <div className="general-settings-container">
-        <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center' }}>
-          <h2 style={{ color: '#ef4444' }}>غير مصرح لك بالدخول لهذه الصفحة</h2>
+        <div className="glass-panel generalsettings-style-1" >
+          <h2 className="generalsettings-style-2">غير مصرح لك بالدخول لهذه الصفحة</h2>
         </div>
       </div>
     );
@@ -175,7 +175,7 @@ const GeneralSettings = () => {
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '5rem' }}>
+        <div className="generalsettings-style-3">
           <Loader2 className="spin" size={40} color="#3b82f6" />
         </div>
       ) : (
@@ -248,17 +248,17 @@ const GeneralSettings = () => {
                   />
                 </div>
                 
-                <div className="gs-toggle-container" style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div className="gs-toggle-container generalsettings-style-4" >
                   <div>
-                    <strong style={{ display: 'block', color: 'var(--text-primary)', marginBottom: '0.2rem' }}>تفعيل خصم التأخير</strong>
-                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>في حال إيقافه، لن يتم خصم أموال بسبب التأخيرات.</span>
+                    <strong className="generalsettings-style-5">تفعيل خصم التأخير</strong>
+                    <span className="generalsettings-style-6">في حال إيقافه، لن يتم خصم أموال بسبب التأخيرات.</span>
                   </div>
-                  <label className="theme-switch" style={{ position: 'relative', display: 'inline-block', width: '50px', height: '28px' }}>
+                  <label className="theme-switch generalsettings-style-7" >
                     <input 
                       type="checkbox" 
                       checked={enableLatePenalty}
                       onChange={(e) => setEnableLatePenalty(e.target.checked)}
-                      style={{ opacity: 0, width: 0, height: 0 }}
+                      className="generalsettings-style-8"
                     />
                     <span className="slider round" style={{ 
                       position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, 
@@ -273,7 +273,7 @@ const GeneralSettings = () => {
                   </label>
                 </div>
 
-                <div className="gs-hint" style={{ marginTop: '1rem' }}>
+                <div className="gs-hint generalsettings-style-9" >
                   الوقت المسموح به بعد بداية الوردية. الحضور بعد هذا الوقت يُسجل تأخير (مثال: 15 دقيقة).
                 </div>
               </div>
@@ -289,9 +289,9 @@ const GeneralSettings = () => {
                 </div>
               </div>
               <div className="gs-card-content">
-                <div className="gs-input-group" style={{ display: 'flex', gap: '1rem', flexDirection: 'column' }}>
+                <div className="gs-input-group generalsettings-style-10" >
                   <div>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>بريك الغداء المسموح (دقائق)</label>
+                    <label className="generalsettings-style-11">بريك الغداء المسموح (دقائق)</label>
                     <input 
                       type="number" 
                       min="0"
@@ -301,7 +301,7 @@ const GeneralSettings = () => {
                     />
                   </div>
                   <div>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>بريك الصلاة المسموح (دقائق)</label>
+                    <label className="generalsettings-style-12">بريك الصلاة المسموح (دقائق)</label>
                     <input 
                       type="number" 
                       min="0"
@@ -392,7 +392,7 @@ const GeneralSettings = () => {
                       className={`gs-time-option ${logicalDayCutoff === opt.value ? 'active' : ''}`}
                     >
                       {logicalDayCutoff === opt.value && (
-                        <div style={{ position: 'absolute', top: '5px', right: '5px' }}>
+                        <div className="generalsettings-style-13">
                           <CheckCircle2 size={14} />
                         </div>
                       )}
@@ -402,7 +402,7 @@ const GeneralSettings = () => {
                     </div>
                   ))}
                 </div>
-                <div className="gs-hint" style={{ marginTop: '1.5rem' }}>
+                <div className="gs-hint generalsettings-style-14" >
                   أي تقرير أداء يتم تسجيله قبل هذه الساعة يُحسب لليوم الذي قبله. 
                   هذا الخيار يُستخدم لتقفيل يوم المكالمات للموظفين الذين يعملون ليلاً بعد منتصف الليل.
                 </div>
@@ -411,22 +411,12 @@ const GeneralSettings = () => {
 
           </div>
 
-          <div className="gs-save-wrapper" style={{ 
-            position: 'fixed', 
-            bottom: '2rem', 
-            left: '2rem', 
-            zIndex: 1000 
-          }}>
+          <div className="gs-save-wrapper generalsettings-style-15" >
             <button
               type="submit"
               disabled={saving}
-              className="gs-save-btn"
-              style={{
-                boxShadow: '0 10px 25px rgba(0,0,0,0.4)',
-                padding: '1rem 2rem',
-                borderRadius: '50px',
-                fontSize: '1.1rem'
-              }}
+              className="gs-save-btn generalsettings-style-16"
+              
             >
               {saving ? (
                 <>

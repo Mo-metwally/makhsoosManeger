@@ -5,7 +5,7 @@ import AdminGuard from '../components/AdminGuard';
 import CustomSelect from '../components/CustomSelect';
 import { applyFiltersAndSort } from '../utils/filterAndSort';
 import api from '../services/api';
-import './Calls.css';
+import "./Calls.scss";
 
 const HandleAdmin = () => {
   const location = useLocation();
@@ -129,16 +129,16 @@ const HandleAdmin = () => {
             <PhoneCall size={28} className="header-icon" />
             <h1 className="page-title gradient-title">سجل التواصل المجمع (إدارة)</h1>
           </div>
-          <div style={{ color: 'var(--text-secondary)', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div className="handleadmin-style-1">
             <span>إجمالي المكالمات المجمعة: <strong>{calls.length}</strong></span>
-            <button className="pr-refresh-btn" onClick={fetchCalls} style={{ padding: '0.4rem 0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--theme-color)', border: '1px solid var(--theme-color)', borderRadius: '8px', cursor: 'pointer' }}>
+            <button className="pr-refresh-btn handleadmin-style-2" onClick={fetchCalls} >
               <RefreshCw size={16} className={loading ? 'spinning' : ''} />
               تحديث
             </button>
           </div>
         </header>
 
-        <div className="filter-section" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'relative', zIndex: 10 }}>
+        <div className="filter-section handleadmin-style-3" >
 
           {/* Time Filters */}
           <div className="admin-filter-group">
@@ -160,20 +160,20 @@ const HandleAdmin = () => {
           </div>
 
           {timeFilter === 'custom' && (
-            <div style={{ display: 'flex', gap: '1rem', padding: '1rem', backgroundColor: 'var(--bg-color)', borderRadius: '12px', border: '1px solid var(--border-color)', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <label style={{ color: 'var(--text-secondary)', fontWeight: 'bold' }}>من:</label>
-                <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} className="search-input" style={{ width: 'auto', padding: '0.5rem' }} />
+            <div className="handleadmin-style-4">
+              <div className="handleadmin-style-5">
+                <label className="handleadmin-style-6">من:</label>
+                <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} className="search-input handleadmin-style-7"  />
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <label style={{ color: 'var(--text-secondary)', fontWeight: 'bold' }}>إلى:</label>
-                <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} className="search-input" style={{ width: 'auto', padding: '0.5rem' }} />
+              <div className="handleadmin-style-8">
+                <label className="handleadmin-style-9">إلى:</label>
+                <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} className="search-input handleadmin-style-10"  />
               </div>
             </div>
           )}
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-            <div className="search-bar" style={{ flex: 1, minWidth: '250px', maxWidth: '400px', margin: 0 }}>
+          <div className="handleadmin-style-11">
+            <div className="search-bar handleadmin-style-12" >
               <Search size={18} className="search-icon" />
               <input
                 type="text"
@@ -257,11 +257,11 @@ const HandleAdmin = () => {
                             <span dir="ltr">{call.createdAt ? new Date(call.createdAt).toLocaleDateString('en-CA') : (call.originalDateString || '-')}</span>
                           </div>
                         </td>
-                        <td><strong style={{ color: 'var(--theme-color)' }}>{call.supervisorName || '-'}</strong></td>
+                        <td><strong className="handleadmin-style-13">{call.supervisorName || '-'}</strong></td>
                         <td>{call.agentName}</td>
                         <td
                           dir="ltr"
-                          style={{ textAlign: 'right', color: 'var(--theme-color)', cursor: 'pointer', textDecoration: 'underline' }}
+                          className="handleadmin-style-14"
                           onClick={(e) => { e.stopPropagation(); openPhoneHistory(call.phone); }}
                         >
                           {call.phone}
@@ -283,14 +283,14 @@ const HandleAdmin = () => {
                           </span>
                         </td>
                         <td>
-                          <div style={{ maxWidth: '180px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          <div className="handleadmin-style-15">
                             {call.report}
                           </div>
                         </td>
                       </tr>
                       {isExpanded && (
                         <tr className="expanded-details-row">
-                          <td colSpan="9" style={{ padding: '0', background: 'rgba(0,0,0,0.15)' }}>
+                          <td colSpan="9" className="handleadmin-style-16">
                             <div className="advanced-details-card">
                               <div className="detail-section full-width">
                                 <div className="detail-section-header">
@@ -303,17 +303,17 @@ const HandleAdmin = () => {
 
                               {call.notes && (
                                 <div className="detail-section full-width">
-                                  <div className="detail-section-header" style={{ color: '#f59e0b' }}>
+                                  <div className="detail-section-header handleadmin-style-17" >
                                     <Info size={18} /> ملاحظات إضافية
                                   </div>
-                                  <div className="detail-section-content" style={{ borderColor: 'rgba(245, 158, 11, 0.2)', background: 'rgba(245, 158, 11, 0.05)' }}>
+                                  <div className="detail-section-content handleadmin-style-18" >
                                     {call.notes}
                                   </div>
                                 </div>
                               )}
 
                               {call.profileLink && (
-                                <div className="detail-section full-width" style={{ marginTop: '0.5rem' }}>
+                                <div className="detail-section full-width handleadmin-style-19" >
                                   <a href={call.profileLink.startsWith('http') ? call.profileLink : `https://${call.profileLink}`} target="_blank" rel="noopener noreferrer" className="detail-link-btn">
                                     <LinkIcon size={18} /> زيارة الحساب الشخصي
                                   </a>
@@ -371,19 +371,19 @@ const HandleAdmin = () => {
       {/* Phone History Modal */}
       {phoneHistoryModal.isOpen && (
         <div className="modal-overlay active" onClick={() => setPhoneHistoryModal({ ...phoneHistoryModal, isOpen: false })}>
-          <div className="modal-content advanced-history-modal" style={{ width: '90%', maxWidth: '900px', maxHeight: '90vh', overflowY: 'auto', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
+          <div className="modal-content advanced-history-modal handleadmin-style-20"  onClick={e => e.stopPropagation()}>
+            <div className="modal-header handleadmin-style-21" >
               <h2>
-                <Phone size={24} style={{ color: 'var(--primary-color)', marginLeft: '0.5rem', verticalAlign: 'middle' }} />
-                تاريخ تواصل الرقم: <span dir="ltr" style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{phoneHistoryModal.phone}</span>
+                <Phone size={24} className="handleadmin-style-22" />
+                تاريخ تواصل الرقم: <span dir="ltr" className="handleadmin-style-23">{phoneHistoryModal.phone}</span>
               </h2>
               <button className="btn-icon" onClick={() => setPhoneHistoryModal({ ...phoneHistoryModal, isOpen: false })}>
                 <X size={24} />
               </button>
             </div>
-            <div className="modal-body" style={{ marginTop: '1.5rem' }}>
+            <div className="modal-body handleadmin-style-24" >
               {phoneHistoryModal.loading ? (
-                <div style={{ textAlign: 'center', padding: '2rem' }}>جاري التحميل...</div>
+                <div className="handleadmin-style-25">جاري التحميل...</div>
               ) : phoneHistoryModal.history.length > 0 ? (
                 <div className="history-timeline">
                   {phoneHistoryModal.history.map((histCall, index) => (
@@ -393,7 +393,7 @@ const HandleAdmin = () => {
                         <div className="timeline-header">
                           <div className="timeline-meta">
                             <span className="timeline-agent">
-                              <Info size={16} style={{ color: 'var(--theme-color)' }} />
+                              <Info size={16} className="handleadmin-style-26" />
                               {histCall.agentName}
                             </span>
                             <span className="timeline-supervisor">
@@ -406,7 +406,7 @@ const HandleAdmin = () => {
                           </div>
                         </div>
 
-                        <div className="timeline-badges" style={{ marginBottom: '1rem' }}>
+                        <div className="timeline-badges handleadmin-style-27" >
                           <span className={`status-badge ${getCommMethodBadgeClass(histCall.commMethod)}`}>{histCall.commMethod}</span>
                           <span className={`status-badge ${getAgentStatusBadgeClass(histCall.agentStatus)}`}>{histCall.agentStatus}</span>
                           <span className={`status-badge ${getStatusBadgeClass(histCall.callStatus)}`}>{histCall.callStatus}</span>
@@ -433,7 +433,7 @@ const HandleAdmin = () => {
                   ))}
                 </div>
               ) : (
-                <p style={{ textAlign: 'center' }}>لا يوجد سجل تواصل مسجل لهذا الرقم.</p>
+                <p className="handleadmin-style-28">لا يوجد سجل تواصل مسجل لهذا الرقم.</p>
               )}
             </div>
           </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Clock, Calendar, Briefcase, LogIn, LogOut, CheckCircle, Info, Users, XCircle, Plane } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import './Account.css'; // Reuse container styles
+import "./Account.scss"; // Reuse container styles
 
 const DAYS_OF_WEEK = [
   { id: 'Saturday', label: 'السبت' },
@@ -86,50 +86,50 @@ const Attendance = () => {
 
         {/* Shift Info Section */}
         {myShifts.length > 0 && (
-          <div style={{ marginBottom: '3rem' }}>
-            <h2 style={{ color: 'var(--text-primary)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="attendance-style-1">
+            <h2 className="attendance-style-2">
               <Info size={24} className="text-blue" />
               بيانات الوردية الحالية
             </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+            <div className="attendance-style-3">
               {myShifts.map(shift => {
                 const shiftUsers = shift.Users || [];
                 return (
-                  <div key={shift.id} className="account-card" style={{ padding: '1.5rem 2rem', background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                    <h3 style={{ fontSize: '1.4rem', color: 'var(--text-primary)', margin: 0 }}>{shift.name}</h3>
+                  <div key={shift.id} className="account-card attendance-style-4" >
+                    <h3 className="attendance-style-5">{shift.name}</h3>
 
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', direction: 'ltr' }}>
+                    <div className="attendance-style-6">
+                      <span className="attendance-style-7">
                         <Clock size={16} className="text-blue" />
                         {shift.endTime} - {shift.startTime}
                       </span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <span className="attendance-style-8">
                         <Calendar size={16} className="text-blue" />
                         {(shift.workingDays || []).map(dId => DAYS_OF_WEEK.find(d => d.id === dId)?.label).join('، ')}
                       </span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <span className="attendance-style-9">
                         <Users size={16} className="text-blue" />
                         {shiftUsers.length} موظف
                       </span>
                     </div>
 
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem 0.8rem', borderRadius: '6px' }}>
+                    <div className="attendance-style-10">
+                      <span className="attendance-style-11">
                         <strong>نظام الإجازات:</strong>
                         {shift.dayOffType === 'Fixed' ? 'ثابت' : 'متغير'}
                       </span>
                       {shift.dayOffType === 'Fixed' ? (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem 0.8rem', borderRadius: '6px' }}>
+                        <span className="attendance-style-12">
                           <strong>الأيام:</strong>
                           {(shift.fixedDaysOff || []).map(dId => DAYS_OF_WEEK.find(d => d.id === dId)?.label).join('، ') || 'لا يوجد'}
                         </span>
                       ) : (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem 0.8rem', borderRadius: '6px' }}>
+                        <span className="attendance-style-13">
                           <strong>الأيام المسموحة شهرياً:</strong>
                           {shift.variableDaysOffCount || 0} أيام
                         </span>
                       )}
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '0.4rem 0.8rem', borderRadius: '6px' }}>
+                      <span className="attendance-style-14">
                         <strong>فترة السماح للتأخير:</strong>
                         {localStorage.getItem('allowedDelayMinutes') || '15'} دقيقة
                       </span>
@@ -141,27 +141,27 @@ const Attendance = () => {
           </div>
         )}
 
-        <h2 style={{ color: 'var(--text-primary)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <h2 className="attendance-style-15">
           <Calendar size={24} className="text-blue" />
           حركة الدوام السابقة
         </h2>
 
         {logs.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+          <div className="attendance-style-16">
             لا توجد سجلات حضور مسجلة لك حالياً.
           </div>
         ) : (
-          <div style={{ overflowX: 'auto', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '1rem' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', color: 'var(--text-primary)', background: 'rgba(255,255,255,0.02)' }}>
+          <div className="attendance-style-17">
+            <table className="attendance-style-18">
               <thead>
-                <tr style={{ background: 'rgba(255,255,255,0.05)', textAlign: 'right' }}>
-                  <th style={{ padding: '1rem' }}>التاريخ</th>
-                  <th style={{ padding: '1rem' }}>اسم الموظف</th>
-                  <th style={{ padding: '1rem' }}>الوردية</th>
-                  <th style={{ padding: '1rem' }}>وقت الحضور</th>
-                  <th style={{ padding: '1rem' }}>وقت الانصراف</th>
-                  <th style={{ padding: '1rem' }}>التأخير</th>
-                  <th style={{ padding: '1rem' }}>الحالة</th>
+                <tr className="attendance-style-19">
+                  <th className="attendance-style-20">التاريخ</th>
+                  <th className="attendance-style-21">اسم الموظف</th>
+                  <th className="attendance-style-22">الوردية</th>
+                  <th className="attendance-style-23">وقت الحضور</th>
+                  <th className="attendance-style-24">وقت الانصراف</th>
+                  <th className="attendance-style-25">التأخير</th>
+                  <th className="attendance-style-26">الحالة</th>
                 </tr>
               </thead>
               <tbody>
@@ -173,44 +173,44 @@ const Attendance = () => {
                       if (log.notes) setExpandedRowId(expandedRowId === log.id ? null : log.id);
                     }}
                   >
-                    <td style={{ padding: '1rem' }}>{formatDate(log.date)}</td>
-                    <td style={{ padding: '1rem', fontWeight: 'bold' }}>{user ? user.fullName : '---'}</td>
-                    <td style={{ padding: '1rem' }}>{log.Shift ? log.Shift.name : '---'}</td>
-                    <td style={{ padding: '1rem', color: '#10b981' }}><LogIn size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> {formatTime(log.checkInTime)}</td>
+                    <td className="attendance-style-27">{formatDate(log.date)}</td>
+                    <td className="attendance-style-28">{user ? user.fullName : '---'}</td>
+                    <td className="attendance-style-29">{log.Shift ? log.Shift.name : '---'}</td>
+                    <td className="attendance-style-30"><LogIn size={16} className="attendance-style-31" /> {formatTime(log.checkInTime)}</td>
                     <td style={{ padding: '1rem', color: log.checkOutTime ? '#ef4444' : 'var(--text-secondary)' }}>
-                      {log.checkOutTime ? <><LogOut size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} /> {formatTime(log.checkOutTime)}</> : 'لم ينصرف بعد'}
+                      {log.checkOutTime ? <><LogOut size={16} className="attendance-style-32" /> {formatTime(log.checkOutTime)}</> : 'لم ينصرف بعد'}
                     </td>
-                    <td style={{ padding: '1rem', color: '#f59e0b', fontWeight: 'bold' }}>
+                    <td className="attendance-style-33">
                       {calculateDelay(log.checkInTime, log.Shift?.startTime)}
                     </td>
-                    <td style={{ padding: '1rem' }}>
+                    <td className="attendance-style-34">
                       {log.status === 'Absent' ? (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderRadius: '20px', fontSize: '0.85rem' }}>
+                        <span className="attendance-style-35">
                           <XCircle size={14} /> غياب
                         </span>
                       ) : log.status === 'BusinessTrip' ? (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: 'rgba(14, 165, 233, 0.1)', color: '#0ea5e9', borderRadius: '20px', fontSize: '0.85rem' }}>
+                        <span className="attendance-style-36">
                           <Plane size={14} /> سفر عمل
                         </span>
                       ) : log.status === 'DayOff' ? (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', borderRadius: '20px', fontSize: '0.85rem' }}>
+                        <span className="attendance-style-37">
                           <Calendar size={14} /> إجازة عادية
                         </span>
                       ) : log.status === 'DayOffWork' ? (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', borderRadius: '20px', fontSize: '0.85rem' }}>
+                        <span className="attendance-style-38">
                           <Briefcase size={14} /> عمل بإجازة
                         </span>
                       ) : log.status === 'Late' ? (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', borderRadius: '20px', fontSize: '0.85rem' }}>
+                        <span className="attendance-style-39">
                           <Clock size={14} /> تأخير
                         </span>
                       ) : (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.8rem', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', borderRadius: '20px', fontSize: '0.85rem' }}>
+                        <span className="attendance-style-40">
                           <CheckCircle size={14} /> حضور
                         </span>
                       )}
                       {log.notes && (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--theme-color)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <div className="attendance-style-41">
                           <Info size={12} /> اضغط لعرض السبب
                         </div>
                       )}
@@ -218,13 +218,13 @@ const Attendance = () => {
                   </tr>
                   {expandedRowId === log.id && log.notes && (
                     <tr className="tf-expanded-row">
-                      <td colSpan="7" style={{ padding: '0 1.5rem 1.5rem 1.5rem', borderTop: 'none' }}>
-                        <div style={{ padding: '1rem 1.5rem', background: 'rgba(255, 255, 255, 0.04)', borderRadius: '0 0 12px 12px', borderRight: '3px solid var(--theme-color)', color: 'var(--text-secondary)', textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '-0.8rem', boxShadow: 'inset 0 4px 6px -4px rgba(0,0,0,0.1)' }}>
-                          <strong style={{ color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem' }}>
-                            <Info size={16} style={{ color: 'var(--theme-color)' }} />
+                      <td colSpan="7" className="attendance-style-42">
+                        <div className="attendance-style-43">
+                          <strong className="attendance-style-44">
+                            <Info size={16} className="attendance-style-45" />
                             السبب المرفق:
                           </strong>
-                          <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '0.9rem', marginRight: '24px', color: 'rgba(255,255,255,0.7)' }}>{log.notes}</div>
+                          <div className="attendance-style-46">{log.notes}</div>
                         </div>
                       </td>
                     </tr>

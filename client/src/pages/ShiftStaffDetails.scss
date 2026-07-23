@@ -584,3 +584,60 @@
   border-color: var(--theme-color);
   color: var(--theme-color);
 }
+.shiftstaffdetails-style-1 {
+  width: 100%;
+  height: 450px;
+  margin-top: 1rem;
+}
+
+.shiftstaffdetails-style-2 {
+  background-color: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 1rem;
+  color: #fff;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  backdrop-filter: blur(8px);
+}
+
+.shiftstaffdetails-style-3 {
+  margin: 0 0 0.8rem 0;
+  font-weight: bold;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 0.5rem;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.shiftstaffdetails-style-4 {
+  font-weight: bold;
+}
+
+.shiftstaffdetails-style-5 {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  margin-right: 4px;
+}
+
+.shiftstaffdetails-style-6 {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.shiftstaffdetails-style-7 {
+  margin-top: 1rem;
+}
+
+.shiftstaffdetails-style-8 {
+  width: 100%;
+  padding: 0.8rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(0,0,0,0.2);
+  color: white;
+  min-height: 80px;
+  font-family: inherit;
+  resize: vertical;
+}
+

@@ -1,3 +1,4 @@
+import './HandleAdminAdd.scss';
 import React, { useState, useRef, useEffect } from 'react';
 import { UploadCloud, CheckCircle, AlertTriangle, Database } from 'lucide-react';
 import * as zip from '@zip.js/zip.js';
@@ -189,16 +190,16 @@ const HandleAdminAdd = () => {
   return (
     <AdminGuard>
       <div className="home-container">
-        <header className="page-header" style={{ justifyContent: 'center', textAlign: 'center' }}>
+        <header className="page-header handleadminadd-style-1" >
           <div className="page-title-wrapper">
             <Database size={28} className="title-icon text-blue" />
             <h1 className="page-title gradient-title">تجميع بيانات المستخدمين</h1>
           </div>
         </header>
 
-        <div className="dashboard-card" style={{ maxWidth: '600px', margin: '2rem auto', textAlign: 'center', padding: '3rem 2rem' }}>
-          <h2 style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>رفع ملفات المندوبين (.zip / .xlsx)</h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', lineHeight: '1.6' }}>
+        <div className="dashboard-card handleadminadd-style-2" >
+          <h2 className="handleadminadd-style-3">رفع ملفات المندوبين (.zip / .xlsx)</h2>
+          <p className="handleadminadd-style-4">
             قم بسحب وإفلات ملف الـ ZIP المحمي، أو ملفات الـ Excel الفردية ليتم إضافتها لقاعدة بيانات الإدارة.
           </p>
 
@@ -218,16 +219,16 @@ const HandleAdminAdd = () => {
               opacity: isProcessing ? 0.6 : 1
             }}
           >
-            <UploadCloud size={60} color={isDragging ? 'var(--theme-color)' : 'var(--text-secondary)'} style={{ marginBottom: '1rem' }} />
-            <h3 style={{ color: 'var(--text-primary)' }}>{isProcessing ? 'جاري المعالجة...' : 'اختر الملفات أو اسحبها هنا'}</h3>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>صيغة الملف المدعومة: ZIP (محمي) أو XLSX</p>
+            <UploadCloud size={60} color={isDragging ? 'var(--theme-color)' : 'var(--text-secondary)'} className="handleadminadd-style-5" />
+            <h3 className="handleadminadd-style-6">{isProcessing ? 'جاري المعالجة...' : 'اختر الملفات أو اسحبها هنا'}</h3>
+            <p className="handleadminadd-style-7">صيغة الملف المدعومة: ZIP (محمي) أو XLSX</p>
             <input
               type="file"
               accept=".zip, .xlsx"
               multiple
               ref={fileInputRef}
               onChange={handleFileChange}
-              style={{ display: 'none' }}
+              className="handleadminadd-style-8"
             />
           </div>
 

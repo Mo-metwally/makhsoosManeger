@@ -1,6 +1,6 @@
 import React from 'react';
 import { ShieldAlert, Table } from 'lucide-react';
-import './DiscountsReport.css';
+import "./DiscountsReport.scss";
 
 const DiscountsReport = () => {
   return (

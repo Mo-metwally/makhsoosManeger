@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ShieldAlert, CheckCircle, XCircle, Users, RefreshCw, ChevronDown, ChevronUp, Save, X, Edit2, Smartphone, KeyRound, Trash2, Crown, Shield, User, Zap } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import './PermissionsReport.css';
+import "./PermissionsReport.scss";
 import CustomSelect from '../components/CustomSelect';
 import { useToast } from '../contexts/ToastContext';
 
@@ -32,7 +32,7 @@ const RoleSelector = ({ currentRole, currentUserRole, userId, onChange }) => {
   return (
     <div className="adv-role-selector" ref={dropdownRef}>
       <div className={`adv-role-selected role-${currentRole.toLowerCase()}`} onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div className="permissionsreport-style-1">
           {selectedOption.icon}
           <span>{selectedOption.label}</span>
         </div>
@@ -50,7 +50,7 @@ const RoleSelector = ({ currentRole, currentUserRole, userId, onChange }) => {
                 if (opt.value !== currentRole) onChange(userId, opt.value);
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div className="permissionsreport-style-2">
                 <span className={`role-icon-wrapper role-${opt.value.toLowerCase()}`}>
                   {opt.icon}
                 </span>
@@ -124,14 +124,14 @@ const UserRow = ({ user, currentUser, onRefresh, handleRoleChange, handleAction 
         <td>
           <div className="flex items-center gap-2">
             {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <span className="permissionsreport-style-3">
               {user.username}
               {(() => {
                 const status = user.trackerStatus || (user.isTrackerOnline ? 'active' : 'offline');
                 if (status === 'active') {
-                  return <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', animation: 'pulse 2s infinite' }} title="التراكر متصل (نشط)"></div>;
+                  return <div className="permissionsreport-style-4" title="التراكر متصل (نشط)"></div>;
                 } else if (status === 'idle') {
-                  return <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f97316' }} title="التراكر متصل (خامل)"></div>;
+                  return <div className="permissionsreport-style-5" title="التراكر متصل (خامل)"></div>;
                 }
                 return null;
               })()}
@@ -139,7 +139,7 @@ const UserRow = ({ user, currentUser, onRefresh, handleRoleChange, handleAction 
           </div>
         </td>
         <td>{user.fullName}</td>
-        <td onClick={(e) => e.stopPropagation()} style={{ position: 'relative' }}>
+        <td onClick={(e) => e.stopPropagation()} className="permissionsreport-style-6">
           {(currentUser?.role === 'SuperAdmin' || currentUser?.role === 'Admin') && (currentUser?.role === 'SuperAdmin' || user.role !== 'SuperAdmin') ? (
             <RoleSelector
               currentRole={user.role}
@@ -148,7 +148,7 @@ const UserRow = ({ user, currentUser, onRefresh, handleRoleChange, handleAction 
               onChange={handleRoleChange}
             />
           ) : (
-            <span style={{ fontSize: '0.95rem' }}>
+            <span className="permissionsreport-style-7">
               {user.role === 'SuperAdmin' ? 'مدير تنفيذي (SuperAdmin)' : user.role === 'Admin' ? 'مدير (Admin)' : 'مشرف (Supervisor)'}
             </span>
           )}
@@ -216,9 +216,9 @@ const UserRow = ({ user, currentUser, onRefresh, handleRoleChange, handleAction 
                   </div>
                 </div>
 
-                <div className="device-lock-section" style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+                <div className="device-lock-section permissionsreport-style-8" >
                   <div>
-                    <div className="device-info" style={{ marginBottom: '1rem' }}>
+                    <div className="device-info permissionsreport-style-9" >
                       <Smartphone size={20} className="text-blue" />
                       <span>الأجهزة المرتبطة: <strong>{user.deviceId ? '1 جهاز (مقفل)' : '0 أجهزة (غير مرتبط)'}</strong></span>
                     </div>
@@ -235,7 +235,7 @@ const UserRow = ({ user, currentUser, onRefresh, handleRoleChange, handleAction 
                       const color = status === 'active' ? '#22c55e' : status === 'idle' ? '#f97316' : 'var(--text-secondary)';
                       const label = status === 'active' ? 'متصل (نشط)' : status === 'idle' ? 'متصل (خامل)' : 'غير متصل';
                       return (
-                        <div className="device-info" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.03)', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div className="device-info permissionsreport-style-10" >
                           <Zap size={20} style={{ color }} />
                           <span>متتبع النشاط: <strong style={{ color }}>{label}</strong></span>
                         </div>
@@ -244,10 +244,10 @@ const UserRow = ({ user, currentUser, onRefresh, handleRoleChange, handleAction 
                   </div>
                 </div>
 
-                <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem', display: 'flex', justifyContent: 'flex-start' }}>
+                <div className="permissionsreport-style-11">
                   <button
                     onClick={handleDeleteUser}
-                    style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '0.8rem 1.5rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', transition: '0.3s', cursor: 'pointer' }}
+                    className="permissionsreport-style-12"
                     onMouseOver={(e) => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = 'white'; }}
                     onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#ef4444'; }}
                   >
@@ -338,7 +338,7 @@ const PermissionsReport = () => {
 
   return (
     <div className="permissions-report-container fade-in">
-      <div className="pr-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+      <div className="pr-header permissionsreport-style-13" >
         <div>
           <h1 className="pr-title">
             <Users size={32} />
@@ -346,7 +346,7 @@ const PermissionsReport = () => {
           </h1>
           <p className="pr-subtitle mt-2 text-slate-400">تحكم كامل في الحسابات، صلاحيات الدخول، ومراجعة طلبات الانضمام.</p>
         </div>
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        <div className="permissionsreport-style-14">
           <CustomSelect
             options={[
               { value: 'All', label: 'جميع الصلاحيات' },
@@ -462,7 +462,7 @@ const PermissionsReport = () => {
         <div className="custom-modal-overlay fade-in" onClick={() => !confirmModal.isLoading && setConfirmModal({ isOpen: false })}>
           <div className="custom-modal-content scale-in" onClick={e => e.stopPropagation()}>
             <div className="custom-modal-header">
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#f97316' }}>
+              <h3 className="permissionsreport-style-15">
                 <ShieldAlert size={24} />
                 {confirmModal.title}
               </h3>
@@ -472,7 +472,7 @@ const PermissionsReport = () => {
             </div>
             <div className="custom-modal-body">
               {confirmModal.message.split('\n').map((line, i) => (
-                <p key={i} style={{ marginBottom: '0.5rem' }}>{line}</p>
+                <p key={i} className="permissionsreport-style-16">{line}</p>
               ))}
             </div>
             <div className="custom-modal-footer">

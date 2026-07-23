@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, Clock, CalendarDays, Loader, ShieldAlert } from 'lucide-react';
 import api from '../services/api';
-import './StaffManagement.css';
+import "./StaffManagement.scss";
 
 const StaffManagement = () => {
   const [shifts, setShifts] = useState([]);

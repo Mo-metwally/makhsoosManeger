@@ -3,7 +3,7 @@ import api from '../services/api';
 import { DollarSign, Search, Calendar, ChevronDown, CheckCircle, Clock, Edit, Eye, User, TrendingUp, TrendingDown, Award, Trash2, X } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import AvatarIcon from '../components/AvatarIcon';
-import './EmployeesAccounts.css';
+import "./EmployeesAccounts.scss";
 import { useToast } from '../contexts/ToastContext';
 
 const EmployeesAccounts = () => {
@@ -394,45 +394,45 @@ const EmployeesAccounts = () => {
     <div className="employees-accounts-page fade-in">
 
       {/* Top Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', padding: '1.5rem', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.05)', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(10px)' }}>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+      <div className="employeesaccounts-style-1">
+        <div className="employeesaccounts-style-2">
           <input
             type="month"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            style={{ padding: '0.8rem 1.2rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: '1rem', outline: 'none' }}
+            className="employeesaccounts-style-3"
           />
-          <div style={{ position: 'relative' }}>
-            <Search size={18} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+          <div className="employeesaccounts-style-4">
+            <Search size={18} className="employeesaccounts-style-5" />
             <input
               type="text"
               placeholder="بحث باسم الموظف..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ padding: '0.8rem 1.2rem 0.8rem 2.5rem', paddingRight: '2.5rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: '1rem', outline: 'none', width: '250px' }}
+              className="employeesaccounts-style-6"
             />
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <h1 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: 0, color: 'var(--text-primary)', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>حسابات الموظفين</h1>
-          <DollarSign color="var(--theme-color)" size={36} style={{ filter: 'drop-shadow(0 0 8px var(--theme-color))' }} />
+        <div className="employeesaccounts-style-7">
+          <h1 className="employeesaccounts-style-8">حسابات الموظفين</h1>
+          <DollarSign color="var(--theme-color)" size={36} className="employeesaccounts-style-9" />
         </div>
       </div>
 
       {/* Advanced Summary Card */}
-      <div style={{ background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%)', border: '1px solid rgba(255, 255, 255, 0.05)', borderRadius: '24px', padding: '2.5rem', marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 20px 50px rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)' }}>
-        <div style={{ background: 'rgba(0, 0, 0, 0.3)', padding: '1.5rem 2.5rem', borderRadius: '16px', border: '1px solid rgba(59, 130, 246, 0.2)', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.5)' }}>
-          <span style={{ fontSize: '2.5rem', fontWeight: '900', color: '#3b82f6', textShadow: '0 0 15px rgba(59,130,246,0.5)', fontFamily: 'system-ui' }}>{totalNetSalaries.toLocaleString()}</span>
-          <span style={{ fontSize: '1.2rem', color: '#60a5fa', fontWeight: 'bold', marginTop: '10px' }}>ج.م</span>
+      <div className="employeesaccounts-style-10">
+        <div className="employeesaccounts-style-11">
+          <span className="employeesaccounts-style-12">{totalNetSalaries.toLocaleString()}</span>
+          <span className="employeesaccounts-style-13">ج.م</span>
         </div>
-        <div style={{ textAlign: 'right', maxWidth: '500px' }}>
-          <h2 style={{ fontSize: '1.8rem', margin: '0 0 1rem 0', color: '#fff', fontWeight: 'bold' }}>إجمالي الرواتب الصافية المطلوبة</h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', margin: 0, lineHeight: '1.6' }}>هذا الرقم يمثل المجموع الكلي للرواتب المتوقع دفعها للموظفين أعلاه بعد كل الخصومات والإضافات والسلف.</p>
+        <div className="employeesaccounts-style-14">
+          <h2 className="employeesaccounts-style-15">إجمالي الرواتب الصافية المطلوبة</h2>
+          <p className="employeesaccounts-style-16">هذا الرقم يمثل المجموع الكلي للرواتب المتوقع دفعها للموظفين أعلاه بعد كل الخصومات والإضافات والسلف.</p>
         </div>
       </div>
 
       {/* Filter Tabs (Moved below summary as requested) */}
-      <div style={{ display: 'flex', gap: '1rem', width: '100%', maxWidth: '600px', margin: '0 auto 2rem auto', background: 'rgba(255,255,255,0.03)', padding: '0.5rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="employeesaccounts-style-17">
         <button
           onClick={() => setFilterType('all')}
           style={{ flex: 1, padding: '1rem', borderRadius: '12px', border: 'none', cursor: 'pointer', background: filterType === 'all' ? 'linear-gradient(135deg, var(--theme-color) 0%, rgba(245, 158, 11, 0.8) 100%)' : 'transparent', color: filterType === 'all' ? '#000' : 'var(--text-secondary)', fontWeight: 'bold', fontSize: '1.1rem', transition: 'all 0.3s', boxShadow: filterType === 'all' ? '0 5px 15px rgba(245, 158, 11, 0.3)' : 'none' }}
@@ -473,7 +473,7 @@ const EmployeesAccounts = () => {
             <tbody>
               {filteredAccounts.length === 0 ? (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                  <td colSpan="8" className="employeesaccounts-style-18">
                     لا يوجد موظفين لعرض حساباتهم
                   </td>
                 </tr>
@@ -498,8 +498,8 @@ const EmployeesAccounts = () => {
                       </td>
                       <td>
                         <div className="attendance-days">
-                          <span className="days-count" style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{acc.presentCount}</span>
-                          <span className="days-label" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginRight: '4px' }}>يوم</span>
+                          <span className="days-count employeesaccounts-style-19" >{acc.presentCount}</span>
+                          <span className="days-label employeesaccounts-style-20" >يوم</span>
                         </div>
                       </td>
                       <td>
@@ -558,33 +558,33 @@ const EmployeesAccounts = () => {
                     </tr>
                     {expandedRow === acc.id && acc.details.length > 0 && (
                       <tr className="expanded-details-row">
-                        <td colSpan="8" style={{ padding: '0', background: 'rgba(0, 0, 0, 0.15)', borderBottom: '1px solid var(--glass-border)' }}>
-                          <div style={{ padding: '1.5rem', background: 'transparent', margin: '0.5rem 1rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.2)' }}>
-                            <h4 style={{ marginBottom: '1rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <td colSpan="8" className="employeesaccounts-style-21">
+                          <div className="employeesaccounts-style-22">
+                            <h4 className="employeesaccounts-style-23">
                               تفاصيل العمليات لهذا الشهر
                             </h4>
-                            <div style={{ overflowX: 'auto', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
-                                <thead style={{ background: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                            <div className="employeesaccounts-style-24">
+                              <table className="employeesaccounts-style-25">
+                                <thead className="employeesaccounts-style-26">
                                   <tr>
-                                    <th style={{ padding: '0.8rem', textAlign: 'right', color: 'var(--text-secondary)' }}>التاريخ</th>
-                                    <th style={{ padding: '0.8rem', textAlign: 'right', color: 'var(--text-secondary)' }}>الوقت</th>
-                                    <th style={{ padding: '0.8rem', textAlign: 'right', color: 'var(--text-secondary)' }}>التصنيف</th>
-                                    <th style={{ padding: '0.8rem', textAlign: 'center', color: 'var(--text-secondary)' }}>النوع</th>
-                                    <th style={{ padding: '0.8rem', textAlign: 'center', color: 'var(--text-secondary)' }}>المبلغ</th>
-                                    <th style={{ padding: '0.8rem', textAlign: 'right', color: 'var(--text-secondary)' }}>السبب</th>
-                                    <th style={{ padding: '0.8rem', textAlign: 'center', color: 'var(--text-secondary)' }}>إجراءات</th>
+                                    <th className="employeesaccounts-style-27">التاريخ</th>
+                                    <th className="employeesaccounts-style-28">الوقت</th>
+                                    <th className="employeesaccounts-style-29">التصنيف</th>
+                                    <th className="employeesaccounts-style-30">النوع</th>
+                                    <th className="employeesaccounts-style-31">المبلغ</th>
+                                    <th className="employeesaccounts-style-32">السبب</th>
+                                    <th className="employeesaccounts-style-33">إجراءات</th>
                                   </tr>
                                 </thead>
-                                <tbody style={{ background: 'transparent' }}>
+                                <tbody className="employeesaccounts-style-34">
                                   {acc.details.map(det => {
                                     const isAuto = !det.id.startsWith('adj-');
                                     return (
-                                      <tr key={det.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.2s' }} className="hover-row">
-                                        <td style={{ padding: '0.8rem', color: 'var(--text-primary)' }}>{det.date}</td>
-                                        <td style={{ padding: '0.8rem', color: 'var(--text-primary)' }}>{det.time || '-'}</td>
-                                        <td style={{ padding: '0.8rem', color: 'var(--text-primary)' }}>{det.category}</td>
-                                        <td style={{ padding: '0.8rem', textAlign: 'center' }}>
+                                      <tr key={det.id}  className="hover-row employeesaccounts-style-35">
+                                        <td className="employeesaccounts-style-36">{det.date}</td>
+                                        <td className="employeesaccounts-style-37">{det.time || '-'}</td>
+                                        <td className="employeesaccounts-style-38">{det.category}</td>
+                                        <td className="employeesaccounts-style-39">
                                           <span style={{
                                             background: det.type === 'Addition' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
                                             color: det.type === 'Addition' ? '#10b981' : '#ef4444',
@@ -597,42 +597,42 @@ const EmployeesAccounts = () => {
                                         <td style={{ padding: '0.8rem', textAlign: 'center', fontWeight: 'bold', color: det.type === 'Addition' ? '#10b981' : '#ef4444' }}>
                                           <span dir="ltr">{det.type === 'Addition' ? '+' : '-'}{det.amount.toLocaleString()}</span> ج.م
                                         </td>
-                                        <td style={{ padding: '0.8rem', color: 'var(--text-secondary)' }}>{det.reason}</td>
-                                        <td style={{ padding: '0.8rem', textAlign: 'center' }}>
+                                        <td className="employeesaccounts-style-40">{det.reason}</td>
+                                        <td className="employeesaccounts-style-41">
                                           {isAuto ? (
-                                            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                            <div className="employeesaccounts-style-42">
                                               <button
-                                                style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: '0.4rem', borderRadius: '6px' }}
+                                                
                                                 onClick={(e) => handleEditAdjustmentRow(e, acc, det)}
                                                 title="تعديل قيمة العملية التلقائية"
-                                                className="hover-bg-blue"
+                                                className="hover-bg-blue employeesaccounts-style-43"
                                               >
                                                 <Edit size={18} />
                                               </button>
                                               <button
-                                                style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.4rem', borderRadius: '6px' }}
+                                                
                                                 onClick={(e) => handleDeleteAdjustmentRow(e, det)}
                                                 title="إلغاء العملية التلقائية"
-                                                className="hover-bg-red"
+                                                className="hover-bg-red employeesaccounts-style-44"
                                               >
                                                 <Trash2 size={18} />
                                               </button>
                                             </div>
                                           ) : (
-                                            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                            <div className="employeesaccounts-style-45">
                                               <button
-                                                style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: '0.4rem', borderRadius: '6px' }}
+                                                
                                                 onClick={(e) => handleEditAdjustmentRow(e, acc, det)}
                                                 title="تعديل"
-                                                className="hover-bg-blue"
+                                                className="hover-bg-blue employeesaccounts-style-46"
                                               >
                                                 <Edit size={18} />
                                               </button>
                                               <button
-                                                style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.4rem', borderRadius: '6px' }}
+                                                
                                                 onClick={(e) => handleDeleteAdjustmentRow(e, det)}
                                                 title="حذف"
-                                                className="hover-bg-red"
+                                                className="hover-bg-red employeesaccounts-style-47"
                                               >
                                                 <Trash2 size={18} />
                                               </button>
@@ -651,8 +651,8 @@ const EmployeesAccounts = () => {
                     )}
                     {expandedRow === acc.id && acc.details.length === 0 && (
                       <tr className="expanded-details-row">
-                        <td colSpan="8" style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', background: 'rgba(0,0,0,0.15)', borderBottom: '1px solid var(--glass-border)' }}>
-                          <div style={{ padding: '1.5rem', background: 'transparent', margin: '0.5rem 1rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.2)' }}>
+                        <td colSpan="8" className="employeesaccounts-style-48">
+                          <div className="employeesaccounts-style-49">
                             لا توجد تفاصيل أو عمليات مسجلة لهذا الموظف في هذا الشهر.
                           </div>
                         </td>
@@ -745,61 +745,61 @@ const EmployeesAccounts = () => {
       )}
       {/* Settlement Modal */}
       {settlementModal.isOpen && settlementModal.account && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'var(--solid-bg)', padding: '2rem', borderRadius: '16px', width: '90%', maxWidth: '400px', border: '1px solid var(--border-color)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
-            <h3 style={{ color: 'var(--text-primary)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div className="employeesaccounts-style-50">
+          <div className="employeesaccounts-style-51">
+            <h3 className="employeesaccounts-style-52">
               <CheckCircle size={24} className="text-blue" />
               تأكيد التسوية المالية
             </h3>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+            <p className="employeesaccounts-style-53">
               الموظف: <strong>{settlementModal.account.name}</strong>
             </p>
-            <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', marginBottom: '1.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>صافي المستحقات:</span>
-                <strong style={{ color: 'var(--text-primary)' }}>{settlementModal.account.netSalary.toLocaleString()} ج.م</strong>
+            <div className="employeesaccounts-style-54">
+              <div className="employeesaccounts-style-55">
+                <span className="employeesaccounts-style-56">صافي المستحقات:</span>
+                <strong className="employeesaccounts-style-57">{settlementModal.account.netSalary.toLocaleString()} ج.م</strong>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>نوع حساب الاستلام:</span>
+              <div className="employeesaccounts-style-58">
+                <span className="employeesaccounts-style-59">نوع حساب الاستلام:</span>
                 <strong style={{ color: settlementModal.account.user?.walletType === 'InstaPay' ? '#a855f7' : 'var(--theme-color)' }}>
                   {settlementModal.account.user?.walletType === 'InstaPay' ? 'انستا باي (InstaPay)' : 'محفظة إلكترونية (كاش)'}
                 </strong>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>
+              <div className="employeesaccounts-style-60">
+                <span className="employeesaccounts-style-61">
                   {settlementModal.account.user?.walletType === 'InstaPay' ? 'عنوان / رقم انستا باي:' : 'رقم المحفظة الإلكترونية:'}
                 </span>
-                <strong style={{ color: 'var(--text-primary)' }}>
+                <strong className="employeesaccounts-style-62">
                   {settlementModal.account.user?.walletNumber || settlementModal.account.user?.phone || 'غير مسجل'}
                 </strong>
               </div>
             </div>
 
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+            <p className="employeesaccounts-style-63">
               {settlementModal.account.settlementStatus === 'Settled'
                 ? 'هذا الحساب تم تسويته بالفعل. هل تريد إلغاء التسوية وإعادته كحساب جاري؟'
                 : 'هل أنت متأكد من تسوية هذا الحساب؟ لن يظهر في الحسابات الجارية بعد الآن إلا إذا قمت بإلغاء التسوية.'}
             </p>
 
-            <div style={{ display: 'flex', gap: '1rem' }}>
+            <div className="employeesaccounts-style-64">
               {settlementModal.account.settlementStatus !== 'Settled' ? (
                 <button
                   onClick={() => handleToggleSettlement('Settled')}
-                  style={{ flex: 1, background: '#10b981', color: 'white', padding: '0.8rem', borderRadius: '8px', cursor: 'pointer', border: 'none', fontWeight: 'bold' }}
+                  className="employeesaccounts-style-65"
                 >
                   تأكيد التسوية
                 </button>
               ) : (
                 <button
                   onClick={() => handleToggleSettlement('Active')}
-                  style={{ flex: 1, background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', color: '#ef4444', padding: '0.8rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                  className="employeesaccounts-style-66"
                 >
                   إلغاء التسوية
                 </button>
               )}
               <button
                 onClick={() => setSettlementModal({ isOpen: false, account: null })}
-                style={{ flex: 1, background: 'rgba(255,255,255,0.1)', color: 'var(--text-primary)', padding: '0.8rem', borderRadius: '8px', cursor: 'pointer', border: 'none' }}
+                className="employeesaccounts-style-67"
               >
                 تراجع
               </button>

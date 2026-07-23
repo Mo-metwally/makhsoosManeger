@@ -1,0 +1,539 @@
+.handleadminexport-style-1 {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.handleadminexport-style-2 {
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+}
+
+.handleadminexport-style-3 {
+  max-width: 1200px;
+  width: 100%;
+  margin: 2rem auto;
+  padding: 5rem 2rem;
+  text-align: center;
+}
+
+.handleadminexport-style-4 {
+  margin-bottom: 1rem;
+}
+
+.handleadminexport-style-5 {
+  color: var(--text-secondary);
+}
+
+.handleadminexport-style-6 {
+  max-width: 1200px;
+  width: 100%;
+  margin: 2rem auto;
+  padding: 3rem 2rem;
+}
+
+.handleadminexport-style-7 {
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.handleadminexport-style-8 {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.handleadminexport-style-9 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.handleadminexport-style-10 {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  background: rgba(0,0,0,0.2);
+  padding: 1.5rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.05);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.handleadminexport-style-11 {
+  flex: 1;
+}
+
+.handleadminexport-style-12 {
+  display: block;
+  margin-bottom: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: bold;
+}
+
+.handleadminexport-style-13 {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1rem;
+}
+
+.handleadminexport-style-14 {
+  flex: 1;
+}
+
+.handleadminexport-style-15 {
+  display: block;
+  margin-bottom: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: bold;
+}
+
+.handleadminexport-style-16 {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1rem;
+}
+
+.handleadminexport-style-17 {
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin: 2.5rem 0;
+}
+
+.handleadminexport-style-18 {
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.handleadminexport-style-19 {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.handleadminexport-style-20 {
+  margin-bottom: 2.5rem;
+  position: relative;
+}
+
+.handleadminexport-style-21 {
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.1rem;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.handleadminexport-style-22 {
+  color: var(--text-primary);
+}
+
+.handleadminexport-style-23 {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.5rem;
+  background: var(--card-bg, #1e293b);
+  border-radius: 12px;
+  padding: 0.5rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  border: 1px solid rgba(255,255,255,0.1);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.handleadminexport-style-24 {
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+
+.handleadminexport-style-25 {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+}
+
+.handleadminexport-style-26 {
+  width: 100%;
+  padding: 0.6rem 2rem 0.6rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.handleadminexport-style-27 {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.handleadminexport-style-28 {
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.handleadminexport-style-29 {
+  padding: 1.5rem;
+  border-radius: 16px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.handleadminexport-style-30 {
+  flex-shrink: 0;
+}
+
+.handleadminexport-style-31 {
+  flex: 1;
+}
+
+.handleadminexport-style-32 {
+  color: var(--text-primary);
+  margin: 0 0 0.8rem 0;
+  font-size: 1.1rem;
+}
+
+.handleadminexport-style-33 {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  color: var(--text-primary);
+  font-size: 1.05rem;
+}
+
+.handleadminexport-style-34 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0,0,0,0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.handleadminexport-style-35 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0,0,0,0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.handleadminexport-style-36 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0,0,0,0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.handleadminexport-style-37 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0,0,0,0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.handleadminexport-style-38 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(0,0,0,0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.handleadminexport-style-39 {
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin: 2.5rem 0;
+}
+
+.handleadminexport-style-40 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.handleadminexport-style-41 {
+  color: var(--text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.handleadminexport-style-42 {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.handleadminexport-style-43 {
+  display: flex;
+  background: rgba(0,0,0,0.3);
+  border-radius: 12px;
+  padding: 0.3rem;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.handleadminexport-style-44 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+  margin-bottom: 3rem;
+}
+
+.handleadminexport-style-45 {
+  accent-color: var(--theme-color);
+  width: 22px;
+  height: 22px;
+}
+
+.handleadminexport-style-46 {
+  flex: 1;
+}
+
+.handleadminexport-style-47 {
+  color: var(--text-primary);
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.handleadminexport-style-48 {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 6px 0 0 0;
+  line-height: 1.4;
+}
+
+.handleadminexport-style-49 {
+  accent-color: var(--theme-color);
+  width: 22px;
+  height: 22px;
+}
+
+.handleadminexport-style-50 {
+  flex: 1;
+}
+
+.handleadminexport-style-51 {
+  color: var(--text-primary);
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.handleadminexport-style-52 {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 6px 0 0 0;
+  line-height: 1.4;
+}
+
+.handleadminexport-style-53 {
+  accent-color: var(--theme-color);
+  width: 22px;
+  height: 22px;
+}
+
+.handleadminexport-style-54 {
+  flex: 1;
+}
+
+.handleadminexport-style-55 {
+  color: var(--text-primary);
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.handleadminexport-style-56 {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 6px 0 0 0;
+  line-height: 1.4;
+}
+
+.handleadminexport-style-57 {
+  accent-color: var(--theme-color);
+  width: 22px;
+  height: 22px;
+}
+
+.handleadminexport-style-58 {
+  flex: 1;
+}
+
+.handleadminexport-style-59 {
+  color: var(--text-primary);
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.handleadminexport-style-60 {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 6px 0 0 0;
+  line-height: 1.4;
+}
+
+.handleadminexport-style-61 {
+  accent-color: var(--theme-color);
+  width: 22px;
+  height: 22px;
+}
+
+.handleadminexport-style-62 {
+  flex: 1;
+}
+
+.handleadminexport-style-63 {
+  color: var(--text-primary);
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.handleadminexport-style-64 {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 6px 0 0 0;
+  line-height: 1.4;
+}
+
+.handleadminexport-style-65 {
+  accent-color: var(--theme-color);
+  width: 22px;
+  height: 22px;
+}
+
+.handleadminexport-style-66 {
+  flex: 1;
+}
+
+.handleadminexport-style-67 {
+  color: var(--text-primary);
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.handleadminexport-style-68 {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 6px 0 0 0;
+  line-height: 1.4;
+}
+
+.handleadminexport-style-69 {
+  accent-color: var(--theme-color);
+  width: 22px;
+  height: 22px;
+}
+
+.handleadminexport-style-70 {
+  flex: 1;
+}
+
+.handleadminexport-style-71 {
+  color: var(--text-primary);
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.handleadminexport-style-72 {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 6px 0 0 0;
+  line-height: 1.4;
+}
+
+.handleadminexport-style-73 {
+  accent-color: var(--theme-color);
+  width: 22px;
+  height: 22px;
+}
+
+.handleadminexport-style-74 {
+  flex: 1;
+}
+
+.handleadminexport-style-75 {
+  color: var(--text-primary);
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.handleadminexport-style-76 {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 6px 0 0 0;
+  line-height: 1.4;
+}
+
+.handleadminexport-style-77 {
+  accent-color: var(--theme-color);
+  width: 22px;
+  height: 22px;
+}
+
+.handleadminexport-style-78 {
+  flex: 1;
+}
+
+.handleadminexport-style-79 {
+  color: var(--text-primary);
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.handleadminexport-style-80 {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 6px 0 0 0;
+  line-height: 1.4;
+}
+

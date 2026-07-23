@@ -34,6 +34,7 @@ const runAutoAbsentCheck = async () => {
       
       const shift = user.Shifts[0];
       if (!shift.startTime || !shift.endTime) continue;
+      if (shift.UserShift && shift.UserShift.isObserver) continue; // Skip observers
 
       const { startTime, endTime } = shift;
       const [startHour, startMin] = startTime.split(':').map(Number);

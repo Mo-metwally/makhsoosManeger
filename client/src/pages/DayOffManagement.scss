@@ -214,3 +214,89 @@
 .text-orange-500 { color: #f97316 !important; font-weight: bold; }
 .text-green-500 { color: #22c55e !important; font-weight: bold; }
 .text-red-500 { color: #ef4444 !important; font-weight: bold; }
+.dayoffmanagement-style-1 {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--glass-bg);
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.dayoffmanagement-style-2 {
+  color: var(--text-secondary);
+}
+
+.dayoffmanagement-style-3 {
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.dayoffmanagement-style-4 {
+  color: var(--text-secondary);
+}
+
+.dayoffmanagement-style-5 {
+  width: 40px;
+}
+
+.dayoffmanagement-style-6 {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.dayoffmanagement-style-7 {
+  margin-bottom: 0.3rem;
+  background: var(--glass-bg);
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  display: inline-block;
+  min-width: 160px;
+  text-align: right;
+}
+
+.dayoffmanagement-style-8 {
+  color: var(--theme-color);
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-bottom: 0.2rem;
+}
+
+.dayoffmanagement-style-9 {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.dayoffmanagement-style-10 {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.dayoffmanagement-style-11 {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.dayoffmanagement-style-12 {
+  font-weight: bold;
+}
+
+.dayoffmanagement-style-13 {
+  padding: 0;
+  border: none;
+}
+
+.dayoffmanagement-style-14 {
+  color: var(--text-secondary);
+}
+
+.dayoffmanagement-style-15 {
+  text-align: right;
+}
+

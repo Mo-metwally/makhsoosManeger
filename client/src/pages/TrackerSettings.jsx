@@ -1,3 +1,4 @@
+import './TrackerSettings.scss';
 import React, { useState, useEffect } from 'react';
 import { Activity, Save, Loader2, Clock, Zap, ShieldAlert, Monitor } from 'lucide-react';
 import api from '../services/api';
@@ -102,8 +103,8 @@ const TrackerSettings = () => {
   if (user && user.role !== 'SuperAdmin') {
     return (
       <div className="general-settings-container">
-        <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center' }}>
-          <h2 style={{ color: '#ef4444' }}>غير مصرح لك بالدخول لهذه الصفحة. (صلاحية مدير تنفيذي فقط)</h2>
+        <div className="glass-panel trackersettings-style-1" >
+          <h2 className="trackersettings-style-2">غير مصرح لك بالدخول لهذه الصفحة. (صلاحية مدير تنفيذي فقط)</h2>
         </div>
       </div>
     );
@@ -112,37 +113,37 @@ const TrackerSettings = () => {
   return (
     <div className="general-settings-container">
       <div className="page-title-wrapper">
-        <Activity size={32} className="title-icon" style={{ color: '#22c55e' }} />
+        <Activity size={32} className="title-icon trackersettings-style-3"  />
         <div>
           <h1 className="gradient-title">إعدادات متتبع النشاط (Tracker)</h1>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+          <p className="trackersettings-style-4">
             التحكم الشامل في أداة تتبع الأجهزة، معدلات الفحص، وحدود الخمول.
           </p>
         </div>
       </div>
 
-      <div className="glass-panel fade-in" style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
+      <div className="glass-panel fade-in trackersettings-style-5" >
         {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem' }}>
+          <div className="trackersettings-style-6">
             <Loader2 className="spin" size={32} color="var(--theme-color)" />
           </div>
         ) : (
           <form onSubmit={handleSave}>
             
             {/* Enable/Disable Tracker */}
-            <div className="form-section" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '2rem', marginBottom: '2rem' }}>
+            <div className="form-section trackersettings-style-7" >
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: enableTracking ? '#22c55e' : '#ef4444' }}>
                 <Monitor size={24} />
                 حالة نظام التتبع
               </h3>
               
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '12px' }}>
-                <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '60px', height: '34px' }}>
+              <div className="trackersettings-style-8">
+                <label className="switch trackersettings-style-9" >
                   <input 
                     type="checkbox" 
                     checked={enableTracking} 
                     onChange={(e) => setEnableTracking(e.target.checked)} 
-                    style={{ opacity: 0, width: 0, height: 0 }}
+                    className="trackersettings-style-10"
                   />
                   <span className="slider round" style={{ 
                     position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, 
@@ -157,10 +158,10 @@ const TrackerSettings = () => {
                   </span>
                 </label>
                 <div>
-                  <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                  <span className="trackersettings-style-11">
                     {enableTracking ? 'التتبع مفعل (قيد التشغيل)' : 'التتبع متوقف (معطل عالمياً)'}
                   </span>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.3rem' }}>
+                  <p className="trackersettings-style-12">
                     عند الإيقاف، ستتوقف جميع تطبيقات التتبع لدى الموظفين عن إرسال أي بيانات للسيرفر.
                   </p>
                 </div>
@@ -168,126 +169,93 @@ const TrackerSettings = () => {
             </div>
 
             {/* Idle Threshold */}
-            <div className="form-section" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '2rem', marginBottom: '2rem' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--theme-color)' }}>
+            <div className="form-section trackersettings-style-13" >
+              <h3 className="trackersettings-style-14">
                 <Clock size={24} />
                 الحد الأقصى للخمول (Idle Threshold)
               </h3>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxWidth: '400px' }}>
-                <label style={{ color: 'var(--text-primary)', fontWeight: '600' }}>
+              <div className="trackersettings-style-15">
+                <label className="trackersettings-style-16">
                   مدة التوقف بالدقائق لاحتساب خمول
                 </label>
-                <div style={{ position: 'relative' }}>
+                <div className="trackersettings-style-17">
                   <input
                     type="number"
                     min="1"
                     value={idleThresholdMins}
                     onChange={(e) => setIdleThresholdMins(e.target.value)}
-                    style={{
-                      padding: '0.8rem 1rem',
-                      borderRadius: '12px',
-                      border: '1px solid var(--border-color)',
-                      background: 'var(--glass-bg)',
-                      color: 'var(--text-primary)',
-                      fontSize: '1.1rem',
-                      outline: 'none',
-                      transition: 'border-color 0.3s',
-                      width: '100%',
-                      paddingLeft: '60px'
-                    }}
+                    className="trackersettings-style-18"
                     onFocus={(e) => e.target.style.borderColor = 'var(--theme-color)'}
                     onBlur={(e) => e.target.style.borderColor = 'var(--border-color)'}
                   />
-                  <span style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }}>دقيقة</span>
+                  <span className="trackersettings-style-19">دقيقة</span>
                 </div>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+                <span className="trackersettings-style-20">
                   يبدأ البرنامج في اعتبار الموظف (خامل) بعد هذه المدة من عدم تحريك الماوس.
                 </span>
               </div>
             </div>
 
             {/* Allowed Idle Threshold */}
-            <div className="form-section" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '2rem', marginBottom: '2rem' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--theme-color)' }}>
+            <div className="form-section trackersettings-style-21" >
+              <h3 className="trackersettings-style-22">
                 <Clock size={24} />
                 الحد الأقصى للخمول المسموح به
               </h3>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxWidth: '400px' }}>
-                <label style={{ color: 'var(--text-primary)', fontWeight: '600' }}>
+              <div className="trackersettings-style-23">
+                <label className="trackersettings-style-24">
                   المدة الإضافية المسموحة قبل تسجيل الخمول بالدقائق
                 </label>
-                <div style={{ position: 'relative' }}>
+                <div className="trackersettings-style-25">
                   <input
                     type="number"
                     min="0"
                     value={allowedIdleThresholdMins}
                     onChange={(e) => setAllowedIdleThresholdMins(e.target.value)}
-                    style={{
-                      padding: '0.8rem 1rem',
-                      borderRadius: '12px',
-                      border: '1px solid var(--border-color)',
-                      background: 'var(--glass-bg)',
-                      color: 'var(--text-primary)',
-                      fontSize: '1.1rem',
-                      outline: 'none',
-                      transition: 'border-color 0.3s',
-                      width: '100%',
-                      paddingLeft: '60px'
-                    }}
+                    className="trackersettings-style-26"
                     onFocus={(e) => e.target.style.borderColor = 'var(--theme-color)'}
                     onBlur={(e) => e.target.style.borderColor = 'var(--border-color)'}
                   />
-                  <span style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }}>دقيقة</span>
+                  <span className="trackersettings-style-27">دقيقة</span>
                 </div>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+                <span className="trackersettings-style-28">
                   إذا توقف الموظف لمدة (الحد الأقصى للخمول + المسموح به)، سيتم تسجيل الخمول. مثلاً: 5 + 5 = 10 دقائق لتسجيل الخمول.
                 </span>
               </div>
             </div>
 
             {/* Check Interval */}
-            <div className="form-section" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '2rem', marginBottom: '2rem' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--theme-color)' }}>
+            <div className="form-section trackersettings-style-29" >
+              <h3 className="trackersettings-style-30">
                 <Zap size={24} />
                 معدل الفحص الدوري (Check Interval)
               </h3>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxWidth: '400px' }}>
-                <label style={{ color: 'var(--text-primary)', fontWeight: '600' }}>
+              <div className="trackersettings-style-31">
+                <label className="trackersettings-style-32">
                   معدل قراءة الأداة لنشاط الجهاز بالثواني
                 </label>
-                <div style={{ position: 'relative' }}>
+                <div className="trackersettings-style-33">
                   <input
                     type="number"
                     min="1"
                     value={checkIntervalSecs}
                     onChange={(e) => setCheckIntervalSecs(e.target.value)}
-                    style={{
-                      padding: '0.8rem 1rem',
-                      borderRadius: '12px',
-                      border: '1px solid var(--border-color)',
-                      background: 'var(--glass-bg)',
-                      color: 'var(--text-primary)',
-                      fontSize: '1.1rem',
-                      outline: 'none',
-                      transition: 'border-color 0.3s',
-                      width: '100%',
-                      paddingLeft: '60px'
-                    }}
+                    className="trackersettings-style-34"
                     onFocus={(e) => e.target.style.borderColor = 'var(--theme-color)'}
                     onBlur={(e) => e.target.style.borderColor = 'var(--border-color)'}
                   />
-                  <span style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }}>ثانية</span>
+                  <span className="trackersettings-style-35">ثانية</span>
                 </div>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+                <span className="trackersettings-style-36">
                   يُنصح بوضع ثانية واحدة للحصول على أدق قراءة ممكنة. زيادة الرقم توفر استهلاك طفيف في الذاكرة ولكن قد تقلل من دقة التتبع.
                 </span>
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+            <div className="trackersettings-style-37">
               <button
                 type="submit"
                 disabled={saving}

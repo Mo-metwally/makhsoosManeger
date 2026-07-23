@@ -3,7 +3,7 @@ import { User, Shield, Cat, Crown, Star, Smile, Briefcase, Check, Save, Flame, Z
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import api from '../services/api';
-import './Account.css';
+import "./Account.scss";
 
 import AvatarIcon, { avatarOptions } from '../components/AvatarIcon';
 
@@ -201,18 +201,14 @@ const Account = () => {
   return (
     <div className="account-container">
       <header className="page-header">
-        <div className="page-title-wrapper" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div className="page-title-wrapper account-style-1" >
+          <div className="account-style-2">
             <User size={28} className="title-icon text-blue" />
             <h1 className="page-title gradient-title">إعدادات الحساب</h1>
           </div>
           {user?.isTrackerOnline && (
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '0.4rem',
-              background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)',
-              color: '#22c55e', padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.9rem', fontWeight: 'bold'
-            }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', animation: 'pulse 2s infinite' }}></div>
+            <div className="account-style-3">
+              <div className="account-style-4"></div>
               التراكر متصل
             </div>
           )}
@@ -222,50 +218,50 @@ const Account = () => {
       <div className="account-content">
         {/* Shift Info Section */}
         {myShifts.length > 0 && (
-          <div style={{ marginBottom: '2rem' }}>
-            <h2 style={{ color: 'var(--text-primary)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="account-style-5">
+            <h2 className="account-style-6">
               <Info size={24} className="text-blue" />
               بيانات الوردية الحالية
             </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+            <div className="account-style-7">
               {myShifts.map(shift => {
                 const shiftUsers = shift.Users || [];
                 return (
-                  <div key={shift.id} className="account-card" style={{ padding: '1.5rem 2rem', background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                    <h3 style={{ fontSize: '1.4rem', color: 'var(--text-primary)', margin: 0 }}>{shift.name}</h3>
+                  <div key={shift.id} className="account-card account-style-8" >
+                    <h3 className="account-style-9">{shift.name}</h3>
 
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', direction: 'ltr' }}>
+                    <div className="account-style-10">
+                      <span className="account-style-11">
                         <Clock size={16} className="text-blue" />
                         {shift.endTime} - {shift.startTime}
                       </span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <span className="account-style-12">
                         <Calendar size={16} className="text-blue" />
                         {(shift.workingDays || []).map(dId => DAYS_OF_WEEK.find(d => d.id === dId)?.label).join('، ')}
                       </span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <span className="account-style-13">
                         <Users size={16} className="text-blue" />
                         {shiftUsers.length} موظف
                       </span>
                     </div>
 
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem 0.8rem', borderRadius: '6px' }}>
+                    <div className="account-style-14">
+                      <span className="account-style-15">
                         <strong>نظام الإجازات:</strong>
                         {shift.dayOffType === 'Fixed' ? 'ثابت' : 'متغير'}
                       </span>
                       {shift.dayOffType === 'Fixed' ? (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem 0.8rem', borderRadius: '6px' }}>
+                        <span className="account-style-16">
                           <strong>الأيام:</strong>
                           {(shift.fixedDaysOff || []).map(dId => DAYS_OF_WEEK.find(d => d.id === dId)?.label).join('، ') || 'لا يوجد'}
                         </span>
                       ) : (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.05)', padding: '0.4rem 0.8rem', borderRadius: '6px' }}>
+                        <span className="account-style-17">
                           <strong>الأيام المسموحة شهرياً:</strong>
                           {shift.variableDaysOffCount || 0} أيام
                         </span>
                       )}
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '0.4rem 0.8rem', borderRadius: '6px' }}>
+                      <span className="account-style-18">
                         <strong>فترة السماح للتأخير:</strong>
                         {localStorage.getItem('allowedDelayMinutes') || '15'} دقيقة
                       </span>
@@ -283,7 +279,7 @@ const Account = () => {
               <h3 className="section-title">المعلومات الأساسية</h3>
 
               <div className="form-row two-cols">
-                <div className="form-group" style={{ position: 'relative' }}>
+                <div className="form-group account-style-19" >
                   <label>اسم المستخدم (للتسجيل)</label>
                   <input
                     type="text"
@@ -298,14 +294,14 @@ const Account = () => {
                       backgroundColor: (usernameStatus === 'taken' || usernameStatus === 'empty') ? 'rgba(239, 68, 68, 0.05)' : usernameStatus === 'available' ? 'rgba(34, 197, 94, 0.05)' : ''
                     }}
                   />
-                  <div style={{ position: 'absolute', left: '1rem', top: '45%', transform: 'translateY(-50%)' }}>
-                    {usernameStatus === 'checking' && <Loader2 className="spinning text-secondary" size={18} style={{ position: 'absolute', left: '0.1rem', top: '85%', transform: 'translateY(-5%)' }} />}
+                  <div className="account-style-20">
+                    {usernameStatus === 'checking' && <Loader2 className="spinning text-secondary account-style-21" size={18}  />}
                     {usernameStatus === 'available' && <Check color="#22c55e" size={18} />}
                     {usernameStatus === 'taken' && <XCircle color="#ef4444" size={18} />}
                   </div>
-                  {usernameStatus === 'empty' && <span style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '6px', display: 'block', fontWeight: 'bold' }}>اسم المستخدم مطلوب ولا يمكن أن يكون فارغاً أو يحتوي على مسافات.</span>}
-                  {usernameStatus === 'taken' && <span style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '6px', display: 'block', fontWeight: 'bold' }}>هذا الاسم مسجل بالفعل! يرجى اختيار اسم آخر.</span>}
-                  {usernameStatus === 'available' && <span style={{ color: '#22c55e', fontSize: '0.85rem', marginTop: '6px', display: 'block', fontWeight: 'bold' }}>الاسم متاح! يمكنك استخدامه.</span>}
+                  {usernameStatus === 'empty' && <span className="account-style-22">اسم المستخدم مطلوب ولا يمكن أن يكون فارغاً أو يحتوي على مسافات.</span>}
+                  {usernameStatus === 'taken' && <span className="account-style-23">هذا الاسم مسجل بالفعل! يرجى اختيار اسم آخر.</span>}
+                  {usernameStatus === 'available' && <span className="account-style-24">الاسم متاح! يمكنك استخدامه.</span>}
                 </div>
                 <div className="form-group">
                   <label>الاسم الكامل</label>
@@ -359,21 +355,7 @@ const Account = () => {
                   <button
                     type="button"
                     onClick={() => setIsPwdModalOpen(true)}
-                    style={{
-                      background: 'rgba(59, 130, 246, 0.1)',
-                      color: 'var(--accent-blue)',
-                      border: '1px solid rgba(59, 130, 246, 0.3)',
-                      padding: '0.85rem',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontWeight: 'bold',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      width: '100%',
-                      justifyContent: 'center',
-                      transition: 'all 0.2s'
-                    }}
+                    className="account-style-25"
                     onMouseOver={(e) => {
                       e.currentTarget.style.background = 'var(--accent-blue)';
                       e.currentTarget.style.color = '#fff';
@@ -392,36 +374,27 @@ const Account = () => {
 
             <div className="form-section">
               <h3 className="section-title">البيانات المالية</h3>
-              <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '12px', padding: '1rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'flex-start', gap: '0.8rem' }}>
-                <TriangleAlert color="#ef4444" size={24} style={{ flexShrink: 0, marginTop: '2px' }} />
+              <div className="account-style-26">
+                <TriangleAlert color="#ef4444" size={24} className="account-style-27" />
                 <div>
-                  <h4 style={{ color: '#ef4444', marginBottom: '0.3rem', fontSize: '0.95rem' }}>تنويه هام جدًا</h4>
-                  <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.85rem', lineHeight: '1.5' }}>
+                  <h4 className="account-style-28">تنويه هام جدًا</h4>
+                  <p className="account-style-29">
                     بيانات التحويل المكتوبة هنا هي <strong>مسؤولية صاحب الحساب بالكامل</strong>، وسوف يتم إرسال كافة مستحقاتك المالية عليها. يرجى التأكد من صحتها ومراجعتها بعناية.
                   </p>
                 </div>
               </div>
 
-              <div style={{ position: 'relative', marginTop: '1.5rem', marginBottom: '1.5rem', padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '12px' }}>
+              <div className="account-style-30">
                 {isWalletLocked && (
-                  <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(3px)', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'white' }}>
+                  <div className="account-style-31">
+                    <div className="account-style-32">
                       <Lock size={24} />
-                      <h4 style={{ margin: 0, fontSize: '1.1rem' }}>بيانات الدفع  </h4>
+                      <h4 className="account-style-33">بيانات الدفع  </h4>
                     </div>
                     <button
                       type="button"
                       onClick={() => setShowVerifyPwdModal(true)}
-                      style={{
-                        backgroundColor: 'var(--theme-color)',
-                        color: 'white',
-                        border: 'none',
-                        padding: '0.6rem 1.2rem',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontWeight: 'bold',
-                        transition: 'opacity 0.2s'
-                      }}
+                      className="account-style-34"
                       onMouseOver={(e) => e.target.style.opacity = '0.9'}
                       onMouseOut={(e) => e.target.style.opacity = '1'}
                     >
@@ -430,9 +403,9 @@ const Account = () => {
                   </div>
                 )}
 
-                <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                <div className="form-group account-style-35" >
                   <label>نوع حساب الاستلام</label>
-                  <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                  <div className="account-style-36">
                     <label style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.8rem', padding: '1.5rem', borderRadius: '16px', border: `2px solid ${formData.walletType === 'E-Wallet' ? 'var(--theme-color)' : 'var(--border-color)'}`, background: formData.walletType === 'E-Wallet' ? 'rgba(var(--theme-color-rgb, 59, 130, 246), 0.1)' : 'rgba(255,255,255,0.02)', cursor: 'pointer', transition: 'all 0.3s', boxShadow: formData.walletType === 'E-Wallet' ? '0 8px 20px rgba(59, 130, 246, 0.2)' : 'none' }}>
                       <input
                         type="radio"
@@ -440,13 +413,13 @@ const Account = () => {
                         value="E-Wallet"
                         checked={formData.walletType === 'E-Wallet'}
                         onChange={handleChange}
-                        style={{ display: 'none' }}
+                        className="account-style-37"
                         disabled={isWalletLocked}
                       />
                       <Wallet size={32} color={formData.walletType === 'E-Wallet' ? 'var(--theme-color)' : 'var(--text-secondary)'} />
                       <span style={{ fontWeight: formData.walletType === 'E-Wallet' ? 'bold' : 'normal', color: formData.walletType === 'E-Wallet' ? 'var(--theme-color)' : 'var(--text-primary)', fontSize: '1.1rem' }}>محفظة إلكترونية</span>
                       {formData.walletType === 'E-Wallet' && (
-                        <CheckCircle size={20} color="var(--theme-color)" style={{ position: 'absolute', top: '10px', right: '10px' }} />
+                        <CheckCircle size={20} color="var(--theme-color)" className="account-style-38" />
                       )}
                     </label>
 
@@ -457,13 +430,13 @@ const Account = () => {
                         value="InstaPay"
                         checked={formData.walletType === 'InstaPay'}
                         onChange={handleChange}
-                        style={{ display: 'none' }}
+                        className="account-style-39"
                         disabled={isWalletLocked}
                       />
                       <Zap size={32} color={formData.walletType === 'InstaPay' ? '#a855f7' : 'var(--text-secondary)'} />
                       <span style={{ fontWeight: formData.walletType === 'InstaPay' ? 'bold' : 'normal', color: formData.walletType === 'InstaPay' ? '#a855f7' : 'var(--text-primary)', fontSize: '1.1rem' }}>انستا باي (InstaPay)</span>
                       {formData.walletType === 'InstaPay' && (
-                        <CheckCircle size={20} color="#a855f7" style={{ position: 'absolute', top: '10px', right: '10px' }} />
+                        <CheckCircle size={20} color="#a855f7" className="account-style-40" />
                       )}
                     </label>
                   </div>
@@ -488,7 +461,7 @@ const Account = () => {
 
             <div className="form-section">
               <h3 className="section-title">مظهر التطبيق (الوضع النهاري/الليلي)</h3>
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+              <div className="account-style-41">
                 <button
                   type="button"
                   onClick={() => handleModeChange('dark')}
@@ -542,8 +515,8 @@ const Account = () => {
                   return (
                     <div
                       key={opt.id}
-                      className="avatar-item-container"
-                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}
+                      className="avatar-item-container account-style-42"
+                      
                     >
                       <div
                         className={`avatar-option ${selectedAvatar === opt.id ? 'selected' : ''}`}
@@ -565,8 +538,8 @@ const Account = () => {
               </div>
             </div>
 
-            <div className="form-actions" style={{ justifyContent: 'flex-start', marginTop: '2rem' }}>
-              <button type="submit" className="btn-save" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="form-actions account-style-43" >
+              <button type="submit" className="btn-save account-style-44" >
                 <Save size={18} />
                 <span>حفظ التعديلات</span>
               </button>
@@ -616,13 +589,13 @@ const Account = () => {
         <div className="modal-overlay active" onClick={() => setIsResetModalOpen(false)}>
           <div className="modal-content warning-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <h2 className="account-style-45">
                 <TriangleAlert size={24} />
                 إحترس (إعادة تعيين)
               </h2>
               <button className="close-btn" onClick={() => setIsResetModalOpen(false)}>&times;</button>
             </div>
-            <p style={{ marginBottom: '2rem', fontSize: '1.1rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+            <p className="account-style-46">
               أنت على وشك مسح <strong>جميع بيانات الموقع نهائياً</strong>، بما في ذلك سجلات المكالمات وكل الإعدادات التي قمت بها.
               <br /><br />
               هل أنت متأكد من رغبتك في الاستمرار؟ <strong>هذا الإجراء لا يمكن التراجع عنه.</strong>
@@ -631,8 +604,8 @@ const Account = () => {
               <button type="button" className="btn-cancel" onClick={() => setIsResetModalOpen(false)}>إلغاء</button>
               <button
                 type="button"
-                className="btn-save"
-                style={{ backgroundColor: '#ef4444', color: 'white', border: 'none' }}
+                className="btn-save account-style-47"
+                
                 onClick={confirmReset}
               >
                 نعم، احذف كل شيء
@@ -644,19 +617,19 @@ const Account = () => {
 
       {showVerifyPwdModal && (
         <div className="modal-overlay active" onClick={() => setShowVerifyPwdModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+          <div className="modal-content account-style-48" onClick={(e) => e.stopPropagation()} >
             <div className="modal-header">
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <h2 className="account-style-49">
                 <Lock size={24} className="text-blue" />
                 تأكيد هويتك
               </h2>
               <button className="close-btn" onClick={() => setShowVerifyPwdModal(false)}>&times;</button>
             </div>
             <div className="modal-body">
-              <p style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>
+              <p className="account-style-50">
                 يرجى إدخال كلمة مرور حسابك لتتمكن من تعديل بيانات الدفع والمحفظة الإلكترونية.
               </p>
-              {verifyPwdError && <div className="error-message" style={{ color: '#ef4444', marginBottom: '1rem', background: 'rgba(239, 68, 68, 0.1)', padding: '0.5rem', borderRadius: '4px' }}>{verifyPwdError}</div>}
+              {verifyPwdError && <div className="error-message account-style-51" >{verifyPwdError}</div>}
               <div className="form-group">
                 <label>كلمة المرور</label>
                 <input
@@ -664,13 +637,13 @@ const Account = () => {
                   value={verifyPwdStr}
                   onChange={(e) => setVerifyPwdStr(e.target.value)}
                   required
-                  style={{ width: '100%' }}
+                  className="account-style-52"
                   onKeyDown={(e) => e.key === 'Enter' && handleVerifyPassword()}
                   autoFocus
                 />
               </div>
             </div>
-            <div className="modal-footer" style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+            <div className="modal-footer account-style-53" >
               <button type="button" className="btn-cancel" onClick={() => setShowVerifyPwdModal(false)}>إلغاء</button>
               <button type="button" className="btn-save" onClick={handleVerifyPassword}>تأكيد</button>
             </div>
@@ -680,53 +653,53 @@ const Account = () => {
 
       {isPwdModalOpen && (
         <div className="modal-overlay active" onClick={() => setIsPwdModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+          <div className="modal-content account-style-54" onClick={(e) => e.stopPropagation()} >
             <div className="modal-header">
-              <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <h2 className="account-style-55">
                 <KeyRound size={24} className="text-blue" />
                 تغيير كلمة المرور
               </h2>
               <button className="close-btn" onClick={() => setIsPwdModalOpen(false)}>&times;</button>
             </div>
             <div className="modal-body">
-              {pwdError && <div className="error-message" style={{ color: '#ef4444', marginBottom: '1rem', background: 'rgba(239, 68, 68, 0.1)', padding: '0.5rem', borderRadius: '4px' }}>{pwdError}</div>}
-              {pwdStatus && <div className="success-message" style={{ color: '#22c55e', marginBottom: '1rem', background: 'rgba(34, 197, 94, 0.1)', padding: '0.5rem', borderRadius: '4px' }}>{pwdStatus}</div>}
-              <form onSubmit={submitChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {pwdError && <div className="error-message account-style-56" >{pwdError}</div>}
+              {pwdStatus && <div className="success-message account-style-57" >{pwdStatus}</div>}
+              <form onSubmit={submitChangePassword} className="account-style-58">
                 <div className="form-group">
                   <label>كلمة المرور القديمة</label>
-                  <div style={{ position: 'relative' }}>
-                    <input type={showOldPwd ? "text" : "password"} name="oldPassword" value={pwdForm.oldPassword} onChange={handlePwdChange} required style={{ paddingLeft: '40px', width: '100%' }} />
-                    <button type="button" onClick={() => setShowOldPwd(!showOldPwd)} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                  <div className="account-style-59">
+                    <input type={showOldPwd ? "text" : "password"} name="oldPassword" value={pwdForm.oldPassword} onChange={handlePwdChange} required className="account-style-60" />
+                    <button type="button" onClick={() => setShowOldPwd(!showOldPwd)} className="account-style-61">
                       {showOldPwd ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
                 </div>
                 <div className="form-group">
                   <label>كلمة المرور الجديدة</label>
-                  <div style={{ position: 'relative' }}>
+                  <div className="account-style-62">
                     <input type={showNewPwd ? "text" : "password"} name="newPassword" value={pwdForm.newPassword} onChange={handlePwdChange} required style={{ paddingLeft: '40px', width: '100%', borderColor: (pwdForm.newPassword && pwdForm.newPassword.length < 6) ? '#ef4444' : '' }} />
-                    <button type="button" onClick={() => setShowNewPwd(!showNewPwd)} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                    <button type="button" onClick={() => setShowNewPwd(!showNewPwd)} className="account-style-63">
                       {showNewPwd ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
                   {pwdForm.newPassword && pwdForm.newPassword.length < 6 && (
-                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '0.3rem', display: 'block' }}>كلمة المرور يجب أن لا تقل عن 6 أحرف</span>
+                    <span className="account-style-64">كلمة المرور يجب أن لا تقل عن 6 أحرف</span>
                   )}
                 </div>
                 <div className="form-group">
                   <label>تأكيد كلمة المرور الجديدة</label>
-                  <div style={{ position: 'relative' }}>
+                  <div className="account-style-65">
                     <input type={showConfirmPwd ? "text" : "password"} name="confirmPassword" value={pwdForm.confirmPassword} onChange={handlePwdChange} required style={{ paddingLeft: '40px', width: '100%', borderColor: (pwdForm.confirmPassword && pwdForm.confirmPassword !== pwdForm.newPassword) ? '#ef4444' : '' }} />
-                    <button type="button" onClick={() => setShowConfirmPwd(!showConfirmPwd)} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                    <button type="button" onClick={() => setShowConfirmPwd(!showConfirmPwd)} className="account-style-66">
                       {showConfirmPwd ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
                   {pwdForm.confirmPassword && pwdForm.confirmPassword !== pwdForm.newPassword && (
-                    <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '0.3rem', display: 'block' }}>كلمتا المرور غير متطابقتين</span>
+                    <span className="account-style-67">كلمتا المرور غير متطابقتين</span>
                   )}
                 </div>
-                <div className="modal-actions" style={{ marginTop: '1rem' }}>
-                  <button type="submit" className="btn-save" style={{ width: '100%' }} disabled={pwdForm.newPassword.length < 6 || pwdForm.newPassword !== pwdForm.confirmPassword}>حفظ كلمة المرور</button>
+                <div className="modal-actions account-style-68" >
+                  <button type="submit" className="btn-save account-style-69"  disabled={pwdForm.newPassword.length < 6 || pwdForm.newPassword !== pwdForm.confirmPassword}>حفظ كلمة المرور</button>
                 </div>
               </form>
             </div>

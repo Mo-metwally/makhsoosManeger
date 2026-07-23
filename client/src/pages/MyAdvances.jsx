@@ -4,8 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { useParams, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
-import './MyAdvances.css';
-import './Expenses.css'; // For advanced table styles
+import "./MyAdvances.scss";
+import "./Expenses.scss"; // For advanced table styles
 
 const MyAdvances = () => {
   const { user } = useAuth();
@@ -270,12 +270,12 @@ const MyAdvances = () => {
           <Wallet className="theme-color" size={32} />
           <h1>{userId && viewedUserName ? `محفظة ${viewedUserName}` : 'محفظتي'}</h1>
         </div>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div className="myadvances-style-1">
           <input
             type="month"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            style={{ padding: '0.6rem 1rem', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--glass-bg)', color: 'var(--text-primary)', outline: 'none' }}
+            className="myadvances-style-2"
           />
           {!userId && (
             <button className="add-expense-btn" onClick={() => setShowModal(true)}>
@@ -287,22 +287,22 @@ const MyAdvances = () => {
       </div>
 
       {isDataLoaded && baseSalary === 0 && (
-        <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '12px', padding: '1.5rem', marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', animation: 'fadeIn 0.5s ease-out' }}>
-          <AlertTriangle color="#ef4444" size={32} style={{ flexShrink: 0 }} />
+        <div className="myadvances-style-3">
+          <AlertTriangle color="#ef4444" size={32} className="myadvances-style-4" />
           <div>
-            <h3 style={{ color: '#ef4444', marginBottom: '0.5rem', fontSize: '1.1rem' }}>تنبيه هام: البيانات المالية غير مكتملة</h3>
-            <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.95rem', lineHeight: '1.5' }}>
+            <h3 className="myadvances-style-5">تنبيه هام: البيانات المالية غير مكتملة</h3>
+            <p className="myadvances-style-6">
               يجب تسجيل البيانات المالية الخاصة بالحساب (مثل الراتب الأساسي) حتى يعمل النظام بشكل صحيح وتتمكن من رؤية تفاصيل مستحقاتك بدقة. يرجى مراجعة الإدارة لاستكمال إعداد الحساب.
             </p>
           </div>
         </div>
       )}
 
-      <section className="expenses-hero-section" style={{ position: 'relative', marginTop: '2rem', marginBottom: '2rem' }}>
+      <section className="expenses-hero-section myadvances-style-7" >
         <div className="expenses-main-row">
-          <div className="expenses-inputs-container" style={{ flexDirection: 'column', alignItems: 'stretch', justifyContent: 'center' }}>
-            <div className="opening-balance-badge" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '1rem' }}>
-              <span className="badge-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="expenses-inputs-container myadvances-style-8" >
+            <div className="opening-balance-badge myadvances-style-9" >
+              <span className="badge-label myadvances-style-10" >
                 <DollarSign size={20} />
                 الراتب الأساسي:
               </span>
@@ -311,10 +311,10 @@ const MyAdvances = () => {
               </span>
             </div>
 
-            <div className="input-card" style={{ borderRight: '4px solid #10b981' }}>
+            <div className="input-card myadvances-style-11" >
               <div className="input-card-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <h3 style={{ color: '#10b981', margin: 0 }}>إجمالي الإضافي</h3>
+                <div className="myadvances-style-12">
+                  <h3 className="myadvances-style-13">إجمالي الإضافي</h3>
                 </div>
               </div>
               <div className="input-wrapper">
@@ -325,18 +325,18 @@ const MyAdvances = () => {
               </div>
             </div>
 
-            <div className="opening-balance-badge" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: '1rem', background: 'transparent', border: 'none', padding: '0' }}>
-              <span className="badge-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)' }}>
+            <div className="opening-balance-badge myadvances-style-14" >
+              <span className="badge-label myadvances-style-15" >
                 إحصائيات الحضور:
               </span>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', padding: '0.3rem 0.8rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold' }}>
+              <div className="myadvances-style-16">
+                <span className="myadvances-style-17">
                   حضور: {detailedStats.presentCount}
                 </span>
-                <span style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6', padding: '0.3rem 0.8rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                <span className="myadvances-style-18">
                   إجازات: {detailedStats.dayOffCount}
                 </span>
-                <span style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', padding: '0.3rem 0.8rem', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                <span className="myadvances-style-19">
                   غياب: {detailedStats.absentCount}
                 </span>
               </div>
@@ -367,7 +367,7 @@ const MyAdvances = () => {
               </div>
               <div className="visa-expires">
                 <span>STATUS</span>
-                <div className="date" style={{ color: '#10b981' }}>
+                <div className="date myadvances-style-20" >
                   ACTIVE
                 </div>
               </div>
@@ -378,14 +378,14 @@ const MyAdvances = () => {
 
       <div className="stats-row">
         <div
-          className="stat-card stat-card-clickable"
-          style={{ border: '1px solid rgba(239, 68, 68, 0.3)', cursor: 'pointer', transition: 'all 0.3s ease' }}
+          className="stat-card stat-card-clickable myadvances-style-21"
+          
           onClick={() => setShowDeductionsModal(true)}
         >
-          <div className="stat-icon" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}><DollarSign size={24} /></div>
+          <div className="stat-icon myadvances-style-22" ><DollarSign size={24} /></div>
           <div className="stat-info">
-            <h3 style={{ color: '#ef4444' }}>إجمالي الخصميات</h3>
-            <p style={{ color: '#ef4444' }}>{totalDeductions.toLocaleString()} ج.م</p>
+            <h3 className="myadvances-style-23">إجمالي الخصميات</h3>
+            <p className="myadvances-style-24">{totalDeductions.toLocaleString()} ج.م</p>
           </div>
         </div>
         <div className="stat-card stat-card-pending">
@@ -402,11 +402,11 @@ const MyAdvances = () => {
             <p>{totalApproved.toLocaleString()} ج.م</p>
           </div>
         </div>
-        <div className="stat-card stat-card-settled" style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
-          <div className="stat-icon" style={{ background: 'rgba(34, 197, 94, 0.2)', color: '#22c55e' }}><CheckCircle size={24} /></div>
+        <div className="stat-card stat-card-settled myadvances-style-25" >
+          <div className="stat-icon myadvances-style-26" ><CheckCircle size={24} /></div>
           <div className="stat-info">
-            <h3 style={{ color: '#22c55e' }}>سلف مسددة (تم التسوية)</h3>
-            <p style={{ color: '#22c55e' }}>{totalSettled.toLocaleString()} ج.م</p>
+            <h3 className="myadvances-style-27">سلف مسددة (تم التسوية)</h3>
+            <p className="myadvances-style-28">{totalSettled.toLocaleString()} ج.م</p>
           </div>
         </div>
         <div className="stat-card stat-card-rejected">
@@ -419,29 +419,29 @@ const MyAdvances = () => {
       </div>
 
       {adjustments.length > 0 && (
-        <div className="table-container" style={{ marginTop: '2rem', marginBottom: '2rem' }}>
-          <div className="advanced-table-wrapper fade-in" style={{ background: 'var(--glass-bg)', border: 'var(--glass-border)', borderRadius: '16px', padding: '1.5rem' }}>
-            <h3 style={{ marginBottom: '1.5rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div className="table-container myadvances-style-29" >
+          <div className="advanced-table-wrapper fade-in myadvances-style-30" >
+            <h3 className="myadvances-style-31">
               <Edit size={24} className="theme-color" />
               سجل التعديلات اليدوية (مكافآت / جزاءات)
             </h3>
             <table className="expenses-advanced-table">
               <thead>
                 <tr>
-                  <th style={{ textAlign: 'center' }}>التاريخ والوقت</th>
-                  <th style={{ textAlign: 'center' }}>النوع</th>
-                  <th style={{ textAlign: 'center' }}>المبلغ</th>
-                  <th style={{ textAlign: 'center' }}>السبب</th>
-                  {(user?.role === 'Admin' || user?.role === 'SuperAdmin') && <th style={{ textAlign: 'center' }}>إجراءات</th>}
+                  <th className="myadvances-style-32">التاريخ والوقت</th>
+                  <th className="myadvances-style-33">النوع</th>
+                  <th className="myadvances-style-34">المبلغ</th>
+                  <th className="myadvances-style-35">السبب</th>
+                  {(user?.role === 'Admin' || user?.role === 'SuperAdmin') && <th className="myadvances-style-36">إجراءات</th>}
                 </tr>
               </thead>
               <tbody>
                 {currentAdjustments.map(adj => (
                   <tr key={adj.id}>
-                    <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }} dir="ltr">
+                    <td className="myadvances-style-37" dir="ltr">
                       {new Date(adj.createdAt).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' })}
                     </td>
-                    <td style={{ textAlign: 'center' }}>
+                    <td className="myadvances-style-38">
                       {adj.type === 'Addition' ? (
                         <span className="status-badge approved"><CheckCircle size={14} /> إضافي (مكافأة)</span>
                       ) : (
@@ -451,19 +451,19 @@ const MyAdvances = () => {
                     <td style={{ textAlign: 'center', color: adj.type === 'Addition' ? '#10b981' : '#ef4444', fontWeight: 'bold' }}>
                       <span dir="ltr">{adj.type === 'Addition' ? '+' : '-'}{adj.amount.toLocaleString()}</span> ج.م
                     </td>
-                    <td style={{ textAlign: 'center' }}>{adj.reason || 'بدون سبب'}</td>
+                    <td className="myadvances-style-39">{adj.reason || 'بدون سبب'}</td>
                     {(user?.role === 'Admin' || user?.role === 'SuperAdmin') && (
-                      <td style={{ textAlign: 'center' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                      <td className="myadvances-style-40">
+                        <div className="myadvances-style-41">
                           <button
-                            style={{ background: 'transparent', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: '0.2rem' }}
+                            className="myadvances-style-42"
                             onClick={() => openEditAdjustment(adj)}
                             title="تعديل"
                           >
                             <Edit size={18} />
                           </button>
                           <button
-                            style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.2rem' }}
+                            className="myadvances-style-43"
                             onClick={() => handleDeleteAdjustment(adj.id)}
                             title="حذف"
                           >
@@ -478,7 +478,7 @@ const MyAdvances = () => {
             </table>
 
             {totalAdjPages > 1 && (
-              <div className="pagination" style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '1.5rem' }}>
+              <div className="pagination myadvances-style-44" >
                 {Array.from({ length: totalAdjPages }, (_, i) => (
                   <button
                     key={i + 1}
@@ -503,8 +503,8 @@ const MyAdvances = () => {
       )}
 
       <div className="table-container">
-        <h2 style={{ marginBottom: '1.5rem', color: 'var(--text-primary)' }}>سجل الطلبات ({new Date(selectedMonth + '-01').toLocaleString('ar-EG', { month: 'long', year: 'numeric' })})</h2>
-        <div className="advanced-table-wrapper fade-in" style={{ background: 'var(--glass-bg)', border: 'var(--glass-border)', borderRadius: '16px', padding: '1rem' }}>
+        <h2 className="myadvances-style-45">سجل الطلبات ({new Date(selectedMonth + '-01').toLocaleString('ar-EG', { month: 'long', year: 'numeric' })})</h2>
+        <div className="advanced-table-wrapper fade-in myadvances-style-46" >
           <table className="expenses-advanced-table">
             <thead>
               <tr>
@@ -548,7 +548,7 @@ const MyAdvances = () => {
               ))}
 
               {detailedStats.latePenalty > 0 && (
-                <tr style={{ background: 'rgba(245, 158, 11, 0.05)' }}>
+                <tr className="myadvances-style-47">
                   <td>
                     <div className="date-cell">
                       <Clock size={14} />
@@ -561,17 +561,17 @@ const MyAdvances = () => {
                     </div>
                   </td>
                   <td>
-                    <span className="amount-cell" style={{ color: '#f59e0b', fontWeight: 'bold' }}>
+                    <span className="amount-cell myadvances-style-48" >
                       {detailedStats.latePenalty.toLocaleString()} ج.م
                     </span>
                   </td>
                   <td>
-                    <span className="details-text" style={{ color: '#f59e0b' }}>
+                    <span className="details-text myadvances-style-49" >
                       خصم تأخير ({detailedStats.lateMins} دقيقة)
                     </span>
                   </td>
                   <td>
-                    <span className="status-badge" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
+                    <span className="status-badge myadvances-style-50" >
                       خصم نظام
                     </span>
                   </td>
@@ -580,7 +580,7 @@ const MyAdvances = () => {
 
               {requests.length === 0 && systemRecords.length === 0 && detailedStats.latePenalty === 0 ? (
                 <tr>
-                  <td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                  <td colSpan="5" className="myadvances-style-51">
                     لا توجد سجلات مسجلة لهذا الشهر.
                   </td>
                 </tr>
@@ -600,7 +600,7 @@ const MyAdvances = () => {
                       </div>
                     </td>
                     <td>
-                      <span className="amount-cell" style={{ color: 'var(--text-primary)', fontWeight: 'bold' }}>
+                      <span className="amount-cell myadvances-style-52" >
                         {req.amount.toLocaleString()} ج.م
                       </span>
                     </td>
@@ -631,14 +631,14 @@ const MyAdvances = () => {
                 <h3>تقديم طلب سلفة</h3>
                 <p>قم بملء البيانات لتقديم طلب سلفة جديدة لمديرك.</p>
               </div>
-              <button className="close-btn" onClick={() => setShowModal(false)} style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '50%', padding: '0.5rem', alignSelf: 'flex-start' }}>
+              <button className="close-btn myadvances-style-53" onClick={() => setShowModal(false)} >
                 <X size={20} color="#fff" />
               </button>
             </div>
 
             <div className="modal-body-advanced">
               <div className="input-group">
-                <label style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'block', fontSize: '0.95rem' }}>قيمة السلفة المطلوبة (ج.م)</label>
+                <label className="myadvances-style-54">قيمة السلفة المطلوبة (ج.م)</label>
                 <div className="input-with-icon-advanced">
                   <DollarSign size={20} className="input-icon-advanced" />
                   <input
@@ -653,7 +653,7 @@ const MyAdvances = () => {
               </div>
 
               <div className="input-group">
-                <label style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'block', fontSize: '0.95rem' }}>سبب السلفة (اختياري)</label>
+                <label className="myadvances-style-55">سبب السلفة (اختياري)</label>
                 <textarea
                   placeholder="اكتب سبب طلبك هنا لتسهيل الموافقة..."
                   value={reason}
@@ -672,36 +672,36 @@ const MyAdvances = () => {
       )}
       {showDeductionsModal && (
         <div className="modal-overlay active">
-          <div className="modal-content glass-modal" style={{ maxWidth: '400px' }}>
+          <div className="modal-content glass-modal myadvances-style-56" >
             <div className="modal-header">
-              <h3 style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <h3 className="myadvances-style-57">
                 <DollarSign size={20} /> تفاصيل الخصميات
               </h3>
               <button className="close-btn" onClick={() => setShowDeductionsModal(false)}><X size={20} /></button>
             </div>
 
             <div className="modal-body">
-              <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '1rem', marginBottom: '1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)' }}>
+              <div className="myadvances-style-58">
+                <div className="myadvances-style-59">
+                  <div className="myadvances-style-60">
                     <Calendar size={18} />
                     <span>خصم الغياب ({detailedStats.absentCount} يوم)</span>
                   </div>
-                  <strong style={{ color: '#ef4444' }}>{detailedStats.absentPenalty} ج.م</strong>
+                  <strong className="myadvances-style-61">{detailedStats.absentPenalty} ج.م</strong>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)' }}>
+                <div className="myadvances-style-62">
+                  <div className="myadvances-style-63">
                     <Clock size={18} />
                     <span>خصم التأخير ({detailedStats.lateMins} دقيقة)</span>
                   </div>
-                  <strong style={{ color: '#ef4444' }}>{detailedStats.latePenalty} ج.م</strong>
+                  <strong className="myadvances-style-64">{detailedStats.latePenalty} ج.م</strong>
                 </div>
               </div>
 
-              <div style={{ background: 'rgba(239, 68, 68, 0.1)', padding: '1rem', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: 'var(--text-primary)', fontWeight: 'bold' }}>الإجمالي</span>
-                <strong style={{ color: '#ef4444', fontSize: '1.2rem' }}>{totalDeductions} ج.م</strong>
+              <div className="myadvances-style-65">
+                <span className="myadvances-style-66">الإجمالي</span>
+                <strong className="myadvances-style-67">{totalDeductions} ج.م</strong>
               </div>
             </div>
           </div>
@@ -710,45 +710,45 @@ const MyAdvances = () => {
 
       {showEditAdjustmentModal && editingAdjustment && (
         <div className="modal-overlay active">
-          <div className="modal-content glass-modal" style={{ maxWidth: '400px' }}>
+          <div className="modal-content glass-modal myadvances-style-68" >
             <div className="modal-header">
               <h3>تعديل {editAdjType === 'Addition' ? 'المكافأة' : 'الخصم'}</h3>
               <button className="close-btn" onClick={() => setShowEditAdjustmentModal(false)}><X size={20} /></button>
             </div>
             <div className="modal-body">
-              <form onSubmit={handleUpdateAdjustment} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'block' }}>النوع</label>
+              <form onSubmit={handleUpdateAdjustment} className="myadvances-style-69">
+                <div className="form-group myadvances-style-70" >
+                  <label className="myadvances-style-71">النوع</label>
                   <select
                     value={editAdjType}
                     onChange={(e) => setEditAdjType(e.target.value)}
-                    style={{ width: '100%', padding: '0.8rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: '#fff', outline: 'none' }}
+                    className="myadvances-style-72"
                   >
                     <option value="Addition">إضافي (مكافأة)</option>
                     <option value="Deduction">خصم (جزاء)</option>
                   </select>
                 </div>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'block' }}>المبلغ (ج.م)</label>
+                <div className="form-group myadvances-style-73" >
+                  <label className="myadvances-style-74">المبلغ (ج.م)</label>
                   <input
                     type="number"
                     value={editAdjAmount}
                     onChange={(e) => setEditAdjAmount(e.target.value)}
-                    style={{ width: '100%', padding: '0.8rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: '#fff', outline: 'none' }}
+                    className="myadvances-style-75"
                     required
                     min="1"
                   />
                 </div>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'block' }}>السبب</label>
+                <div className="form-group myadvances-style-76" >
+                  <label className="myadvances-style-77">السبب</label>
                   <input
                     type="text"
                     value={editAdjReason}
                     onChange={(e) => setEditAdjReason(e.target.value)}
-                    style={{ width: '100%', padding: '0.8rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: '#fff', outline: 'none' }}
+                    className="myadvances-style-78"
                   />
                 </div>
-                <button type="submit" className="submit-advanced-btn" style={{ marginTop: '1rem', width: '100%' }}>
+                <button type="submit" className="submit-advanced-btn myadvances-style-79" >
                   حفظ التعديل
                 </button>
               </form>
