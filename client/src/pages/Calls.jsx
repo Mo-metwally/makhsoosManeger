@@ -274,15 +274,17 @@ const Calls = () => {
     return 'badge-default';
   };
 
-  const formatDate = (isoString) => {
-    const date = new Date(isoString);
-    return date.toLocaleString('ar-EG', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const formatDate = (dateString, logicalDateOverride) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const timeString = date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+    
+    if (logicalDateOverride) {
+      return `${logicalDateOverride} ${timeString}`;
+    }
+    
+    const dateStr = date.toLocaleDateString('en-CA');
+    return `${dateStr} ${timeString}`;
   };
 
   return (
@@ -424,7 +426,7 @@ const Calls = () => {
                     <td className="date-cell">
                       <div className="date-content">
                         {isExpanded ? <ChevronDown size={14} className="cell-icon calls-style-10"  /> : <ChevronRight size={14} className="cell-icon calls-style-11"  />}
-                        <span>{formatDate(call.createdAt)}</span>
+                        <span>{formatDate(call.createdAt, call.date)}</span>
                       </div>
                     </td>
                   {renderEditableCell(call, 'agentName')}
@@ -717,7 +719,7 @@ const Calls = () => {
                           </div>
                           <div className="timeline-date">
                             <Calendar size={14} />
-                            {formatDate(histCall.createdAt)}
+                            {formatDate(histCall.createdAt, histCall.date)}
                           </div>
                         </div>
                         

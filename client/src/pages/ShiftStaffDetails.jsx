@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Users, ArrowRight, Loader, ShieldAlert, CheckCircle, XCircle, Clock, CalendarDays, PhoneCall, AlertTriangle, CalendarRange, Search, Filter, Activity, TrendingUp, DollarSign } from 'lucide-react';
+import { Users, ArrowRight, Loader, ShieldAlert, CheckCircle, XCircle, Clock, CalendarDays, PhoneCall, AlertTriangle, CalendarRange, Search, Filter, Activity, TrendingUp, DollarSign, Calendar } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import api from '../services/api';
 import AvatarIcon from '../components/AvatarIcon';

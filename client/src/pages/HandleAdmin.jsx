@@ -72,14 +72,19 @@ const HandleAdmin = () => {
     }
   };
 
-  const formatDate = (dateStr) => {
+  const formatDate = (dateStr, logicalDateOverride) => {
     if (!dateStr) return '-';
     const d = new Date(dateStr);
+    const h = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    
+    if (logicalDateOverride) {
+      return `${logicalDateOverride} ${h}:${min}`;
+    }
+    
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
-    const h = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
     return `${y}-${m}-${day} ${h}:${min}`;
   };
 
@@ -254,7 +259,7 @@ const HandleAdmin = () => {
                         <td className="date-cell">
                           <div className="date-content">
                             <Calendar size={14} className="cell-icon" />
-                            <span dir="ltr">{call.createdAt ? new Date(call.createdAt).toLocaleDateString('en-CA') : (call.originalDateString || '-')}</span>
+                            <span dir="ltr">{call.date || (call.createdAt ? new Date(call.createdAt).toLocaleDateString('en-CA') : (call.originalDateString || '-'))}</span>
                           </div>
                         </td>
                         <td><strong className="handleadmin-style-13">{call.supervisorName || '-'}</strong></td>
@@ -402,7 +407,7 @@ const HandleAdmin = () => {
                           </div>
                           <div className="timeline-date">
                             <Calendar size={14} />
-                            {formatDate(histCall.createdAt)}
+                            {formatDate(histCall.createdAt, histCall.date)}
                           </div>
                         </div>
 
