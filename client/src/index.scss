@@ -22,7 +22,7 @@
   --accent-blue: var(--theme-color);
   --theme-glow: rgba(59, 130, 246, 0.4);
   --btn-text-color: #ffffff;
-  
+
   --solid-bg: color-mix(in srgb, var(--theme-color) 12%, var(--base-bg));
 }
 
@@ -358,11 +358,11 @@
 :root[data-mode="light"] .custom-select-trigger.open {
   background-color: #f8fafc !important;
   border-color: var(--theme-color) !important;
-  box-shadow: 0 0 0 3px rgba(0,0,0,0.05) !important;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05) !important;
 }
 
 :root[data-mode="light"] .custom-select-option:hover {
-  background-color: rgba(0,0,0,0.05) !important;
+  background-color: rgba(0, 0, 0, 0.05) !important;
   color: var(--text-primary) !important;
 }
 
@@ -524,21 +524,40 @@ ul {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 99999;
+  animation: overlayFadeIn 0.3s ease;
+}
+
+.modal-overlay2 {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
   z-index: 9999;
   animation: overlayFadeIn 0.3s ease;
 }
 
 @keyframes overlayFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .modal-content {
   background-color: #0f172a;
   border: 1px solid var(--border-color);
   border-top: 2px solid var(--theme-color);
-  width: 90%;
-  max-width: 1100px;
+  width: 80%;
+  max-width: 900px;
   border-radius: 24px;
   padding: 2.5rem;
   max-height: 95vh;
@@ -548,8 +567,15 @@ ul {
 }
 
 @keyframes modalScaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .modal-header {

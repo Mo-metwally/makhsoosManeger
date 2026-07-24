@@ -243,42 +243,6 @@ const Sidebar = () => {
               <li className="nav-group">
                 <div
                   className="nav-section-header"
-                  onClick={() => { setIsHRMenuOpen(!isHRMenuOpen); if (!isOpen) setIsOpen(true); }}
-                  title="إدارة الموارد البشرية"
-                >
-                  <div className="section-title">
-                    <Users size={18} className="section-icon" />
-                    <span>إدارة الموارد البشرية</span>
-                  </div>
-                  {isHRMenuOpen ? <ChevronUp size={14} className="section-chevron" /> : <ChevronDown size={14} className="section-chevron" />}
-                </div>
-                <div className={`sub-menu ${isHRMenuOpen ? 'open' : ''}`}>
-                  <NavLink to="/staff-management" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                    <Users size={18} />
-                    <span>إدارة الموظفين</span>
-                  </NavLink>
-                  <NavLink to="/shift-management" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                    <Clock size={18} />
-                    <span>تنظيم الورديات</span>
-                  </NavLink>
-                  {/* <NavLink to="/attendance" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                    <Calendar size={18} />
-                    <span>الحضور والانصراف</span>
-                  </NavLink> */}
-                  <NavLink to="/dayoff-management" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                    <Moon size={18} />
-                    <span>طلبات الإجازات</span>
-                  </NavLink>
-                  <NavLink to="/permissions" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
-                    <Shield size={18} />
-                    <span>إدارة الحسابات</span>
-                  </NavLink>
-                </div>
-              </li>
-
-              <li className="nav-group">
-                <div
-                  className="nav-section-header"
                   onClick={() => { setIsOpsMenuOpen(!isOpsMenuOpen); if (!isOpen) setIsOpen(true); }}
                   title="العمليات والمتابعة"
                 >
@@ -312,6 +276,41 @@ const Sidebar = () => {
                 </div>
               </li>
 
+              <li className="nav-group">
+                <div
+                  className="nav-section-header"
+                  onClick={() => { setIsHRMenuOpen(!isHRMenuOpen); if (!isOpen) setIsOpen(true); }}
+                  title="إدارة الموارد البشرية"
+                >
+                  <div className="section-title">
+                    <Users size={18} className="section-icon" />
+                    <span>إدارة الموارد البشرية</span>
+                  </div>
+                  {isHRMenuOpen ? <ChevronUp size={14} className="section-chevron" /> : <ChevronDown size={14} className="section-chevron" />}
+                </div>
+                <div className={`sub-menu ${isHRMenuOpen ? 'open' : ''}`}>
+                  <NavLink to="/staff-management" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Users size={18} />
+                    <span>إدارة الموظفين</span>
+                  </NavLink>
+                  <NavLink to="/shift-management" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Clock size={18} />
+                    <span>تنظيم الورديات</span>
+                  </NavLink>
+                  {/* <NavLink to="/attendance" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Calendar size={18} />
+                    <span>الحضور والانصراف</span>
+                  </NavLink> */}
+                  <NavLink to="/dayoff-management" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Moon size={18} />
+                    <span>طلبات الإجازات</span>
+                  </NavLink>
+                  <NavLink to="/permissions" className={({ isActive }) => isActive ? "sub-nav-item active" : "sub-nav-item"}>
+                    <Shield size={18} />
+                    <span>إدارة الحسابات</span>
+                  </NavLink>
+                </div>
+              </li>
               <li className="nav-group">
                 <div
                   className="nav-section-header"

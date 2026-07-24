@@ -109,7 +109,7 @@ const HandleAdminReports = () => {
     setCurrentPage(1);
   }, [searchQuery, timeFilter, employeeFilter, sortBy]);
 
-  const uniqueEmployees = Array.from(new Set(attendanceLogs.map(l => l.User?.fullName).filter(Boolean)));
+  const uniqueEmployees = Array.from(new Set(attendanceLogs.map(l => l.User?.fullName?.trim()).filter(Boolean)));
 
   let filteredLogs = [...attendanceLogs];
   const now = new Date();
@@ -148,9 +148,8 @@ const HandleAdminReports = () => {
     });
   }
 
-  // Employee Filter
   if (employeeFilter !== 'all') {
-    filteredLogs = filteredLogs.filter(log => log.User?.fullName === employeeFilter);
+    filteredLogs = filteredLogs.filter(log => log.User?.fullName?.trim() === employeeFilter);
   }
 
   // Status Filter

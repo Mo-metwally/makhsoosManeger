@@ -68,8 +68,14 @@ const ExpensesAdd = () => {
   };
 
   const fetchAdminsData = () => {
-    api.get(`/budgets/admins?month=${selectedMonth}`)
-      .then(res => setAdmins(res.data))
+    api.get(`/budget/admins?month=${selectedMonth}`)
+      .then(res => {
+        if (Array.isArray(res.data)) {
+          setAdmins(res.data);
+        } else {
+          setAdmins([]);
+        }
+      })
       .catch(err => console.error('Error fetching admins:', err));
   };
 
@@ -95,7 +101,7 @@ const ExpensesAdd = () => {
   const handleDeleteCard = async () => {
     if (!cardToDelete) return;
     try {
-      await api.delete(`/budgets/${cardToDelete}`);
+      await api.delete(`/budget/${cardToDelete}`);
       showToast('تم إيقاف البطاقة بنجاح', 'success');
       setShowDeleteCardModal(false);
       setCardToDelete(null);
@@ -109,7 +115,7 @@ const ExpensesAdd = () => {
   const handleHardDeleteCard = async () => {
     if (!cardToHardDelete) return;
     try {
-      await api.delete(`/budgets/${cardToHardDelete}/hard`);
+      await api.delete(`/budget/${cardToHardDelete}/hard`);
       showToast('تم الحذف النهائي بنجاح', 'success');
       setShowHardDeleteModal(false);
       setCardToHardDelete(null);
@@ -122,7 +128,7 @@ const ExpensesAdd = () => {
 
   const handleActivateCard = async (budgetId) => {
     try {
-      await api.put(`/budgets/${budgetId}/activate`);
+      await api.put(`/budget/${budgetId}/activate`);
       showToast('تم تنشيط البطاقة بنجاح', 'success');
       fetchAdminsData();
     } catch (error) {
@@ -137,7 +143,7 @@ const ExpensesAdd = () => {
       return;
     }
     try {
-      await api.post('/budgets', {
+      await api.post('/budget', {
         userId: selectedCreateCardAdmin,
         monthKey: selectedMonth,
         totalBudget: 0,
@@ -156,7 +162,8 @@ const ExpensesAdd = () => {
   const handleSaveUses = async () => {
     try {
       await api.put(`/admin/users/${activeUsesAdminId}`, { cardUses: usesInput });
-      setAdmins(admins.map(a => a.id === activeUsesAdminId ? { ...a, cardUses: usesInput } : a));
+      const safeAdminsForMap = Array.isArray(admins) ? admins : [];
+      setAdmins(safeAdminsForMap.map(a => a.id === activeUsesAdminId ? { ...a, cardUses: usesInput } : a));
       setShowUsesModal(false);
     } catch (err) {
       showToast('خطأ في حفظ استخدامات البطاقة', 'error');
@@ -195,7 +202,8 @@ const ExpensesAdd = () => {
   const handleSaveBudget = () => {
     const val = parseFloat(budgetInput) || 0;
     if (val > 0 && activeAdminId) {
-      const targetAdmin = admins.find(a => a.id === activeAdminId);
+      const safeAdminsForFind = Array.isArray(admins) ? admins : [];
+      const targetAdmin = safeAdminsForFind.find(a => a.id === activeAdminId);
       const currentBudget = targetAdmin.Budgets && targetAdmin.Budgets.length > 0 ? targetAdmin.Budgets[0] : null;
 
       const currentTotal = currentBudget ? currentBudget.totalBudget : 0;
@@ -204,7 +212,7 @@ const ExpensesAdd = () => {
       const newTotal = (currentTotal > 0 && budgetAction === 'edit') ? val : currentTotal + val;
       const newOpening = currentOpening === 0 ? newTotal : currentOpening;
 
-      api.post('/budgets', {
+      api.post('/budget', {
         userId: activeAdminId,
         monthKey: selectedMonth,
         totalBudget: newTotal,
@@ -343,7 +351,7 @@ const ExpensesAdd = () => {
             <div className="advanced-select-container expensesadd-style-4" >
               <div
                 className="advanced-select-header expensesadd-style-5"
-                
+
                 onClick={() => setIsShiftDropdownOpen(!isShiftDropdownOpen)}
               >
                 <span>{getSelectedShiftName()}</span>
@@ -379,7 +387,7 @@ const ExpensesAdd = () => {
             <div className="advanced-select-container expensesadd-style-6" >
               <div
                 className="advanced-select-header expensesadd-style-7"
-                
+
                 onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
               >
                 <span>{getSelectedStatusName()}</span>
@@ -427,7 +435,7 @@ const ExpensesAdd = () => {
       </div>
 
       <div className="admin-expenses-list expensesadd-style-8" >
-        {admins.filter(admin => {
+        {(Array.isArray(admins) ? admins : []).filter(admin => {
           if (selectedShift !== 'all') {
             const userShift = admin.Shifts && admin.Shifts.length > 0 ? admin.Shifts[0] : null;
             if (!userShift || userShift.id !== selectedShift) return false;
@@ -635,7 +643,7 @@ const ExpensesAdd = () => {
                 <div className="expenses-table-section fade-in expensesadd-style-21" >
                   <div
                     className="table-header-box expensesadd-style-22"
-                    
+
                     onClick={() => setExpandedTables(prev => ({ ...prev, [admin.id]: !prev[admin.id] }))}
                   >
                     <div className="expensesadd-style-23">
@@ -764,7 +772,7 @@ const ExpensesAdd = () => {
 
       {/* Uses Modal */}
       {showUsesModal && (
-        <div className="modal-overlay fade-in" onClick={() => setShowUsesModal(false)}>
+        <div className="modal-overlay fade-in">
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>تحديد إستخدامات البطاقة</h3>
@@ -789,7 +797,7 @@ const ExpensesAdd = () => {
 
       {/* Create Card Modal */}
       {showCreateCardModal && (
-        <div className="modal-overlay fade-in expensesadd-style-33" onClick={() => setShowCreateCardModal(false)} >
+        <div className="modal-overlay2 fade-in expensesadd-style-33">
           <div className="modal-content expensesadd-style-34" onClick={e => e.stopPropagation()} >
             <div className="modal-header">
               <h3>إنشاء بطاقة</h3>
@@ -800,12 +808,12 @@ const ExpensesAdd = () => {
                 <label className="expensesadd-style-36">اختر الحساب (المدير / المشرف)</label>
                 <div
                   className="advanced-select-container expensesadd-style-37"
-                  
+
                   onClick={() => setIsCreateCardDropdownOpen(!isCreateCardDropdownOpen)}
                 >
                   <span style={{ color: selectedCreateCardAdmin ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
                     {selectedCreateCardAdmin
-                      ? admins.find(a => a.id === selectedCreateCardAdmin)?.fullName
+                      ? (Array.isArray(admins) ? admins : []).find(a => a.id === selectedCreateCardAdmin)?.fullName
                       : '-- اختر الحساب --'}
                   </span>
                   {isCreateCardDropdownOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
@@ -813,7 +821,7 @@ const ExpensesAdd = () => {
 
                 {isCreateCardDropdownOpen && (
                   <div className="advanced-select-dropdown expensesadd-style-38" >
-                    {admins.map(admin => {
+                    {(Array.isArray(admins) ? admins : []).map(admin => {
                       const shiftName = admin.Shifts && admin.Shifts.length > 0 ? admin.Shifts[0].name : 'بدون وردية';
                       const hasActiveCard = admin.Budgets && admin.Budgets.length > 0 && admin.Budgets[0].isActive !== false;
                       const hasInactiveCard = admin.Budgets && admin.Budgets.length > 0 && admin.Budgets[0].isActive === false;
@@ -821,7 +829,7 @@ const ExpensesAdd = () => {
                         <div
                           key={admin.id}
                           className="advanced-select-option expensesadd-style-39"
-                          
+
                           onClick={() => {
                             setSelectedCreateCardAdmin(admin.id);
                             setIsCreateCardDropdownOpen(false);
@@ -857,7 +865,7 @@ const ExpensesAdd = () => {
 
       {/* Delete Card Modal (Soft Delete) */}
       {showDeleteCardModal && (
-        <div className="modal-overlay fade-in expensesadd-style-46" onClick={() => setShowDeleteCardModal(false)} >
+        <div className="modal-overlay fade-in expensesadd-style-46">
           <div className="modal-content expensesadd-style-47" onClick={e => e.stopPropagation()} >
             <div className="modal-header">
               <h3 className="expensesadd-style-48">إيقاف البطاقة</h3>
@@ -879,7 +887,7 @@ const ExpensesAdd = () => {
 
       {/* Hard Delete Card Modal */}
       {showHardDeleteModal && (
-        <div className="modal-overlay fade-in expensesadd-style-52" onClick={() => setShowHardDeleteModal(false)} >
+        <div className="modal-overlay fade-in expensesadd-style-52">
           <div className="modal-content expensesadd-style-53" onClick={e => e.stopPropagation()} >
             <div className="modal-header">
               <h3 className="expensesadd-style-54">حذف البطاقة نهائياً</h3>
@@ -904,8 +912,8 @@ const ExpensesAdd = () => {
         </div>
       )}
 
-      {showDeleteCardModal && (
-        <div className="modal-overlay fade-in expensesadd-style-59" onClick={() => setShowDeleteCardModal(false)} >
+      {/* {showDeleteCardModal && (
+        <div className="modal-overlay fade-in expensesadd-style-59">
           <div className="modal-content expensesadd-style-60" onClick={e => e.stopPropagation()} >
             <div className="modal-header">
               <h3 className="expensesadd-style-61">حذف البطاقة</h3>
@@ -924,7 +932,7 @@ const ExpensesAdd = () => {
           </div>
         </div>
       )
-      }
+      } */}
     </div>
 
   );

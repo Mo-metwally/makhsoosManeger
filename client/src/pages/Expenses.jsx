@@ -65,7 +65,7 @@ const Expenses = () => {
   // Load data for the selected month
   useEffect(() => {
     if (user && user.id) {
-      api.get(`/budgets/me?month=${selectedMonth}`)
+      api.get(`/budget/me?month=${selectedMonth}`)
         .then(res => {
           if (res.data) {
             setMonthlyExpense(res.data.totalBudget);
@@ -76,9 +76,9 @@ const Expenses = () => {
         })
         .catch(err => console.error('Error fetching budget:', err));
 
-      api.get(`/budgets/expenses?month=${selectedMonth}`)
+      api.get(`/budget/expenses?month=${selectedMonth}`)
         .then(res => {
-          if (res.data) setExpenses(res.data);
+          if (Array.isArray(res.data)) setExpenses(res.data);
         })
         .catch(err => console.error('Error fetching expenses:', err));
 
@@ -106,8 +106,8 @@ const Expenses = () => {
         fetchAdvanceRequests();
         // If approved, refresh budget and expenses
         if (status === 'approved') {
-          api.get(`/budgets/expenses?month=${selectedMonth}`)
-            .then(res2 => { if (res2.data) setExpenses(res2.data); });
+          api.get(`/budget/expenses?month=${selectedMonth}`)
+            .then(res2 => { if (Array.isArray(res2.data)) setExpenses(res2.data); });
         }
       })
       .catch(err => {
@@ -137,7 +137,7 @@ const Expenses = () => {
       const newTotal = (monthlyExpense > 0 && budgetAction === 'edit') ? val : monthlyExpense + val;
       const newOpeningBalance = openingBalance === 0 ? newTotal : openingBalance;
 
-      api.post('/budgets', {
+      api.post('/budget', {
         userId: user.id,
         monthKey: selectedMonth,
         totalBudget: newTotal,
@@ -168,14 +168,14 @@ const Expenses = () => {
     };
 
     if (editingExpenseId) {
-      api.put(`/budgets/expenses/${editingExpenseId}`, payload)
+      api.put(`/budget/expenses/${editingExpenseId}`, payload)
         .then(res => {
           setExpenses(expenses.map(exp => exp.id === editingExpenseId ? res.data : exp));
           closeExpenseModal();
         })
         .catch(err => console.error('Error updating expense:', err));
     } else {
-      api.post('/budgets/expenses', payload)
+      api.post('/budget/expenses', payload)
         .then(res => {
           setExpenses([res.data, ...expenses]);
           closeExpenseModal();
@@ -212,7 +212,7 @@ const Expenses = () => {
 
   const handleDeleteExpense = (id) => {
     if (window.confirm('هل أنت متأكد من حذف هذه العملية واسترداد قيمتها للميزانية؟')) {
-      api.delete(`/budgets/expenses/${id}`)
+      api.delete(`/budget/expenses/${id}`)
         .then(() => {
           setExpenses(expenses.filter(exp => exp.id !== id));
         })
@@ -231,7 +231,8 @@ const Expenses = () => {
 
   const totalMonthly = monthlyExpense;
 
-  const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+  const safeExpenses = Array.isArray(expenses) ? expenses : [];
+  const totalExpenses = safeExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
   const remaining = totalMonthly - totalExpenses;
 
   const getAdvanceStatusBadge = (status) => {
@@ -267,11 +268,11 @@ const Expenses = () => {
         ['التاريخ', 'الوقت', 'النوع', 'التفاصيل / الاسم', 'المبلغ المخصوم']
       ];
 
-      const expensesCount = expenses.length;
+      const expensesCount = safeExpenses.length;
       if (expensesCount === 0) {
         wsData.push(['', '', '', 'لا يوجد مصاريف', 0]);
       } else {
-        expenses.forEach(exp => {
+        safeExpenses.forEach(exp => {
           const typeStr = exp.type === 'advance' ? 'سلفة موظف' : 'مستلزمات';
 
           let detailsStr = '';
@@ -350,14 +351,14 @@ const Expenses = () => {
           onClick={() => setActiveTab('advances_log')}
         >
           <FileText size={20} />
-          سجل السلف ({expenses.filter(e => e.type === 'advance').length})
+          سجل السلف ({safeExpenses.filter(e => e.type === 'advance').length})
         </button>
         <button
           className={`admin-tab-btn ${activeTab === 'supplies_log' ? 'active' : ''}`}
           onClick={() => setActiveTab('supplies_log')}
         >
           <ShoppingBag size={20} />
-          سجل المستلزمات ({expenses.filter(e => e.type === 'supplies').length})
+          سجل المستلزمات ({safeExpenses.filter(e => e.type === 'supplies').length})
         </button>
       </div>
 
@@ -421,7 +422,7 @@ const Expenses = () => {
                       disabled
                     >
                       عدد استخدامات البطاقة
-                      <strong> ({expenses.length})</strong>
+                      <strong> ({safeExpenses.length})</strong>
 
                     </button>
                   </div>
@@ -537,7 +538,7 @@ const Expenses = () => {
                   </button>
                 )}
                 <div className="card-usage-count">
-                  تم استخدام البطاقة <span className="highlight-count">{expenses.length}</span> مرات هذا الشهر
+                  تم استخدام البطاقة <span className="highlight-count">{safeExpenses.length}</span> مرات هذا الشهر
                 </div>
               </div>
 
@@ -553,7 +554,7 @@ const Expenses = () => {
 
           {/* Expense Table Section */}
           {(() => {
-            const displayedExpenses = expenses.filter(exp => {
+            const displayedExpenses = safeExpenses.filter(exp => {
               if (activeTab === 'advances_log') return exp.type === 'advance';
               if (activeTab === 'supplies_log') return exp.type === 'supplies';
               return true; // budget shows all

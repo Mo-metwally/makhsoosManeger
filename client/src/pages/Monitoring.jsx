@@ -83,7 +83,7 @@ const Monitoring = ({ isMyMonitoring = false }) => {
 
     if (selectedSupervisor !== 'all') {
       filtered = filtered.filter(log => {
-        const name = log.User?.fullName || log.supervisorName || '';
+        const name = (log.User?.fullName || log.supervisorName)?.trim();
         return name === selectedSupervisor;
       });
     }
@@ -142,7 +142,7 @@ const Monitoring = ({ isMyMonitoring = false }) => {
   const filteredLogs = getFilteredLogs();
   const totalPages = Math.ceil(filteredLogs.length / ITEMS_PER_PAGE);
   const currentLogs = filteredLogs.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
-  const uniqueNames = [...new Set(logs.map(log => log.User?.fullName || log.supervisorName).filter(Boolean))];
+  const uniqueNames = [...new Set(logs.map(log => (log.User?.fullName || log.supervisorName)?.trim()).filter(Boolean))];
 
   const employeeOptions = [
     { value: 'all', label: 'كل الموظفين' },

@@ -398,22 +398,22 @@
 }
 
 /* Modal Styling */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
+// .modal-overlay {
+//   position: fixed;
+//   top: 0;
+//   left: 0;
+//   right: 0;
+//   bottom: 0;
+//   background: rgba(0, 0, 0, 0.6);
+//   backdrop-filter: blur(8px);
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//    z-index: 99999;
+//   opacity: 0;
+//   pointer-events: none;
+//   transition: opacity 0.3s ease;
+// }
 
 .modal-overlay.active {
   opacity: 1;
@@ -595,7 +595,9 @@
 .submit-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-}.employeesaccounts-style-1 {
+}
+
+.employeesaccounts-style-1 {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -617,8 +619,8 @@
 .employeesaccounts-style-3 {
   padding: 0.8rem 1.2rem;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
   color: #fff;
   font-size: 1rem;
   outline: none;
@@ -640,8 +642,8 @@
   padding: 0.8rem 1.2rem 0.8rem 2.5rem;
   padding-right: 2.5rem;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
   color: #fff;
   font-size: 1rem;
   outline: none;
@@ -659,7 +661,7 @@
   font-weight: bold;
   margin: 0;
   color: var(--text-primary);
-  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .employeesaccounts-style-9 {
@@ -675,7 +677,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(10px);
 }
 
@@ -687,14 +689,14 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
 .employeesaccounts-style-12 {
   font-size: 2.5rem;
   font-weight: 900;
   color: #3b82f6;
-  text-shadow: 0 0 15px rgba(59,130,246,0.5);
+  text-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
   font-family: system-ui;
 }
 
@@ -730,10 +732,10 @@
   width: 100%;
   max-width: 600px;
   margin: 0 auto 2rem auto;
-  background: rgba(255,255,255,0.03);
+  background: rgba(255, 255, 255, 0.03);
   padding: 0.5rem;
   border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .employeesaccounts-style-18 {
@@ -764,8 +766,8 @@
   background: transparent;
   margin: 0.5rem 1rem;
   border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.05);
-  box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .employeesaccounts-style-23 {
@@ -779,7 +781,7 @@
 .employeesaccounts-style-24 {
   overflow-x: auto;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .employeesaccounts-style-25 {
@@ -790,7 +792,7 @@
 
 .employeesaccounts-style-26 {
   background: rgba(255, 255, 255, 0.03);
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .employeesaccounts-style-27 {
@@ -840,7 +842,7 @@
 }
 
 .employeesaccounts-style-35 {
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   transition: background 0.2s;
 }
 
@@ -926,7 +928,7 @@
   padding: 1.5rem;
   text-align: center;
   color: var(--text-muted);
-  background: rgba(0,0,0,0.15);
+  background: rgba(0, 0, 0, 0.15);
   border-bottom: 1px solid var(--glass-border);
 }
 
@@ -935,8 +937,8 @@
   background: transparent;
   margin: 0.5rem 1rem;
   border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.05);
-  box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .employeesaccounts-style-50 {
@@ -945,7 +947,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -959,7 +961,7 @@
   width: 90%;
   max-width: 400px;
   border: 1px solid var(--border-color);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 .employeesaccounts-style-52 {
@@ -977,7 +979,7 @@
 
 .employeesaccounts-style-54 {
   padding: 1rem;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   margin-bottom: 1.5rem;
 }
@@ -1001,7 +1003,7 @@
   justify-content: space-between;
   margin-bottom: 0.5rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .employeesaccounts-style-59 {
@@ -1056,11 +1058,10 @@
 
 .employeesaccounts-style-67 {
   flex: 1;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   color: var(--text-primary);
   padding: 0.8rem;
   border-radius: 8px;
   cursor: pointer;
   border: none;
 }
-
