@@ -199,7 +199,7 @@ exports.getAllLogs = async (req, res) => {
         breakMap[key] = { 'بريك صلاة': 0, 'بريك غداء': 0 };
       }
       if (log.type === 'بريك صلاة' || log.type === 'بريك غداء') {
-        breakMap[key][log.type] += (log.durationMs || 0);
+        breakMap[key][log.type] += Math.floor((log.durationMs || 0) / 60000);
       }
     });
 
@@ -424,7 +424,7 @@ exports.getTodayStatus = async (req, res) => {
         breakMap[log.userId] = { 'بريك صلاة': 0, 'بريك غداء': 0 };
       }
       if (log.type === 'بريك صلاة' || log.type === 'بريك غداء') {
-        breakMap[log.userId][log.type] += (log.durationMs || 0);
+        breakMap[log.userId][log.type] += Math.floor((log.durationMs || 0) / 60000);
       }
     });
 
