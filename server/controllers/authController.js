@@ -21,7 +21,6 @@ const { sendWelcomeEmail } = require('../utils/emailService');
 
 const login = async (req, res) => {
   const { username, password } = req.body;
-  console.log(`[LOGIN ATTEMPT] username/email: "${username}", password: "${password}"`);
   
   if (!username) {
     return res.status(400).json({ error: 'يرجى إدخال اسم المستخدم أو البريد الإلكتروني.' });

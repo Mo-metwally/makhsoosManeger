@@ -28,6 +28,7 @@ const Home = () => {
   const [showConfirmDuplicate, setShowConfirmDuplicate] = useState(false);
   const [pendingCallData, setPendingCallData] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '', type: 'error' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [trackerStatus, setTrackerStatus] = useState('active');
 
   useEffect(() => {
@@ -325,6 +326,7 @@ const Home = () => {
   };
 
   const processCallReport = async (newCall) => {
+    setIsSubmitting(true);
     try {
       await api.post('/data/calls', [newCall]);
       await fetchCalls(); // Refresh to get proper ID and any other DB fields
@@ -339,6 +341,8 @@ const Home = () => {
     } catch (err) {
       console.error(err);
       showToast('حدث خطأ أثناء حفظ المكالمة', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -693,7 +697,9 @@ const Home = () => {
                 </div>
 
                 <div className="form-actions">
-                  <button type="submit" className="btn-save">حفظ التقرير</button>
+                  <button type="submit" className="btn-save" disabled={isSubmitting}>
+                    {isSubmitting ? 'جاري الحفظ...' : 'حفظ التقرير'}
+                  </button>
                   <button type="button" className="btn-cancel" onClick={() => { setIsModalOpen(false); setReportMethod(null); setPhoneInput(''); setPhoneStatus('empty'); }}>إلغاء</button>
                 </div>
               </form>
@@ -722,8 +728,9 @@ const Home = () => {
                 type="button"
                 className="btn-save"
                 onClick={() => processCallReport(pendingCallData)}
+                disabled={isSubmitting}
               >
-                نعم، احفظ التقرير
+                {isSubmitting ? 'جاري الحفظ...' : 'نعم، احفظ التقرير'}
               </button>
               <button
                 type="button"
@@ -750,7 +757,9 @@ const Home = () => {
             </p>
             <div className="form-actions">
               <button type="button" className="btn-cancel" onClick={() => setIsDateWarningOpen(false)}>إلغاء</button>
-              <button type="button" className="btn-save home-style-32"  onClick={confirmDateChange}>استمرار</button>
+              <button type="button" className="btn-save home-style-32" onClick={confirmDateChange} disabled={isSubmitting}>
+                {isSubmitting ? 'جاري...' : 'استمرار'}
+              </button>
             </div>
           </div>
         </div>

@@ -41,6 +41,7 @@ const ExpensesAdd = () => {
   const [expandedTables, setExpandedTables] = useState({});
   const [selectedShift, setSelectedShift] = useState('all');
   const [isShiftDropdownOpen, setIsShiftDropdownOpen] = useState(false);
+  const [expensesPages, setExpensesPages] = useState({});
 
   const [filterStatusInput, setFilterStatusInput] = useState('active');
   const [selectedStatus, setSelectedStatus] = useState('active');
@@ -666,49 +667,86 @@ const ExpensesAdd = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {expenses.map(exp => (
-                            <tr key={exp.id}>
-                              <td>
-                                <div className="date-cell">
-                                  <Calendar size={14} />
-                                  <span>{new Date(exp.date).toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                                </div>
-                              </td>
-                              <td>
-                                <div className="time-cell">
-                                  <Clock size={14} />
-                                  <span dir="ltr">{formatTime12Hour(exp.time)}</span>
-                                </div>
-                              </td>
-                              <td>
-                                <div className={`type-badge ${exp.type === 'advance' ? 'advance-badge' : 'supplies-badge'}`}>
-                                  {exp.type === 'advance' ? <Users size={12} /> : <ShoppingBag size={12} />}
-                                  <span>{exp.type === 'advance' ? 'سلفة موظف' : 'مستلزمات'}</span>
-                                </div>
-                              </td>
-                              <td>
-                                <span className="details-text">
-                                  {exp.type === 'advance' ? (
-                                    <div className="expensesadd-style-26">
-                                      <span>{exp.employeeName}</span>
-                                      {exp.item && <small className="expensesadd-style-27">{exp.item}</small>}
-                                      {exp.notes && <small className="expensesadd-style-28">{exp.notes}</small>}
-                                    </div>
-                                  ) : (
-                                    <div className="expensesadd-style-29">
-                                      <span>{exp.item || 'مستلزمات'}</span>
-                                      {exp.notes && <small className="expensesadd-style-30">{exp.notes}</small>}
-                                    </div>
-                                  )}
-                                </span>
-                              </td>
-                              <td>
-                                <span className="amount-cell negative-val expensesadd-style-31" >
-                                  -{exp.amount.toLocaleString()} ج.م
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
+                          {(() => {
+                            const adminExpPage = expensesPages[admin.id] || 1;
+                            const EXP_ITEMS_PER_PAGE = 10;
+                            const totalExpPages = Math.ceil(expenses.length / EXP_ITEMS_PER_PAGE);
+                            const startIdx = (adminExpPage - 1) * EXP_ITEMS_PER_PAGE;
+                            const currentExpenses = expenses.slice(startIdx, startIdx + EXP_ITEMS_PER_PAGE);
+                            
+                            return (
+                              <>
+                                {currentExpenses.map(exp => (
+                                  <tr key={exp.id}>
+                                    <td>
+                                      <div className="date-cell">
+                                        <Calendar size={14} />
+                                        <span>{new Date(exp.date).toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <div className="time-cell">
+                                        <Clock size={14} />
+                                        <span dir="ltr">{formatTime12Hour(exp.time)}</span>
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <div className={`type-badge ${exp.type === 'advance' ? 'advance-badge' : 'supplies-badge'}`}>
+                                        {exp.type === 'advance' ? <Users size={12} /> : <ShoppingBag size={12} />}
+                                        <span>{exp.type === 'advance' ? 'سلفة موظف' : 'مستلزمات'}</span>
+                                      </div>
+                                    </td>
+                                    <td>
+                                      <span className="details-text">
+                                        {exp.type === 'advance' ? (
+                                          <div className="expensesadd-style-26">
+                                            <span>{exp.employeeName}</span>
+                                            {exp.item && <small className="expensesadd-style-27">{exp.item}</small>}
+                                            {exp.notes && <small className="expensesadd-style-28">{exp.notes}</small>}
+                                          </div>
+                                        ) : (
+                                          <div className="expensesadd-style-29">
+                                            <span>{exp.item || 'مستلزمات'}</span>
+                                            {exp.notes && <small className="expensesadd-style-30">{exp.notes}</small>}
+                                          </div>
+                                        )}
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span className="amount-cell negative-val expensesadd-style-31" >
+                                        -{exp.amount.toLocaleString()} ج.م
+                                      </span>
+                                    </td>
+                                  </tr>
+                                ))}
+                                {totalExpPages > 1 && (
+                                  <tr>
+                                    <td colSpan="5">
+                                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', padding: '10px' }}>
+                                        <button 
+                                          onClick={() => setExpensesPages(prev => ({ ...prev, [admin.id]: Math.max(adminExpPage - 1, 1) }))}
+                                          disabled={adminExpPage === 1}
+                                          style={{ padding: '6px 16px', borderRadius: '6px', background: adminExpPage === 1 ? 'var(--theme-border)' : 'var(--theme-color)', color: adminExpPage === 1 ? 'var(--text-secondary)' : '#000', border: 'none', cursor: adminExpPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
+                                        >
+                                          السابق
+                                        </button>
+                                        <span style={{ color: 'var(--text-color)', fontWeight: 'bold' }}>
+                                          صفحة {adminExpPage} من {totalExpPages}
+                                        </span>
+                                        <button 
+                                          onClick={() => setExpensesPages(prev => ({ ...prev, [admin.id]: Math.min(adminExpPage + 1, totalExpPages) }))}
+                                          disabled={adminExpPage === totalExpPages}
+                                          style={{ padding: '6px 16px', borderRadius: '6px', background: adminExpPage === totalExpPages ? 'var(--theme-border)' : 'var(--theme-color)', color: adminExpPage === totalExpPages ? 'var(--text-secondary)' : '#000', border: 'none', cursor: adminExpPage === totalExpPages ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
+                                        >
+                                          التالي
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                              </>
+                            );
+                          })()}
                         </tbody>
                       </table>
                     </div>

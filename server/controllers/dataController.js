@@ -38,6 +38,22 @@ const saveCallReports = async (req, res) => {
   }
 };
 
+const deleteCallReport = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: 'Call ID is required' });
+    
+    // Only allow admin or the owner to delete? For now, we'll just delete by ID.
+    const deleted = await CallReport.destroy({ where: { id } });
+    if (!deleted) return res.status(404).json({ error: 'Call not found' });
+    
+    res.json({ message: 'Call deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to delete call' });
+  }
+};
+
 const checkPhoneExists = async (req, res) => {
   try {
     const { phone } = req.query;
@@ -538,6 +554,7 @@ const updateTrackerStatus = async (req, res) => {
 module.exports = {
   getCallReports,
   saveCallReports,
+  deleteCallReport,
   getInactivityLogs,
   saveInactivityLogs,
   getPerformanceLogs,

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { DollarSign, Search, Calendar, ChevronDown, CheckCircle, Clock, Edit, Eye, User, TrendingUp, TrendingDown, Award, Trash2, X } from 'lucide-react';
+import { DollarSign, Search, Calendar, ChevronDown, CheckCircle, Clock, Edit, Eye, User, TrendingUp, TrendingDown, Award, Trash2, X, Users } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import AvatarIcon from '../components/AvatarIcon';
 import "./EmployeesAccounts.scss";
@@ -9,7 +9,7 @@ import { useToast } from '../contexts/ToastContext';
 const EmployeesAccounts = () => {
   const date = new Date();
   const todayMonthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-  
+
   const [searchParams, setSearchParams] = useSearchParams();
   const initialMonth = searchParams.get('monthKey') || todayMonthKey;
 
@@ -26,6 +26,7 @@ const EmployeesAccounts = () => {
   const [editingAdjustmentId, setEditingAdjustmentId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filterType, setFilterType] = useState('active');
+  const [currentPage, setCurrentPage] = useState(1);
   const [settlementModal, setSettlementModal] = useState({ isOpen: false, account: null });
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -36,6 +37,10 @@ const EmployeesAccounts = () => {
     }
     fetchData();
   }, [selectedMonth]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterType, searchTerm, selectedMonth]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -56,26 +61,34 @@ const EmployeesAccounts = () => {
       const adjustments = Array.isArray(adjustmentsRes.data) ? adjustmentsRes.data : [];
       const settlements = Array.isArray(settlementsRes.data) ? settlementsRes.data : [];
 
-      const settingsMap = {};
-      if (settingsRes.data && Array.isArray(settingsRes.data)) {
-        settingsRes.data.forEach(s => settingsMap[s.key] = s.value);
-      }
+      const settingsMap = settingsRes.data || {};
 
       const absencePenaltyMultiplier = Number(settingsMap.absencePenaltyMultiplier || localStorage.getItem('absencePenaltyMultiplier') || '2');
       const dayOffWorkMultiplier = Number(settingsMap.dayOffWorkMultiplier || localStorage.getItem('dayOffWorkMultiplier') || '1.5');
       const allowedDelayMinutes = Number(settingsMap.allowedDelayMinutes || localStorage.getItem('allowedDelayMinutes') || '15');
+      const allowedEarlyDepartureMinutes = Number(settingsMap.allowedEarlyDepartureMinutes || localStorage.getItem('allowedEarlyDepartureMinutes') || '0');
       const enableLatePenalty = (settingsMap.enableLatePenalty || localStorage.getItem('enableLatePenalty')) !== 'false';
-      const workingHours = 8; // Default, can be fetched if needed
 
       // Build stats per user
       const userStats = {};
       users.forEach(u => {
         let userBaseSalary = Number(u.baseSalary);
-        if (!userBaseSalary && u.Shifts && u.Shifts.length > 0) {
-          userBaseSalary = Number(u.Shifts[0].baseSalary);
+        let calculatedWorkingHours = 8;
+        if (u.Shifts && u.Shifts.length > 0) {
+          const shift = u.Shifts[0];
+          if (!userBaseSalary) userBaseSalary = Number(shift.baseSalary);
+          if (shift.startTime && shift.endTime) {
+            const [sh, sm] = shift.startTime.split(':').map(Number);
+            const [eh, em] = shift.endTime.split(':').map(Number);
+            let diff = eh - sh + (em - sm) / 60;
+            if (diff < 0) diff += 24;
+            calculatedWorkingHours = diff || 8;
+          }
         }
+
         userStats[u.id] = {
           user: u,
+          workingHours: calculatedWorkingHours,
           baseSalary: userBaseSalary || 0,
           dailyRate: (userBaseSalary || 0) / 30,
           presentCount: 0,
@@ -83,6 +96,7 @@ const EmployeesAccounts = () => {
           absentCount: 0,
           dayOffWorkCount: 0,
           lateMins: 0,
+          earlyMins: 0,
           totalAdvances: 0,
           totalAdvances: 0,
           manualAdditions: 0,
@@ -143,30 +157,62 @@ const EmployeesAccounts = () => {
           userStats[uId].dayOffCount += 1;
         }
 
-        // Late calculation
-        if ((log.status === 'Present' || log.status === 'DayOffWork' || log.status === 'Late') && log.checkInTime && log.Shift?.startTime) {
-          const checkInDate = new Date(log.checkInTime);
+        // Attendance time penalties
+        if ((log.status === 'Present' || log.status === 'DayOffWork' || log.status === 'Late') && log.Shift?.startTime) {
           const [startHour, startMin] = log.Shift.startTime.split(':').map(Number);
 
-          const shiftStart = new Date(checkInDate);
-          shiftStart.setHours(startHour, startMin, 0, 0);
+          if (log.checkInTime) {
+            const checkInDate = new Date(log.checkInTime);
+            const shiftStart = new Date(checkInDate);
+            shiftStart.setHours(startHour, startMin, 0, 0);
 
-          if (checkInDate > shiftStart) {
-            const diffMs = checkInDate - shiftStart;
-            const diffMins = Math.floor(diffMs / 60000);
-            const actualDelayMins = diffMins - allowedDelayMinutes;
+            if (checkInDate > shiftStart) {
+              const diffMs = checkInDate - shiftStart;
+              const diffMins = Math.floor(diffMs / 60000);
+              const actualDelayMins = diffMins > allowedDelayMinutes ? diffMins : 0;
 
-            if (enableLatePenalty && actualDelayMins > 0) {
-              userStats[uId].lateMins += actualDelayMins;
-              userStats[uId].details.push({
-                id: `late-${log.id}`,
-                type: 'Deduction',
-                category: 'تأخير',
-                amount: Math.round(actualDelayMins * (dailyRate / workingHours / 60)),
-                date: log.date,
-                time: checkInDate.toLocaleTimeString('ar-EG', { timeStyle: 'short' }),
-                reason: `تأخير ${actualDelayMins} دقيقة`
-              });
+              if (enableLatePenalty && actualDelayMins > 0) {
+                userStats[uId].lateMins += actualDelayMins;
+                userStats[uId].details.push({
+                  id: `late-${log.id}`,
+                  type: 'Deduction',
+                  category: 'تأخير',
+                  amount: Math.round(actualDelayMins * (dailyRate / userStats[uId].workingHours / 60)),
+                  date: log.date,
+                  time: checkInDate.toLocaleTimeString('ar-EG', { timeStyle: 'short' }),
+                  reason: `تأخير ${actualDelayMins} دقيقة`
+                });
+              }
+            }
+          }
+
+          if (log.checkOutTime && log.Shift?.endTime && log.status !== 'BusinessTrip') {
+            const checkOutDate = new Date(log.checkOutTime);
+            const [endHour, endMin] = log.Shift.endTime.split(':').map(Number);
+
+            const shiftEnd = new Date(checkOutDate);
+            shiftEnd.setHours(endHour, endMin, 0, 0);
+            if (endHour < startHour && checkOutDate.getHours() >= startHour) {
+              shiftEnd.setDate(shiftEnd.getDate() + 1);
+            }
+
+            if (checkOutDate < shiftEnd) {
+              const diffMs = shiftEnd - checkOutDate;
+              const diffMins = Math.floor(diffMs / 60000);
+              const actualEarlyMins = diffMins > allowedEarlyDepartureMinutes ? diffMins : 0;
+
+              if (enableLatePenalty && actualEarlyMins > 0) {
+                userStats[uId].earlyMins += actualEarlyMins;
+                userStats[uId].details.push({
+                  id: `early-${log.id}`,
+                  type: 'Deduction',
+                  category: 'انصراف مبكر',
+                  amount: Math.round(actualEarlyMins * (dailyRate / userStats[uId].workingHours / 60)),
+                  date: log.date,
+                  time: checkOutDate.toLocaleTimeString('ar-EG', { timeStyle: 'short' }),
+                  reason: `انصراف مبكر ${actualEarlyMins} دقيقة`
+                });
+              }
             }
           }
         }
@@ -198,9 +244,10 @@ const EmployeesAccounts = () => {
 
         const baseEarnings = (stat.presentCount + stat.dayOffCount) * dailyRate;
         const absentPenalty = stat.absentCount * absencePenaltyMultiplier * dailyRate;
-        const latePenalty = stat.lateMins * (dailyRate / workingHours / 60);
+        const latePenalty = stat.lateMins * (dailyRate / stat.workingHours / 60);
+        const earlyPenalty = stat.earlyMins * (dailyRate / stat.workingHours / 60);
 
-        const autoDeductions = Math.round(absentPenalty + latePenalty);
+        const autoDeductions = Math.round(absentPenalty + latePenalty + earlyPenalty);
         const totalDeductions = autoDeductions + stat.manualDeductions;
 
         const autoAdditions = Math.round(stat.dayOffWorkCount * dailyRate * dayOffWorkMultiplier);
@@ -235,6 +282,7 @@ const EmployeesAccounts = () => {
           details: sortedDetails,
           absentCount: stat.absentCount,
           lateMins: stat.lateMins,
+          earlyMins: stat.earlyMins,
           user: stat.user
         };
       });
@@ -390,6 +438,11 @@ const EmployeesAccounts = () => {
 
   const totalNetSalaries = filteredAccounts.reduce((sum, acc) => sum + acc.netSalary, 0);
 
+  const ITEMS_PER_PAGE = 6;
+  const totalPages = Math.ceil(filteredAccounts.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const currentAccounts = filteredAccounts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
   return (
     <div className="employees-accounts-page fade-in">
 
@@ -452,6 +505,17 @@ const EmployeesAccounts = () => {
           تم التسوية
         </button>
       </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', background: 'var(--theme-bg)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--theme-border)' }}>
+        <h3 style={{ margin: 0, color: 'var(--text-color)', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Users size={20} color="var(--theme-color)" />
+          إجمالي الحسابات:
+          <span style={{ color: 'var(--theme-color)', fontWeight: 'bold', fontSize: '1.4rem' }}>{filteredAccounts.length}</span>
+        </h3>
+        <h3 style={{ margin: 0, color: 'var(--text-color)', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          إجمالي الرواتب:
+          <span style={{ color: '#10b981', fontWeight: 'bold', fontSize: '1.4rem' }}>{totalNetSalaries.toLocaleString()} ج.م</span>
+        </h3>
+      </div>
 
       <div className="accounts-table-container">
         {loading ? (
@@ -478,7 +542,7 @@ const EmployeesAccounts = () => {
                   </td>
                 </tr>
               ) : (
-                filteredAccounts.map((acc, index) => (
+                currentAccounts.map((acc, index) => (
                   <React.Fragment key={acc.id}>
                     <tr
                       className="account-row clickable-row"
@@ -580,7 +644,7 @@ const EmployeesAccounts = () => {
                                   {acc.details.map(det => {
                                     const isAuto = !det.id.startsWith('adj-');
                                     return (
-                                      <tr key={det.id}  className="hover-row employeesaccounts-style-35">
+                                      <tr key={det.id} className="hover-row employeesaccounts-style-35">
                                         <td className="employeesaccounts-style-36">{det.date}</td>
                                         <td className="employeesaccounts-style-37">{det.time || '-'}</td>
                                         <td className="employeesaccounts-style-38">{det.category}</td>
@@ -602,7 +666,7 @@ const EmployeesAccounts = () => {
                                           {isAuto ? (
                                             <div className="employeesaccounts-style-42">
                                               <button
-                                                
+
                                                 onClick={(e) => handleEditAdjustmentRow(e, acc, det)}
                                                 title="تعديل قيمة العملية التلقائية"
                                                 className="hover-bg-blue employeesaccounts-style-43"
@@ -610,7 +674,7 @@ const EmployeesAccounts = () => {
                                                 <Edit size={18} />
                                               </button>
                                               <button
-                                                
+
                                                 onClick={(e) => handleDeleteAdjustmentRow(e, det)}
                                                 title="إلغاء العملية التلقائية"
                                                 className="hover-bg-red employeesaccounts-style-44"
@@ -621,7 +685,7 @@ const EmployeesAccounts = () => {
                                           ) : (
                                             <div className="employeesaccounts-style-45">
                                               <button
-                                                
+
                                                 onClick={(e) => handleEditAdjustmentRow(e, acc, det)}
                                                 title="تعديل"
                                                 className="hover-bg-blue employeesaccounts-style-46"
@@ -629,7 +693,7 @@ const EmployeesAccounts = () => {
                                                 <Edit size={18} />
                                               </button>
                                               <button
-                                                
+
                                                 onClick={(e) => handleDeleteAdjustmentRow(e, det)}
                                                 title="حذف"
                                                 className="hover-bg-red employeesaccounts-style-47"
@@ -663,6 +727,28 @@ const EmployeesAccounts = () => {
               )}
             </tbody>
           </table>
+        )}
+
+        {!loading && totalPages > 1 && (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', marginTop: '20px', padding: '10px' }}>
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              style={{ padding: '8px 20px', borderRadius: '8px', background: currentPage === 1 ? 'var(--theme-border)' : 'var(--theme-color)', color: currentPage === 1 ? 'var(--text-secondary)' : '#000', border: 'none', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 'bold', transition: 'all 0.2s' }}
+            >
+              السابق
+            </button>
+            <span style={{ padding: '8px 16px', color: 'var(--text-color)', fontWeight: 'bold', background: 'var(--theme-bg)', border: '1px solid var(--theme-border)', borderRadius: '8px' }}>
+              صفحة {currentPage} من {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              style={{ padding: '8px 20px', borderRadius: '8px', background: currentPage === totalPages ? 'var(--theme-border)' : 'var(--theme-color)', color: currentPage === totalPages ? 'var(--text-secondary)' : '#000', border: 'none', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontWeight: 'bold', transition: 'all 0.2s' }}
+            >
+              التالي
+            </button>
+          </div>
         )}
       </div>
 

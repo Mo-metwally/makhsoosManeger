@@ -81,11 +81,21 @@ exports.getMyRequests = async (req, res) => {
       }
     });
 
+    let calculatedWorkingHours = 8;
+    if (shift && shift.startTime && shift.endTime) {
+      const [startH, startM] = shift.startTime.split(':').map(Number);
+      const [endH, endM] = shift.endTime.split(':').map(Number);
+      let diff = endH - startH + (endM - startM) / 60;
+      if (diff < 0) diff += 24;
+      calculatedWorkingHours = diff || 8;
+    }
+
     res.json({
       requests,
       salary: salary || 0,
-      workingHours: shift ? shift.workingHours || 8 : 8,
+      workingHours: shift ? shift.workingHours || calculatedWorkingHours : 8,
       shiftStartTime: shift ? shift.startTime : null,
+      shiftEndTime: shift ? shift.endTime : null,
       logs: logs,
       stats: {
         absentCount,
@@ -164,11 +174,21 @@ exports.getUserRequests = async (req, res) => {
       where: { userId, monthKey }
     });
 
+    let calculatedWorkingHours = 8;
+    if (shift && shift.startTime && shift.endTime) {
+      const [startH, startM] = shift.startTime.split(':').map(Number);
+      const [endH, endM] = shift.endTime.split(':').map(Number);
+      let diff = endH - startH + (endM - startM) / 60;
+      if (diff < 0) diff += 24;
+      calculatedWorkingHours = diff || 8;
+    }
+
     res.json({
       requests,
       salary: salary || 0,
-      workingHours: shift ? shift.workingHours || 8 : 8,
+      workingHours: shift ? shift.workingHours || calculatedWorkingHours : 8,
       shiftStartTime: shift ? shift.startTime : null,
+      shiftEndTime: shift ? shift.endTime : null,
       logs: logs,
       stats: {
         absentCount,

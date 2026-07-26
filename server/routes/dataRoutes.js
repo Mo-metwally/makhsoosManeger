@@ -6,6 +6,7 @@ const deviceLock = require('../middlewares/deviceLock');
 const { 
   getCallReports, 
   saveCallReports,
+  deleteCallReport,
   getInactivityLogs,
   saveInactivityLogs,
   getPerformanceLogs,
@@ -23,6 +24,7 @@ router.use(deviceLock);
 
 router.get('/calls', getCallReports);
 router.post('/calls', saveCallReports);
+router.delete('/calls/:id', deleteCallReport);
 router.get('/calls/check-phone', checkPhoneExists);
 router.get('/calls/history/:phone', getPhoneHistory);
 

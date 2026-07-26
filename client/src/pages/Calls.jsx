@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Phone, Search, ChevronDown, Edit2, Check, X, Download, PhoneCall, ChevronRight, ChevronLeft, FileText, Info, Link as LinkIcon } from 'lucide-react';
+import { Calendar, Phone, Search, ChevronDown, Edit2, Check, X, Download, PhoneCall, ChevronRight, ChevronLeft, FileText, Info, Link as LinkIcon, Trash2 } from 'lucide-react';
 import { exportCallsOnly } from '../utils/exportExcel';
 import ExportModal from '../components/ExportModal';
 import api from '../services/api';
@@ -161,6 +161,17 @@ const Calls = () => {
       await api.post('/data/calls', updatedCalls);
     } catch (error) {
       showToast('خطأ في حفظ التعديلات', 'error');
+    }
+  };
+
+  const handleDeleteCall = async (id) => {
+    const updatedCalls = calls.filter(call => call.id !== id);
+    setCalls(updatedCalls);
+    try {
+      await api.delete(`/data/calls/${id}`);
+      showToast('تم حذف العملية بنجاح', 'success');
+    } catch (error) {
+      showToast('خطأ في الحذف', 'error');
     }
   };
 
@@ -410,6 +421,7 @@ const Calls = () => {
               <th>حالة المندوب</th>
               <th>حالة المكالمة</th>
               <th>التقرير</th>
+              <th>إجراءات</th>
             </tr>
           </thead>
           <tbody>
@@ -550,10 +562,27 @@ const Calls = () => {
                     </div>
                   </td>
                   {renderEditableCell(call, 'report', true)}
+                  <td className="actions-cell">
+                    <button 
+                      className="btn-icon delete-icon" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setConfirmModal({
+                          isOpen: true,
+                          type: 'delete',
+                          callId: call.id,
+                        });
+                      }}
+                      title="حذف العملية"
+                      style={{ color: '#ef4444', background: 'rgba(239, 68, 68, 0.1)', padding: '6px', borderRadius: '6px', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
                   </tr>
                   {isExpanded && (
                     <tr className="expanded-details-row">
-                      <td colSpan="8" className="calls-style-12">
+                      <td colSpan="9" className="calls-style-12">
                         <div className="advanced-details-card">
                           <div className="detail-section full-width">
                             <div className="detail-section-header">
@@ -637,13 +666,15 @@ const Calls = () => {
           <div className="modal-content warning-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2 className="calls-style-16">
-                {confirmModal.type === 'status' ? 'تأكيد تغيير الحالة' : 'تأكيد تعديل البيانات'}
+                {confirmModal.type === 'status' ? 'تأكيد تغيير الحالة' : confirmModal.type === 'delete' ? 'تأكيد الحذف' : 'تأكيد تعديل البيانات'}
               </h2>
               <button className="close-btn" onClick={() => setConfirmModal({ isOpen: false, type: 'status', callId: null, field: '', oldValue: '', newValue: '' })}>&times;</button>
             </div>
             <p className="calls-style-17">
               {confirmModal.type === 'status' ? (
                 <>هل أنت متأكد من تغيير حالة المكالمة من <strong className="calls-style-18">{confirmModal.oldValue}</strong> إلى <strong className="calls-style-19">{confirmModal.newValue}</strong>؟</>
+              ) : confirmModal.type === 'delete' ? (
+                <>هل أنت متأكد من حذف هذه العملية نهائياً؟ لا يمكن التراجع عن هذا الإجراء.</>
               ) : (
                 <>هل أنت متأكد من تعديل <strong className="calls-style-20">{fieldLabels[confirmModal.field]}</strong> وحفظ التغييرات؟</>
               )}
@@ -657,6 +688,8 @@ const Calls = () => {
                 onClick={() => {
                   if (confirmModal.type === 'status') {
                     handleStatusChange(confirmModal.callId, confirmModal.newValue);
+                  } else if (confirmModal.type === 'delete') {
+                    handleDeleteCall(confirmModal.callId);
                   } else {
                     handleFieldEdit(confirmModal.callId, confirmModal.field, confirmModal.newValue);
                   }

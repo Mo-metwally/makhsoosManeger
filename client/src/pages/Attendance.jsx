@@ -57,12 +57,41 @@ const Attendance = () => {
 
     const diffMins = Math.floor(diffMs / 60000);
     const allowedDelay = Number(localStorage.getItem('allowedDelayMinutes') || '15');
-    const actualDelayMins = diffMins - allowedDelay;
+    const actualDelayMins = diffMins > allowedDelay ? diffMins : 0;
 
     if (actualDelayMins <= 0) return 'لا يوجد';
 
     const hours = Math.floor(actualDelayMins / 60);
     const mins = actualDelayMins % 60;
+
+    if (hours > 0) return `${hours} س ${mins > 0 ? `و ${mins} د` : ''}`;
+    return `${mins} دقيقة`;
+  };
+
+  const calculateEarlyDeparture = (checkOutDateStr, shiftStr) => {
+    if (!checkOutDateStr || !shiftStr || !shiftStr.endTime || !shiftStr.startTime) return '---';
+
+    const checkOutDate = new Date(checkOutDateStr);
+    const [startH] = shiftStr.startTime.split(':').map(Number);
+    const [endH, endM] = shiftStr.endTime.split(':').map(Number);
+    
+    const shiftEndDate = new Date(checkOutDate);
+    shiftEndDate.setHours(endH, endM, 0, 0);
+    if (endH < startH && checkOutDate.getHours() >= startH) {
+      shiftEndDate.setDate(shiftEndDate.getDate() + 1);
+    }
+
+    const diffMs = shiftEndDate - checkOutDate;
+    if (diffMs <= 0) return 'لا يوجد';
+
+    const diffMins = Math.floor(diffMs / 60000);
+    const allowedEarly = Number(localStorage.getItem('allowedEarlyDepartureMinutes') || '0');
+    const actualEarlyMins = diffMins > allowedEarly ? diffMins : 0;
+
+    if (actualEarlyMins <= 0) return 'لا يوجد';
+
+    const hours = Math.floor(actualEarlyMins / 60);
+    const mins = actualEarlyMins % 60;
 
     if (hours > 0) return `${hours} س ${mins > 0 ? `و ${mins} د` : ''}`;
     return `${mins} دقيقة`;
@@ -133,6 +162,10 @@ const Attendance = () => {
                         <strong>فترة السماح للتأخير:</strong>
                         {localStorage.getItem('allowedDelayMinutes') || '15'} دقيقة
                       </span>
+                      <span className="attendance-style-14" style={{marginRight: '1rem'}}>
+                        <strong>سماحية الانصراف المبكر:</strong>
+                        {localStorage.getItem('allowedEarlyDepartureMinutes') || '0'} دقيقة
+                      </span>
                     </div>
                   </div>
                 )
@@ -161,6 +194,7 @@ const Attendance = () => {
                   <th className="attendance-style-23">وقت الحضور</th>
                   <th className="attendance-style-24">وقت الانصراف</th>
                   <th className="attendance-style-25">التأخير</th>
+                  <th className="attendance-style-25">الانصراف المبكر</th>
                   <th className="attendance-style-26">الحالة</th>
                 </tr>
               </thead>
@@ -182,6 +216,9 @@ const Attendance = () => {
                     </td>
                     <td className="attendance-style-33">
                       {calculateDelay(log.checkInTime, log.Shift?.startTime)}
+                    </td>
+                    <td className="attendance-style-33" style={{ color: calculateEarlyDeparture(log.checkOutTime, log.Shift) !== 'لا يوجد' && calculateEarlyDeparture(log.checkOutTime, log.Shift) !== '---' ? '#ef4444' : 'inherit' }}>
+                      {calculateEarlyDeparture(log.checkOutTime, log.Shift)}
                     </td>
                     <td className="attendance-style-34">
                       {log.status === 'Absent' ? (

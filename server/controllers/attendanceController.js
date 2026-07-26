@@ -386,6 +386,7 @@ exports.getTodayStatus = async (req, res) => {
     settings.forEach(s => settingsMap[s.key] = s.value);
     const allowedLunchBreakMinutes = parseInt(settingsMap['allowedLunchBreakMinutes'] || '30', 10);
     const allowedPrayerBreakMinutes = parseInt(settingsMap['allowedPrayerBreakMinutes'] || '15', 10);
+    const allowedEarlyDepartureMinutes = parseInt(settingsMap['allowedEarlyDepartureMinutes'] || '0', 10);
 
     const attendanceMap = {};
     attendances.forEach(a => {
@@ -462,6 +463,28 @@ exports.getTodayStatus = async (req, res) => {
         }
       }
 
+      let earlyDepartureMinutes = 0;
+      if (checkOutTime && user.Shifts.length > 0 && attendanceMap[user.id] && attendanceMap[user.id].status !== 'BusinessTrip') {
+        const shift = user.Shifts[0];
+        if (shift.startTime && shift.endTime) {
+           const checkOutDate = new Date(checkOutTime);
+           const [sh, sm] = shift.startTime.split(':').map(Number);
+           const [eh, em] = shift.endTime.split(':').map(Number);
+           
+           const shiftEnd = new Date(`${today}T00:00:00`);
+           shiftEnd.setHours(eh, em, 0, 0);
+           if (eh < sh) {
+             shiftEnd.setDate(shiftEnd.getDate() + 1);
+           }
+           
+           if (checkOutDate < shiftEnd) {
+             const diffMins = Math.floor((shiftEnd - checkOutDate) / 60000);
+             const actualEarlyMins = diffMins - allowedEarlyDepartureMinutes;
+             if (actualEarlyMins > 0) earlyDepartureMinutes += actualEarlyMins;
+           }
+        }
+      }
+
       // Add break overages to lateMinutes
       const userBreaks = breakMap[user.id] || { 'بريك صلاة': 0, 'بريك غداء': 0 };
       if (userBreaks['بريك غداء'] > allowedLunchBreakMinutes) {
@@ -484,6 +507,7 @@ exports.getTodayStatus = async (req, res) => {
         checkInTime,
         checkOutTime,
         lateMinutes,
+        earlyDepartureMinutes,
         notes: attendanceMap[user.id] ? attendanceMap[user.id].notes : (dayoffMap[user.id] ? dayoffMap[user.id].reason : ''),
         breakDetails: breakMap[user.id] || { 'بريك صلاة': 0, 'بريك غداء': 0 },
         hasSummary: !!summaryMap[user.id],

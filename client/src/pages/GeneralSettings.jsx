@@ -13,6 +13,7 @@ const GeneralSettings = () => {
   const [logicalDayCutoff, setLogicalDayCutoff] = useState('5');
   const [autoCheckoutHours, setAutoCheckoutHours] = useState(localStorage.getItem('autoCheckoutHours') || '14');
   const [allowedDelayMinutes, setAllowedDelayMinutes] = useState('15');
+  const [allowedEarlyDepartureMinutes, setAllowedEarlyDepartureMinutes] = useState(localStorage.getItem('allowedEarlyDepartureMinutes') || '0');
   const [dayOffWorkMultiplier, setDayOffWorkMultiplier] = useState(localStorage.getItem('dayOffWorkMultiplier') || '1.5');
   const [absencePenaltyMultiplier, setAbsencePenaltyMultiplier] = useState(localStorage.getItem('absencePenaltyMultiplier') || '2');
   const [enableLatePenalty, setEnableLatePenalty] = useState(localStorage.getItem('enableLatePenalty') !== 'false');
@@ -35,6 +36,7 @@ const GeneralSettings = () => {
         setLogicalDayCutoff(res.data.logicalDayCutoff || '5');
         setAutoCheckoutHours(res.data.autoCheckoutHours || '1');
         setAllowedDelayMinutes(res.data.allowedDelayMinutes || '15');
+        setAllowedEarlyDepartureMinutes(res.data.allowedEarlyDepartureMinutes || '0');
         setDayOffWorkMultiplier(res.data.dayOffWorkMultiplier || '1.5');
         setAbsencePenaltyMultiplier(res.data.absencePenaltyMultiplier || '2');
         setEnableLatePenalty(res.data.enableLatePenalty !== 'false');
@@ -42,6 +44,7 @@ const GeneralSettings = () => {
         setAllowedPrayerBreakMinutes(res.data.allowedPrayerBreakMinutes || '15');
         localStorage.setItem('logicalDayCutoff', res.data.logicalDayCutoff || '5');
         localStorage.setItem('allowedDelayMinutes', res.data.allowedDelayMinutes || '15');
+        localStorage.setItem('allowedEarlyDepartureMinutes', res.data.allowedEarlyDepartureMinutes || '0');
         localStorage.setItem('dayOffWorkMultiplier', res.data.dayOffWorkMultiplier || '1.5');
         localStorage.setItem('absencePenaltyMultiplier', res.data.absencePenaltyMultiplier || '2');
         localStorage.setItem('enableLatePenalty', res.data.enableLatePenalty || 'true');
@@ -52,6 +55,7 @@ const GeneralSettings = () => {
         setLogicalDayCutoff('5');
         setAutoCheckoutHours('1');
         setAllowedDelayMinutes('15');
+        setAllowedEarlyDepartureMinutes('0');
         setDayOffWorkMultiplier('1.5');
         setAbsencePenaltyMultiplier('2');
         setEnableLatePenalty(true);
@@ -65,6 +69,7 @@ const GeneralSettings = () => {
       setLogicalDayCutoff('5');
       setAutoCheckoutHours('1');
       setAllowedDelayMinutes('15');
+      setAllowedEarlyDepartureMinutes('0');
       setDayOffWorkMultiplier('1.5');
       setAbsencePenaltyMultiplier('2');
       setEnableLatePenalty(true);
@@ -106,6 +111,11 @@ const GeneralSettings = () => {
       });
 
       await api.put('/settings', {
+        key: 'allowedEarlyDepartureMinutes',
+        value: allowedEarlyDepartureMinutes.toString()
+      });
+
+      await api.put('/settings', {
         key: 'dayOffWorkMultiplier',
         value: dayOffWorkMultiplier.toString()
       });
@@ -132,6 +142,7 @@ const GeneralSettings = () => {
 
       localStorage.setItem('logicalDayCutoff', logicalDayCutoff.toString());
       localStorage.setItem('autoCheckoutHours', autoCheckoutHours);
+      localStorage.setItem('allowedEarlyDepartureMinutes', allowedEarlyDepartureMinutes.toString());
       localStorage.setItem('dayOffWorkMultiplier', dayOffWorkMultiplier);
       localStorage.setItem('absencePenaltyMultiplier', absencePenaltyMultiplier);
       localStorage.setItem('enableLatePenalty', enableLatePenalty);
@@ -275,6 +286,31 @@ const GeneralSettings = () => {
 
                 <div className="gs-hint generalsettings-style-9" >
                   الوقت المسموح به بعد بداية الوردية. الحضور بعد هذا الوقت يُسجل تأخير (مثال: 15 دقيقة).
+                </div>
+              </div>
+            </div>
+
+            {/* Allowed Early Departure Minutes */}
+            <div className="gs-card">
+              <div className="gs-card-header">
+                <div className="gs-card-icon"><AlertCircle size={24} /></div>
+                <h3 className="gs-card-title">سماحية الانصراف المبكر</h3>
+              </div>
+              <div className="gs-input-group">
+                <label className="gs-label">دقائق السماح قبل احتساب الانصراف المبكر</label>
+                <div className="gs-input-wrapper">
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    className="gs-input"
+                    value={allowedEarlyDepartureMinutes}
+                    onChange={(e) => setAllowedEarlyDepartureMinutes(e.target.value)}
+                  />
+                </div>
+                
+                <div className="gs-hint generalsettings-style-9" >
+                  الوقت المسموح به قبل نهاية الوردية للانصراف بدون خصم (مثال: 0 دقيقة). يتم تفعيل هذا الخصم تلقائياً إذا كان خصم التأخير مفعلاً.
                 </div>
               </div>
             </div>

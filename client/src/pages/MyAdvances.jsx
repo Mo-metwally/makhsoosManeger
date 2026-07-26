@@ -17,7 +17,7 @@ const MyAdvances = () => {
   const [baseSalary, setBaseSalary] = useState(0);
   const [baseEarnings, setBaseEarnings] = useState(0);
   const [systemRecords, setSystemRecords] = useState([]);
-  const [detailedStats, setDetailedStats] = useState({ absentCount: 0, absentPenalty: 0, lateMins: 0, latePenalty: 0 });
+  const [detailedStats, setDetailedStats] = useState({ absentCount: 0, absentPenalty: 0, lateMins: 0, latePenalty: 0, earlyMins: 0, earlyPenalty: 0 });
   const [showDeductionsModal, setShowDeductionsModal] = useState(false);
   const [totalDeductions, setTotalDeductions] = useState(0);
   const [totalAdditions, setTotalAdditions] = useState(0);
@@ -51,8 +51,11 @@ const MyAdvances = () => {
   const fetchRequests = () => {
     setIsDataLoaded(false);
     const endpoint = userId ? `/advances/user/${userId}?monthKey=${selectedMonth}` : `/advances/me?monthKey=${selectedMonth}`;
-    api.get(endpoint)
-      .then(res => {
+    Promise.all([
+      api.get(endpoint),
+      api.get('/settings').catch(() => ({ data: {} }))
+    ])
+      .then(([res, settingsRes]) => {
         setRequests(res.data.requests || []);
 
         if (res.data.userProfile) {
@@ -64,7 +67,6 @@ const MyAdvances = () => {
 
         const stats = res.data.stats || { absentCount: 0, dayOffWorkCount: 0 };
         
-        // Calculate counts locally in case backend isn't restarted
         let localPresentCount = 0;
         let localDayOffCount = 0;
         if (res.data.logs) {
@@ -74,31 +76,55 @@ const MyAdvances = () => {
           });
         }
 
+        const settingsMap = settingsRes.data || {};
         const workingHours = res.data.workingHours || 8;
-        const absencePenaltyMultiplier = Number(localStorage.getItem('absencePenaltyMultiplier') || '2');
-        const dayOffWorkMultiplier = Number(localStorage.getItem('dayOffWorkMultiplier') || '1.5');
-        const allowedDelayMinutes = Number(localStorage.getItem('allowedDelayMinutes') || '15');
-        const enableLatePenalty = localStorage.getItem('enableLatePenalty') !== 'false';
+        const absencePenaltyMultiplier = Number(settingsMap.absencePenaltyMultiplier || localStorage.getItem('absencePenaltyMultiplier') || '2');
+        const dayOffWorkMultiplier = Number(settingsMap.dayOffWorkMultiplier || localStorage.getItem('dayOffWorkMultiplier') || '1.5');
+        const allowedDelayMinutes = Number(settingsMap.allowedDelayMinutes || localStorage.getItem('allowedDelayMinutes') || '15');
+        const allowedEarlyDepartureMinutes = Number(settingsMap.allowedEarlyDepartureMinutes || localStorage.getItem('allowedEarlyDepartureMinutes') || '0');
+        const enableLatePenalty = (settingsMap.enableLatePenalty || localStorage.getItem('enableLatePenalty')) !== 'false';
+        
         const dailyRate = salary / 30;
         const earnings = (localPresentCount + localDayOffCount) * dailyRate;
         setBaseEarnings(Math.round(earnings));
 
         let calculatedLateMins = 0;
+        let calculatedEarlyMins = 0;
         if (enableLatePenalty && res.data.logs && res.data.shiftStartTime) {
           res.data.logs.forEach(log => {
             if ((log.status === 'Present' || log.status === 'DayOffWork' || log.status === 'Late') && log.checkInTime) {
               const checkInDate = new Date(log.checkInTime);
               const [startHour, startMin] = res.data.shiftStartTime.split(':').map(Number);
-
+              
               const shiftStart = new Date(checkInDate);
               shiftStart.setHours(startHour, startMin, 0, 0);
 
               if (checkInDate > shiftStart) {
                 const diffMs = checkInDate - shiftStart;
                 const diffMins = Math.floor(diffMs / 60000);
-                const actualDelayMins = diffMins - allowedDelayMinutes;
+                const actualDelayMins = diffMins > allowedDelayMinutes ? diffMins : 0;
                 if (actualDelayMins > 0) {
                   calculatedLateMins += actualDelayMins;
+                }
+              }
+
+              if (log.checkOutTime && res.data.shiftEndTime && log.status !== 'BusinessTrip') {
+                const checkOutDate = new Date(log.checkOutTime);
+                const [endHour, endMin] = res.data.shiftEndTime.split(':').map(Number);
+                
+                const shiftEnd = new Date(checkOutDate);
+                shiftEnd.setHours(endHour, endMin, 0, 0);
+                if (endHour < startHour && checkOutDate.getHours() >= startHour) {
+                  shiftEnd.setDate(shiftEnd.getDate() + 1);
+                }
+
+                if (checkOutDate < shiftEnd) {
+                  const diffMs = shiftEnd - checkOutDate;
+                  const diffMins = Math.floor(diffMs / 60000);
+                  const actualEarlyMins = diffMins > allowedEarlyDepartureMinutes ? diffMins : 0;
+                  if (actualEarlyMins > 0) {
+                    calculatedEarlyMins += actualEarlyMins;
+                  }
                 }
               }
             }
@@ -107,8 +133,9 @@ const MyAdvances = () => {
 
         const absentPenalty = stats.absentCount * absencePenaltyMultiplier * dailyRate;
         const latePenalty = calculatedLateMins * (dailyRate / workingHours / 60);
+        const earlyPenalty = calculatedEarlyMins * (dailyRate / workingHours / 60);
 
-        let autoDeductions = Math.round(absentPenalty + latePenalty);
+        let autoDeductions = Math.round(absentPenalty + latePenalty + earlyPenalty);
         let autoAdditions = Math.round(stats.dayOffWorkCount * dailyRate * dayOffWorkMultiplier);
 
         let manualAdds = 0;
@@ -155,6 +182,8 @@ const MyAdvances = () => {
           absentPenalty: Math.round(absentPenalty),
           lateMins: calculatedLateMins,
           latePenalty: Math.round(latePenalty),
+          earlyMins: calculatedEarlyMins,
+          earlyPenalty: Math.round(earlyPenalty),
           dayOffWorkCount: stats.dayOffWorkCount,
           presentCount: localPresentCount,
           dayOffCount: localDayOffCount,
@@ -578,7 +607,38 @@ const MyAdvances = () => {
                 </tr>
               )}
 
-              {requests.length === 0 && systemRecords.length === 0 && detailedStats.latePenalty === 0 ? (
+              {detailedStats.earlyPenalty > 0 && (
+                <tr className="myadvances-style-47">
+                  <td>
+                    <div className="date-cell">
+                      <Clock size={14} />
+                      <span>إجمالي الشهر</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="time-cell">
+                      <span>---</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="amount-cell myadvances-style-48" style={{ color: '#ef4444' }}>
+                      {detailedStats.earlyPenalty.toLocaleString()} ج.م
+                    </span>
+                  </td>
+                  <td>
+                    <span className="details-text myadvances-style-49" style={{ color: '#ef4444' }}>
+                      خصم انصراف مبكر ({detailedStats.earlyMins} دقيقة)
+                    </span>
+                  </td>
+                  <td>
+                    <span className="status-badge myadvances-style-50" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
+                      خصم نظام
+                    </span>
+                  </td>
+                </tr>
+              )}
+
+              {requests.length === 0 && systemRecords.length === 0 && detailedStats.latePenalty === 0 && detailedStats.earlyPenalty === 0 ? (
                 <tr>
                   <td colSpan="5" className="myadvances-style-51">
                     لا توجد سجلات مسجلة لهذا الشهر.
@@ -696,6 +756,14 @@ const MyAdvances = () => {
                     <span>خصم التأخير ({detailedStats.lateMins} دقيقة)</span>
                   </div>
                   <strong className="myadvances-style-64">{detailedStats.latePenalty} ج.م</strong>
+                </div>
+
+                <div className="myadvances-style-62">
+                  <div className="myadvances-style-63">
+                    <Clock size={18} />
+                    <span>خصم الانصراف المبكر ({detailedStats.earlyMins} دقيقة)</span>
+                  </div>
+                  <strong className="myadvances-style-64">{detailedStats.earlyPenalty} ج.م</strong>
                 </div>
               </div>
 

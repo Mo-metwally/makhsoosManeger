@@ -26,6 +26,7 @@ const HandleAdminReports = () => {
 
   const [editModal, setEditModal] = useState({ isOpen: false, log: null, checkInTime: '', checkOutTime: '', status: '', notes: '' });
   const [expandedRowId, setExpandedRowId] = useState(null);
+  const [showCheckoutMenu, setShowCheckoutMenu] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -89,12 +90,41 @@ const HandleAdminReports = () => {
 
     const diffMins = Math.floor(diffMs / 60000);
     const allowedDelay = Number(localStorage.getItem('allowedDelayMinutes') || '15');
-    const actualDelayMins = diffMins - allowedDelay;
+    const actualDelayMins = diffMins > allowedDelay ? diffMins : 0;
 
     if (actualDelayMins <= 0) return 'لا يوجد';
 
     const hours = Math.floor(actualDelayMins / 60);
     const mins = actualDelayMins % 60;
+
+    if (hours > 0) return `${hours} س ${mins > 0 ? `و ${mins} د` : ''}`;
+    return `${mins} دقيقة`;
+  };
+
+  const calculateEarlyDeparture = (checkOutDateStr, shiftStr) => {
+    if (!checkOutDateStr || !shiftStr || !shiftStr.endTime || !shiftStr.startTime) return '---';
+
+    const checkOutDate = new Date(checkOutDateStr);
+    const [startH] = shiftStr.startTime.split(':').map(Number);
+    const [endH, endM] = shiftStr.endTime.split(':').map(Number);
+    
+    const shiftEndDate = new Date(checkOutDate);
+    shiftEndDate.setHours(endH, endM, 0, 0);
+    if (endH < startH && checkOutDate.getHours() >= startH) {
+      shiftEndDate.setDate(shiftEndDate.getDate() + 1);
+    }
+
+    const diffMs = shiftEndDate - checkOutDate;
+    if (diffMs <= 0) return 'لا يوجد';
+
+    const diffMins = Math.floor(diffMs / 60000);
+    const allowedEarly = Number(localStorage.getItem('allowedEarlyDepartureMinutes') || '0');
+    const actualEarlyMins = diffMins > allowedEarly ? diffMins : 0;
+
+    if (actualEarlyMins <= 0) return 'لا يوجد';
+
+    const hours = Math.floor(actualEarlyMins / 60);
+    const mins = actualEarlyMins % 60;
 
     if (hours > 0) return `${hours} س ${mins > 0 ? `و ${mins} د` : ''}`;
     return `${mins} دقيقة`;
@@ -155,7 +185,14 @@ const HandleAdminReports = () => {
   // Status Filter
   if (statusFilter !== 'all') {
     filteredLogs = filteredLogs.filter(log => {
-      if (statusFilter === 'CheckedOut') return log.checkOutTime != null;
+      if (statusFilter === 'CheckedOut') {
+        const earlyRes = calculateEarlyDeparture(log.checkOutTime, log.Shift);
+        return log.checkOutTime != null && (earlyRes === 'لا يوجد' || earlyRes === '---');
+      }
+      if (statusFilter === 'EarlyCheckout') {
+        const earlyRes = calculateEarlyDeparture(log.checkOutTime, log.Shift);
+        return log.checkOutTime != null && earlyRes !== 'لا يوجد' && earlyRes !== '---';
+      }
       if (statusFilter === 'Present') return log.status === 'Present' && log.checkOutTime == null;
       return log.status === statusFilter;
     });
@@ -238,22 +275,104 @@ const HandleAdminReports = () => {
               { value: 'DayOff', label: 'إجازة', icon: Calendar, color: '#3b82f6' },
               { value: 'DayOffWork', label: 'عمل إجازة', icon: Briefcase, color: '#8b5cf6' }
             ].map(status => (
-              <div className="admin-filter-radio" key={status.value}>
-                <label className="handleadminreports-style-4">
-                  <input
-                    type="radio"
-                    name="statusFilter"
-                    value={status.value}
-                    checked={statusFilter === status.value}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                  />
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: statusFilter === status.value ? '#fff' : 'var(--text-color)' }}>
-                    <status.icon size={16} color={statusFilter === status.value ? '#fff' : status.color} />
-                    {status.label}
-                  </span>
-                  {statusFilter === status.value && <div className="radio-bg" style={{ background: status.color, boxShadow: `0 4px 15px ${status.color}40` }}></div>}
-                </label>
-              </div>
+              status.value === 'CheckedOut' ? (
+                <div 
+                  className="admin-filter-radio" 
+                  key={status.value}
+                  onMouseEnter={() => setShowCheckoutMenu(true)}
+                  onMouseLeave={() => setShowCheckoutMenu(false)}
+                  style={{ position: 'relative' }}
+                >
+                  <label className="handleadminreports-style-4">
+                    <input
+                      type="radio"
+                      name="statusFilter"
+                      value={status.value}
+                      checked={statusFilter === 'CheckedOut' || statusFilter === 'EarlyCheckout'}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      onClick={() => {
+                        if (statusFilter === 'EarlyCheckout') setStatusFilter('CheckedOut');
+                      }}
+                    />
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: (statusFilter === 'CheckedOut' || statusFilter === 'EarlyCheckout') ? '#fff' : 'var(--text-color)' }}>
+                      <status.icon size={16} color={(statusFilter === 'CheckedOut' || statusFilter === 'EarlyCheckout') ? '#fff' : status.color} />
+                      {statusFilter === 'EarlyCheckout' ? 'انصراف مبكر' : 'انصراف'}
+                    </span>
+                    {(statusFilter === 'CheckedOut' || statusFilter === 'EarlyCheckout') && <div className="radio-bg" style={{ background: status.color, boxShadow: `0 4px 15px ${status.color}40` }}></div>}
+                  </label>
+                  {showCheckoutMenu && (
+                    <div className="checkout-dropdown-wrapper" style={{
+                      position: 'absolute',
+                      top: '100%',
+                      right: '0',
+                      paddingTop: '8px', /* safe bridge for hover */
+                      zIndex: 99999,
+                      minWidth: '160px'
+                    }}>
+                      <div className="checkout-dropdown-content" style={{
+                        background: 'var(--theme-bg, #1e1e2d)',
+                        border: '1px solid var(--theme-border, #3b3b4f)',
+                        borderRadius: '8px',
+                        padding: '6px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '4px',
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.5)'
+                      }}>
+                        <div 
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setStatusFilter('CheckedOut'); setShowCheckoutMenu(false); }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = statusFilter === 'CheckedOut' ? 'rgba(239, 68, 68, 0.15)' : 'transparent'}
+                          style={{ 
+                            padding: '10px 12px', cursor: 'pointer', borderRadius: '6px', 
+                            background: statusFilter === 'CheckedOut' ? 'rgba(239, 68, 68, 0.15)' : 'transparent', 
+                            color: statusFilter === 'CheckedOut' ? '#ef4444' : '#fff', 
+                            display: 'flex', alignItems: 'center', gap: '8px', 
+                            transition: 'all 0.2s ease',
+                            fontSize: '14px', fontWeight: '600'
+                          }}
+                        >
+                          <LogOut size={16} color="#ef4444" />
+                          <span>انصراف عادي</span>
+                        </div>
+                        <div 
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setStatusFilter('EarlyCheckout'); setShowCheckoutMenu(false); }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = statusFilter === 'EarlyCheckout' ? 'rgba(239, 68, 68, 0.15)' : 'transparent'}
+                          style={{ 
+                            padding: '10px 12px', cursor: 'pointer', borderRadius: '6px', 
+                            background: statusFilter === 'EarlyCheckout' ? 'rgba(239, 68, 68, 0.15)' : 'transparent', 
+                            color: statusFilter === 'EarlyCheckout' ? '#ef4444' : '#fff', 
+                            display: 'flex', alignItems: 'center', gap: '8px', 
+                            transition: 'all 0.2s ease',
+                            fontSize: '14px', fontWeight: '600'
+                          }}
+                        >
+                          <Clock size={16} color="#ef4444" />
+                          <span>انصراف مبكر</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="admin-filter-radio" key={status.value}>
+                  <label className="handleadminreports-style-4">
+                    <input
+                      type="radio"
+                      name="statusFilter"
+                      value={status.value}
+                      checked={statusFilter === status.value}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                    />
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: statusFilter === status.value ? '#fff' : 'var(--text-color)' }}>
+                      <status.icon size={16} color={statusFilter === status.value ? '#fff' : status.color} />
+                      {status.label}
+                    </span>
+                    {statusFilter === status.value && <div className="radio-bg" style={{ background: status.color, boxShadow: `0 4px 15px ${status.color}40` }}></div>}
+                  </label>
+                </div>
+              )
             ))}
           </div>
 
@@ -320,8 +439,9 @@ const HandleAdminReports = () => {
                   <th>الوردية</th>
                   <th>وقت الحضور</th>
                   <th>وقت الانصراف</th>
-                  <th>الاستراحات</th>
+                  <th>استراحات</th>
                   <th>التأخير</th>
+                  <th>الانصراف المبكر</th>
                   <th>الحالة</th>
                   <th>إجراء</th>
                 </tr>
@@ -386,6 +506,9 @@ const HandleAdminReports = () => {
                       <td className="handleadminreports-style-26">
                         {calculateDelay(log.checkInTime, log.Shift?.startTime)}
                       </td>
+                      <td className="handleadminreports-style-26" style={{ color: calculateEarlyDeparture(log.checkOutTime, log.Shift) !== 'لا يوجد' && calculateEarlyDeparture(log.checkOutTime, log.Shift) !== '---' ? '#ef4444' : 'inherit' }}>
+                        {calculateEarlyDeparture(log.checkOutTime, log.Shift)}
+                      </td>
                       <td>
                         {log.status === 'Absent' ? (
                           <span className="status-badge handleadminreports-style-27" >
@@ -442,7 +565,7 @@ const HandleAdminReports = () => {
                     </tr>
                     {expandedRowId === log.id && log.notes && (
                       <tr className="tf-expanded-row">
-                        <td colSpan="9" className="handleadminreports-style-35">
+                        <td colSpan="10" className="handleadminreports-style-35">
                           <div className="handleadminreports-style-36">
                             <strong className="handleadminreports-style-37">
                               <Info size={16} className="handleadminreports-style-38" />

@@ -224,12 +224,13 @@ const Sidebar = () => {
               <span>لوحة التشغيل</span>
             </NavLink>
           </li>
-          <li>
+          {(profile.role === 'Admin' || profile.role === 'SuperAdmin') && (<li>
             <NavLink to="/followup" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
               <Flame size={20} />
               <span>الأداء اليومي</span>
             </NavLink>
           </li>
+          )}
           <li>
             <NavLink to="/personal-followup" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}>
               <Activity size={20} />

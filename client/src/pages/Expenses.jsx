@@ -22,6 +22,7 @@ const Expenses = () => {
   const todayMonthKey = new Date().toISOString().slice(0, 7);
   const [selectedMonth, setSelectedMonth] = useState(todayMonthKey);
   const [filterMonthInput, setFilterMonthInput] = useState(todayMonthKey);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const isFirstOfMonth = (selectedMonth === todayMonthKey) && (new Date().getDate() === 1);
   const currentMonthName = new Date(selectedMonth + '-01').toLocaleString('ar-EG', { month: 'long', year: 'numeric' });
@@ -90,6 +91,14 @@ const Expenses = () => {
       fetchAdvanceRequests();
     }
   }, [selectedMonth, user, activeTab]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, selectedMonth]);
+
+  useEffect(() => {
+    fetchData();
+  }, [selectedMonth, activeTab]);
 
   const fetchAdvanceRequests = () => {
     if (user && (user.role === 'Admin' || user.role === 'SuperAdmin')) {
@@ -552,12 +561,11 @@ const Expenses = () => {
             )
           )}
 
-          {/* Expense Table Section */}
           {(() => {
             const displayedExpenses = safeExpenses.filter(exp => {
               if (activeTab === 'advances_log') return exp.type === 'advance';
               if (activeTab === 'supplies_log') return exp.type === 'supplies';
-              return true; // budget shows all
+              return true; 
             });
 
             if (displayedExpenses.length === 0) return (
@@ -565,6 +573,11 @@ const Expenses = () => {
                 لا توجد حركات مسجلة في هذا السجل.
               </div>
             );
+
+            const EXP_ITEMS_PER_PAGE = 10;
+            const totalExpPages = Math.ceil(displayedExpenses.length / EXP_ITEMS_PER_PAGE);
+            const startIdx = (currentPage - 1) * EXP_ITEMS_PER_PAGE;
+            const currentExpenses = displayedExpenses.slice(startIdx, startIdx + EXP_ITEMS_PER_PAGE);
 
             return (
               <section className="expenses-table-section fade-in">
@@ -585,15 +598,15 @@ const Expenses = () => {
                         <th>النوع</th>
                         <th>التفاصيل / الاسم</th>
                         <th>المبلغ المخصوم</th>
-                        {budgetIsActive && <th>الإجراءات</th>}
+                        {activeTab === 'budget' && <th>الإجراءات</th>}
                       </tr>
                     </thead>
                     <tbody>
-                      {displayedExpenses.map(exp => (
+                      {currentExpenses.map(exp => (
                         <tr key={exp.id}>
                           <td>
                             <div className="date-cell">
-                              <Calendar size={16} />
+                              <Calendar size={14} />
                               <span>{new Date(exp.date).toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' })}</span>
                             </div>
                           </td>
@@ -605,7 +618,7 @@ const Expenses = () => {
                           </td>
                           <td>
                             <div className={`type-badge ${exp.type === 'advance' ? 'advance-badge' : 'supplies-badge'}`}>
-                              {exp.type === 'advance' ? <Users size={14} /> : <ShoppingBag size={14} />}
+                              {exp.type === 'advance' ? <Users size={12} /> : <ShoppingBag size={12} />}
                               <span>{exp.type === 'advance' ? 'سلفة موظف' : 'مستلزمات'}</span>
                             </div>
                           </td>
@@ -626,18 +639,16 @@ const Expenses = () => {
                             </span>
                           </td>
                           <td>
-                            <span className="amount-cell negative-val">
+                            <span className="amount-cell negative-val expenses-style-23">
                               -{exp.amount.toLocaleString()} ج.م
                             </span>
                           </td>
-                          {budgetIsActive && (
+                          {activeTab === 'budget' && (
                             <td>
-                              <div className="expenses-style-23">
+                              <div className="action-buttons">
                                 <button
-                                  className="edit-btn expenses-style-24"
-                                  
+                                  className="btn-icon text-theme expenses-style-24"
                                   onClick={() => handleEditExpense(exp)}
-                                  title="تعديل"
                                 >
                                   <Edit2 size={16} />
                                 </button>
@@ -653,6 +664,31 @@ const Expenses = () => {
                             </td>)}
                         </tr>
                       ))}
+                      {totalExpPages > 1 && (
+                        <tr>
+                          <td colSpan={activeTab === 'budget' ? "6" : "5"}>
+                            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', padding: '10px' }}>
+                              <button 
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                style={{ padding: '6px 16px', borderRadius: '6px', background: currentPage === 1 ? 'var(--theme-border)' : 'var(--theme-color)', color: currentPage === 1 ? 'var(--text-secondary)' : '#000', border: 'none', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
+                              >
+                                السابق
+                              </button>
+                              <span style={{ color: 'var(--text-color)', fontWeight: 'bold' }}>
+                                صفحة {currentPage} من {totalExpPages}
+                              </span>
+                              <button 
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalExpPages))}
+                                disabled={currentPage === totalExpPages}
+                                style={{ padding: '6px 16px', borderRadius: '6px', background: currentPage === totalExpPages ? 'var(--theme-border)' : 'var(--theme-color)', color: currentPage === totalExpPages ? 'var(--text-secondary)' : '#000', border: 'none', cursor: currentPage === totalExpPages ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
+                              >
+                                التالي
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
