@@ -71,6 +71,10 @@ const login = async (req, res) => {
       await user.save();
     }
 
+    // Update last login time
+    user.lastLogin = new Date();
+    await user.save();
+
     // Generate JWT (using potentially updated jwtVersion)
     const token = jwt.sign({ id: user.id, role: user.role, version: user.jwtVersion }, process.env.JWT_SECRET, { expiresIn: '7d' });
 

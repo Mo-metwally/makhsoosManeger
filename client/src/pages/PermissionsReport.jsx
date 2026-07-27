@@ -158,6 +158,11 @@ const UserRow = ({ user, currentUser, onRefresh, handleRoleChange, handleAction 
             {user.status === 'Active' ? 'نشط' : 'موقوف'}
           </span>
         </td>
+        <td dir="ltr" style={{ textAlign: 'center' }}>
+          {user.lastLogin 
+            ? new Date(user.lastLogin).toLocaleString('ar-EG', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+            : 'لم يسجل دخول'}
+        </td>
         <td className="pr-actions" onClick={(e) => e.stopPropagation()}>
           {user.role !== 'SuperAdmin' && user.status === 'Active' && (
             <button className="pr-btn-suspend" onClick={() => handleAction(user.id, 'suspend')} title="إيقاف">
@@ -173,7 +178,7 @@ const UserRow = ({ user, currentUser, onRefresh, handleRoleChange, handleAction 
       </tr>
       {expanded && (
         <tr className="expanded-row">
-          <td colSpan="5">
+          <td colSpan="6">
             <div className="expanded-panel">
               <div className="expanded-header">
                 <h3>تفاصيل الحساب</h3>
@@ -394,6 +399,7 @@ const PermissionsReport = () => {
                     <th>اسم المستخدم</th>
                     <th>الاسم الكامل</th>
                     <th>البريد الإلكتروني</th>
+                    <th>تاريخ الطلب</th>
                     <th>إجراء</th>
                   </tr>
                 </thead>
@@ -403,6 +409,9 @@ const PermissionsReport = () => {
                       <td>{u.username}</td>
                       <td>{u.fullName}</td>
                       <td>{u.email}</td>
+                      <td dir="ltr" style={{ textAlign: 'center', fontSize: '13px' }}>
+                        {new Date(u.createdAt).toLocaleString('ar-EG', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </td>
                       <td className="pr-actions">
                         <button className="pr-btn-approve" onClick={() => handleAction(u.id, 'approve')} title="موافقة">
                           <CheckCircle size={20} />
@@ -436,6 +445,7 @@ const PermissionsReport = () => {
                     <th>الاسم الكامل</th>
                     <th>الصلاحية</th>
                     <th>الحالة</th>
+                    <th>آخر تسجيل دخول</th>
                     <th>إجراء</th>
                   </tr>
                 </thead>

@@ -96,10 +96,6 @@ const Expenses = () => {
     setCurrentPage(1);
   }, [activeTab, selectedMonth]);
 
-  useEffect(() => {
-    fetchData();
-  }, [selectedMonth, activeTab]);
-
   const fetchAdvanceRequests = () => {
     if (user && (user.role === 'Admin' || user.role === 'SuperAdmin')) {
       api.get(`/advances/all?monthKey=${selectedMonth}`)
