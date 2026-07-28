@@ -606,7 +606,16 @@ const Home = () => {
                           dir="ltr"
                           className="home-style-15"
                           value={phoneInput}
-                          onChange={(e) => setPhoneInput(e.target.value)}
+                          onChange={(e) => {
+                            let val = e.target.value.replace(/\s+/g, '');
+                            // Remove country codes: Egypt (20), KSA (966), UAE (971), Yemen (967)
+                            val = val.replace(/^(\+|00)?(20|966|971|967)/, '');
+                            // If local format needs a leading zero (Egypt starts with 1, KSA/UAE start with 5)
+                            if (val.startsWith('1') || val.startsWith('5')) {
+                              val = '0' + val;
+                            }
+                            setPhoneInput(val);
+                          }}
                         />
                         <PhoneIcon size={16} className="input-icon2" />
                       </div>

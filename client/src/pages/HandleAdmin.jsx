@@ -19,6 +19,7 @@ const HandleAdmin = () => {
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
   const [supervisorFilter, setSupervisorFilter] = useState(initialEmployeeName || 'all');
+  const [cityFilter, setCityFilter] = useState('all');
   const [sortBy, setSortBy] = useState('date_desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedRows, setExpandedRows] = useState(new Set());
@@ -46,7 +47,7 @@ const HandleAdmin = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, timeFilter, supervisorFilter, sortBy, customStartDate, customEndDate]);
+  }, [searchQuery, timeFilter, supervisorFilter, cityFilter, sortBy, customStartDate, customEndDate]);
 
   const handleClearData = () => {
     if (window.confirm('هل أنت متأكد من رغبتك في مسح كافة البيانات المجمعة؟ هذا الإجراء لا يمكن التراجع عنه.')) {
@@ -99,7 +100,8 @@ const HandleAdmin = () => {
   };
 
   const uniqueSupervisors = Array.from(new Set(calls.map(c => c.supervisorName).filter(Boolean)));
-  const filteredCalls = applyFiltersAndSort(calls, { timeFilter, supervisorFilter, searchQuery, sortBy, customStartDate, customEndDate }, false);
+  const uniqueCities = Array.from(new Set(calls.map(c => c.city).filter(Boolean))).sort();
+  const filteredCalls = applyFiltersAndSort(calls, { timeFilter, supervisorFilter, cityFilter, searchQuery, sortBy, customStartDate, customEndDate }, false);
 
   const totalPages = Math.ceil(filteredCalls.length / ITEMS_PER_PAGE);
   const currentCalls = filteredCalls.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
@@ -197,6 +199,15 @@ const HandleAdmin = () => {
               value={supervisorFilter}
               onChange={setSupervisorFilter}
               placeholder="اختر المشرف"
+            />
+            <CustomSelect
+              options={[
+                { value: 'all', label: 'كل المحافظات' },
+                ...uniqueCities.map(city => ({ value: city, label: city }))
+              ]}
+              value={cityFilter}
+              onChange={setCityFilter}
+              placeholder="اختر المحافظة"
             />
 
             <CustomSelect

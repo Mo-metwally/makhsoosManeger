@@ -21,7 +21,7 @@ export const parseArabicDate = (arStr) => {
   return new Date(year, month - 1, day).toISOString();
 };
 
-export const applyFiltersAndSort = (data, { timeFilter, supervisorFilter, searchQuery, sortBy, customStartDate, customEndDate }, isLogs = false) => {
+export const applyFiltersAndSort = (data, { timeFilter, supervisorFilter, cityFilter, searchQuery, sortBy, customStartDate, customEndDate }, isLogs = false) => {
   let filtered = [...data];
   const now = new Date();
   
@@ -58,6 +58,10 @@ export const applyFiltersAndSort = (data, { timeFilter, supervisorFilter, search
 
   if (supervisorFilter && supervisorFilter !== 'all') {
     filtered = filtered.filter(item => item.supervisorName === supervisorFilter);
+  }
+
+  if (cityFilter && cityFilter !== 'all') {
+    filtered = filtered.filter(item => item.city === cityFilter);
   }
 
   if (searchQuery && searchQuery.trim() !== '') {
